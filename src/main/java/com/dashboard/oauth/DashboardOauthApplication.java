@@ -1,4 +1,4 @@
-package com.dashboard.dashboard.oauth;
+package com.dashboard.oauth;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
