@@ -17,11 +17,14 @@ import java.util.function.Function;
 
 @Service
 public class JwtService {
-    @Value("${jwt.secret}")
+    @Value("${JWT_SECRET}")
     private String secret;
 
-    @Value("${jwt.expiration}")
+    @Value("${JWT_EXPIRATION}")
     private Long expiration;
+
+    @Value("${JWT_REFRESH_EXPIRATION}")
+    private Long refreshExpiration;
 
     public String generateToken(UserInfo userDetails) {
         Map<String, Object> claims = new HashMap<>();
