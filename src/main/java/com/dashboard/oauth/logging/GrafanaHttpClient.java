@@ -4,7 +4,6 @@ import com.dashboard.oauth.environment.GrafanaProperties;
 import com.dashboard.oauth.model.log.ApiCallLog;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
-
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -28,11 +27,12 @@ public class GrafanaHttpClient {
             ObjectMapper mapper = new ObjectMapper();
             Instant instant = Instant.now();
             String timestampNanos = String.valueOf(instant.getEpochSecond() * 1_000_000_000L + instant.getNano());
+
             Map<String, Object> payload = Map.of(
                     "streams", List.of(
                             Map.of(
                                     "stream", Map.of(
-                                            "service", "spring-dashboard",
+                                            "service", "spring-dashboard-oauth",
                                             "environment", "dev",
                                             "level", "INFO"
                                     ),
