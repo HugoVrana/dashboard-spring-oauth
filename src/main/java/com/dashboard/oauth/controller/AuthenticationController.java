@@ -4,7 +4,6 @@ import com.dashboard.oauth.datatransferobjects.*;
 import com.dashboard.oauth.service.AuthenticationService;
 import com.dashboard.oauth.service.UserDetailsImpl;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;

@@ -1,6 +1,7 @@
 package com.dashboard.oauth.model.entities;
 
 import lombok.Data;
+
 import java.time.Instant;
 
 @Data
