@@ -1,8 +1,9 @@
 package com.dashboard.oauth.exceptionHandlers;
 
-import com.dashboard.oauth.logging.GrafanaHttpClient;
-import com.dashboard.oauth.logging.LogBuilderHelper;
-import com.dashboard.oauth.model.log.ApiCallLog;
+import com.dashboard.common.logging.GrafanaHttpClient;
+import com.dashboard.common.logging.LogBuilderHelper;
+import com.dashboard.common.model.log.ApiCallLog;
+import com.dashboard.oauth.model.exception.InvalidRequestException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.crossstore.ChangeSetPersister;
@@ -12,7 +13,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-
 import java.net.URI;
 import java.time.Instant;
 import java.util.HashMap;
@@ -46,6 +46,11 @@ public class GlobalExceptionHandler {
         return pd;
     }
 
+    @ExceptionHandler(InvalidRequestException.class)
+    public ResponseEntity<String> handleInvalidRequest(InvalidRequestException ex) {
+        return ResponseEntity.badRequest().body(ex.getMessage());
+    }
+
     // Handle all exceptions
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleAllExceptions(Exception ex, HttpServletRequest request) {
@@ -54,7 +59,7 @@ public class GlobalExceptionHandler {
         // Log to Grafana
         try {
             Instant timestamp = Instant.now();
-            ApiCallLog.ApiCallLogBuilder builder = LogBuilderHelper.buildBaseLog(request, HttpStatus.INTERNAL_SERVER_ERROR.value(), timestamp, null);
+            ApiCallLog.ApiCallLogBuilder builder = LogBuilderHelper.buildBaseLog("spring-dashboard-oauth", request, HttpStatus.INTERNAL_SERVER_ERROR.value(), timestamp, null);
             ApiCallLog logEntry = builder
                     .errorMessage(ex.getMessage())
                     .errorType(ex.getClass().getSimpleName())

@@ -18,12 +18,55 @@ stages:          # List of stages for jobs, and their order of execution
   - test
   - deploy
 
+variables:
+  MAVEN_CLI_OPTS: "-B"
+
+cache:
+  key: m2
+  paths:
+    - .m2/repository
+
+before_script:
+  - mkdir -p ~/.m2
+  - |
+    cat > ~/.m2/settings.xml <<'XML'
+    <settings>
+      <profiles>
+        <profile>
+          <id>gitlab-registry</id>
+          <repositories>
+            <repository>
+              <id>common-lib</id>
+              <url>https://gitlab.com/api/v4/projects/${DASHBOARD_COMMON_PROJECT_ID}/packages/maven</url>
+            </repository>
+            <repository>
+              <id>central</id>
+              <url>https://repo.maven.apache.org/maven2</url>
+            </repository>
+          </repositories>
+        </profile>
+      </profiles>
+      <activeProfiles>
+        <activeProfile>gitlab-registry</activeProfile>
+      </activeProfiles>
+      <servers>
+        <server>
+          <id>common-lib</id>
+          <username>gitlab-ci-token</username>
+          <password>${CI_JOB_TOKEN}</password>
+        </server>
+      </servers>
+    </settings>
+    XML
+    
+
 include:
   - template: Security/Dependency-Scanning.gitlab-ci.yml
 
 build-job:       # This job runs in the build stage, which runs first.
   stage: build
   script:
+    - mvn $MAVEN_CLI_OPTS clean package
     - echo "Compiling the code..."
     - echo "Compile complete."
 

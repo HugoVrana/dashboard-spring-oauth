@@ -8,7 +8,6 @@ import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
-
 import javax.crypto.SecretKey;
 import java.util.Date;
 import java.util.HashMap;
@@ -17,13 +16,13 @@ import java.util.function.Function;
 
 @Service
 public class JwtService {
-    @Value("${JWT_SECRET}")
+    @Value("${JWT.SECRET}")
     private String secret;
 
-    @Value("${JWT_EXPIRATION}")
+    @Value("${JWT.EXPIRATION}")
     private Long expiration;
 
-    @Value("${JWT_REFRESH_EXPIRATION}")
+    @Value("${JWT.REFRESH_EXPIRATION}")
     private Long refreshExpiration;
 
     public String generateToken(UserInfo userDetails) {
