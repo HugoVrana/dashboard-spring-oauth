@@ -40,7 +40,7 @@ before_script:
           <repositories>
             <repository>
               <id>common-lib</id>
-              <url>https://gitlab.com/api/v4/projects/${DASHBOARD_COMMON_PROJECT_ID}/packages/maven</url>
+              <url>https://gitlab.com/api/v4/groups/${GROUP_ID}/-/packages/maven</url>
             </repository>
             <repository>
               <id>central</id>
