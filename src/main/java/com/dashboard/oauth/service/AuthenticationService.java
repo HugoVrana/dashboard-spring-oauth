@@ -9,6 +9,7 @@ import com.dashboard.oauth.model.entities.RefreshToken;
 import com.dashboard.oauth.model.entities.User;
 import com.dashboard.oauth.repository.IRefreshTokenRepository;
 import com.dashboard.oauth.repository.IUserRepository;
+import com.dashboard.oauth.service.interfaces.IAuthenticationService;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,7 +23,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class AuthenticationService {
+public class AuthenticationService implements IAuthenticationService {
     private final IUserRepository userRepository;
     private final IRefreshTokenRepository refreshTokenRepository;
     private final PasswordEncoder passwordEncoder;
