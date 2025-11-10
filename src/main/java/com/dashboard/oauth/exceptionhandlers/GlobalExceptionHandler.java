@@ -1,10 +1,12 @@
-package com.dashboard.oauth.exceptionHandlers;
+package com.dashboard.oauth.exceptionhandlers;
 
 import com.dashboard.common.logging.GrafanaHttpClient;
 import com.dashboard.common.logging.LogBuilderHelper;
 import com.dashboard.common.model.log.ApiCallLog;
 import com.dashboard.oauth.model.exception.InvalidRequestException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.http.HttpStatus;
@@ -20,13 +22,12 @@ import java.util.Map;
 
 @Slf4j
 @RestControllerAdvice
+@RequiredArgsConstructor
 public class GlobalExceptionHandler {
 
+    private static final String REQUEST_START_TIME = "requestStartTime";
     private final GrafanaHttpClient grafanaHttpClient;
-
-    public GlobalExceptionHandler(GrafanaHttpClient grafanaHttpClient) {
-        this.grafanaHttpClient = grafanaHttpClient;
-    }
+    private final ObjectMapper objectMapper;
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     ProblemDetail handleValidation(MethodArgumentNotValidException ex) {
@@ -58,13 +59,22 @@ public class GlobalExceptionHandler {
 
         // Log to Grafana
         try {
+            Instant startTime = (Instant) request.getAttribute(REQUEST_START_TIME);
+            Instant endTime = Instant.now();
+            Long durationMs = startTime != null ?
+                    java.time.Duration.between(startTime, endTime).toMillis() : null;
+
             Instant timestamp = Instant.now();
-            ApiCallLog.ApiCallLogBuilder builder = LogBuilderHelper.buildBaseLog("spring-dashboard-oauth", request, HttpStatus.INTERNAL_SERVER_ERROR.value(), timestamp, null);
-            ApiCallLog logEntry = builder
-                    .errorMessage(ex.getMessage())
-                    .errorType(ex.getClass().getSimpleName())
-                    .stackTrace(LogBuilderHelper.getStackTrace(ex)).build();
-            grafanaHttpClient.send(logEntry);
+            LogBuilderHelper logBuilderHelper = new LogBuilderHelper(objectMapper);
+            ApiCallLog.ApiCallLogBuilder builder = logBuilderHelper.buildBaseLog(
+                    "spring-dashboard",
+                    request,
+                    null,
+                    timestamp,
+                    durationMs);
+
+            ApiCallLog log = builder.build();
+            grafanaHttpClient.send(log);
         } catch (Exception loggingEx) {
             log.error("Failed to log exception to Grafana", loggingEx);
         }
