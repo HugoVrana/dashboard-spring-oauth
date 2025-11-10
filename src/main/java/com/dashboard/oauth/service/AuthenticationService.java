@@ -19,6 +19,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Base64;
 import java.util.UUID;
 
 @Service
@@ -44,6 +46,7 @@ public class AuthenticationService implements IAuthenticationService {
         User user = new User();
         user.setEmail(request.email());
         user.setPassword(passwordEncoder.encode(request.password()));
+        user.setRoles(new ArrayList<>()); // empty list for now
         Audit a = new Audit();
         a.setCreatedAt(Instant.now());
         user.setAudit(a);

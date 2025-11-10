@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import javax.crypto.SecretKey;
+import java.time.Instant;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -32,12 +33,16 @@ public class JwtService implements IJwtService {
     }
 
     private String createToken(Map<String, Object> claims, String subject) {
+        Instant now = Instant.now();
+        Instant expiryInstant = now.plusMillis(expiration);
+        SecretKey s = getSignKey();
+
         return Jwts.builder()
                 .claims(claims)
                 .subject(subject)
-                .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + expiration))
-                .signWith(getSignKey())
+                .issuedAt(Date.from(now))
+                .expiration(Date.from(expiryInstant))
+                .signWith(s)
                 .compact();
     }
 
