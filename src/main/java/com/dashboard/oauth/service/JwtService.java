@@ -1,6 +1,7 @@
 package com.dashboard.oauth.service;
 
 import com.dashboard.oauth.datatransferobjects.UserInfo;
+import com.dashboard.oauth.service.interfaces.IJwtService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
@@ -15,7 +16,7 @@ import java.util.Map;
 import java.util.function.Function;
 
 @Service
-public class JwtService {
+public class JwtService implements IJwtService {
     @Value("${JWT.SECRET}")
     private String secret;
 
