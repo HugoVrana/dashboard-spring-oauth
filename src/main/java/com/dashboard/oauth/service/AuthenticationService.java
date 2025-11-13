@@ -14,13 +14,13 @@ import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Base64;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -38,39 +38,36 @@ public class AuthenticationService implements IAuthenticationService {
     @Value("${jwt.refresh-expiration}")
     private Long refreshExpiration;
 
-    public AuthResponse register(RegisterRequest request) {
+    public UserInfo register(RegisterRequest request) {
         if (userRepository.existsByEmail(request.email())) {
-            throw new RuntimeException("Email already exists");
+            throw new AuthenticationServiceException("The user with email : " + request.email() + " already exists");
         }
 
         User user = new User();
         user.setEmail(request.email());
         user.setPassword(passwordEncoder.encode(request.password()));
-        user.setRoles(new ArrayList<>()); // empty list for now
-        Audit a = new Audit();
-        a.setCreatedAt(Instant.now());
-        user.setAudit(a);
+        user.setRoles(new ArrayList<>());
+
+        Audit audit = new Audit();
+        audit.setCreatedAt(Instant.now());
+        user.setAudit(audit);
+
         user = userRepository.save(user);
 
-        String accessToken = jwtService.generateToken(new UserInfo(user.get_id(), user.getEmail(), user.getRoles()));
-        String refreshToken = createRefreshToken(user);
-
-        return new AuthResponse(
-                accessToken,
-                refreshToken,
-                jwtExpiration,
-                UserInfo.fromUser(user)
-        );
+        return UserInfo.fromUser(user);
     }
 
     public AuthResponse login(LoginRequest request) {
+        Optional<User> optionalUser = userRepository.findByEmail(request.email());
+        if (optionalUser.isEmpty()) {
+            throw new RuntimeException("Invalid email or password");
+        }
+
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.email(), request.password())
         );
 
-        User user = userRepository.findByEmail(request.email())
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
+        User user = optionalUser.get();
         String accessToken = jwtService.generateToken(UserInfo.fromUser(user));
         String refreshToken = createRefreshToken(user);
 
