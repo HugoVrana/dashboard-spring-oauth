@@ -63,9 +63,14 @@ public class AuthenticationService implements IAuthenticationService {
             throw new RuntimeException("Invalid email or password");
         }
 
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.email(), request.password())
-        );
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(request.email(), request.password())
+            );
+        }
+        catch (Exception e) {
+            throw new RuntimeException("Invalid email or password");
+        }
 
         User user = optionalUser.get();
         String accessToken = jwtService.generateToken(UserInfo.fromUser(user));
