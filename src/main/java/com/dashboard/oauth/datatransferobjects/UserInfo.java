@@ -1,18 +1,13 @@
 package com.dashboard.oauth.datatransferobjects;
 
 import com.dashboard.oauth.model.entities.Role;
-import com.dashboard.oauth.model.entities.User;
+import lombok.Data;
 import org.bson.types.ObjectId;
-
 import java.util.List;
 
-public record UserInfo(
-        ObjectId id,
-        String email,
-        List<Role> role
-) {
-    public static UserInfo fromUser(User user) {
-        return new UserInfo(user.get_id(), user.getEmail(), user.getRoles());
-    }
+@Data
+public class UserInfo {
+    private ObjectId id;
+    private String email;
+    private List<Role> role;
 }
-

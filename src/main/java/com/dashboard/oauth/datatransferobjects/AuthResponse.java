@@ -1,13 +1,12 @@
 package com.dashboard.oauth.datatransferobjects;
 
-public record AuthResponse(
-        String accessToken,
-        String refreshToken,
-        String tokenType,
-        Long expiresIn,
-        UserInfo user
-) {
-    public AuthResponse(String accessToken, String refreshToken, Long expiresIn, UserInfo user) {
-        this(accessToken, refreshToken, "Bearer", expiresIn, user);
-    }
+import lombok.Data;
+
+@Data
+public class AuthResponse {
+    private String accessToken;
+    private String refreshToken;
+    private String tokenType;
+    private Long expiresIn;
+    private UserInfo user;
 }

@@ -1,10 +1,12 @@
 package com.dashboard.oauth.datatransferobjects;
 
 import jakarta.validation.constraints.Email;
+import lombok.Data;
 
-public record RegisterRequest(
+@Data
+public class RegisterRequest {
         @Email
-        String email,
-        String password,
-        String name
-) {}
+        private String email;
+        private String password;
+        private String name;
+}
