@@ -1,6 +1,9 @@
 package com.dashboard.oauth.datatransferobjects;
 
-public record LoginRequest(
-        String email,
-        String password
-) {}
+import lombok.Data;
+
+@Data
+public class LoginRequest{
+    private String email;
+    private String password;
+}

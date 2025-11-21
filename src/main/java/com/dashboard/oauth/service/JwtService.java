@@ -29,7 +29,7 @@ public class JwtService implements IJwtService {
 
     public String generateToken(UserInfo userDetails) {
         Map<String, Object> claims = new HashMap<>();
-        return createToken(claims, userDetails.email());
+        return createToken(claims, userDetails.getEmail());
     }
 
     private String createToken(Map<String, Object> claims, String subject) {

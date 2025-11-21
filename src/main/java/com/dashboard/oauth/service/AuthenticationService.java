@@ -39,13 +39,13 @@ public class AuthenticationService implements IAuthenticationService {
     private Long refreshExpiration;
 
     public UserInfo register(RegisterRequest request) {
-        if (userRepository.existsByEmail(request.email())) {
-            throw new AuthenticationServiceException("The user with email : " + request.email() + " already exists");
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new AuthenticationServiceException("The user with email : " + request.getEmail() + " already exists");
         }
 
         User user = new User();
-        user.setEmail(request.email());
-        user.setPassword(passwordEncoder.encode(request.password()));
+        user.setEmail(request.getEmail());
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRoles(new ArrayList<>());
 
         Audit audit = new Audit();
@@ -54,18 +54,23 @@ public class AuthenticationService implements IAuthenticationService {
 
         user = userRepository.save(user);
 
-        return UserInfo.fromUser(user);
+        UserInfo info = new UserInfo();
+        info.setId(user.get_id());
+        info.setEmail(user.getEmail());
+        info.setRole(user.getRoles());
+
+        return info;
     }
 
     public AuthResponse login(LoginRequest request) {
-        Optional<User> optionalUser = userRepository.findByEmail(request.email());
+        Optional<User> optionalUser = userRepository.findByEmail(request.getEmail());
         if (optionalUser.isEmpty()) {
             throw new RuntimeException("Invalid email or password");
         }
 
         try {
             authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(request.email(), request.password())
+                    new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
             );
         }
         catch (Exception e) {
@@ -73,15 +78,22 @@ public class AuthenticationService implements IAuthenticationService {
         }
 
         User user = optionalUser.get();
-        String accessToken = jwtService.generateToken(UserInfo.fromUser(user));
+
+        UserInfo info = new UserInfo();
+        info.setId(user.get_id());
+        info.setEmail(user.getEmail());
+        info.setRole(user.getRoles());
+
+        String accessToken = jwtService.generateToken(info);
         String refreshToken = createRefreshToken(user);
 
-        return new AuthResponse(
-                accessToken,
-                refreshToken,
-                jwtExpiration,
-                UserInfo.fromUser(user)
-        );
+        AuthResponse response = new AuthResponse();
+        response.setAccessToken(accessToken);
+        response.setRefreshToken(refreshToken);
+        response.setExpiresIn(jwtExpiration);
+        response.setUser(info);
+
+        return response;
     }
 
     public AuthResponse refreshToken(String refreshTokenStr) {
@@ -96,14 +108,20 @@ public class AuthenticationService implements IAuthenticationService {
         User user = userRepository.findById(new ObjectId(refreshToken.getUserId()))
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        String accessToken = jwtService.generateToken(UserInfo.fromUser(user));
+        UserInfo info = new UserInfo();
+        info.setId(user.get_id());
+        info.setEmail(user.getEmail());
+        info.setRole(user.getRoles());
+        String accessToken = jwtService.generateToken(info);
 
-        return new AuthResponse(
-                accessToken,
-                refreshTokenStr,
-                jwtExpiration,
-                UserInfo.fromUser(user)
-        );
+
+        AuthResponse response = new AuthResponse();
+        response.setAccessToken(accessToken);
+        response.setRefreshToken(refreshTokenStr);
+        response.setExpiresIn(jwtExpiration);
+        response.setUser(info);
+
+        return response;
     }
 
     private String createRefreshToken(User user) {

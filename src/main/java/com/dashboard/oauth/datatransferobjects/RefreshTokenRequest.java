@@ -1,3 +1,8 @@
 package com.dashboard.oauth.datatransferobjects;
 
-public record RefreshTokenRequest(String refreshToken) {}
+import lombok.Data;
+
+@Data
+public class RefreshTokenRequest{
+    private String refreshToken;
+}
