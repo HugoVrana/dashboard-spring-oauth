@@ -100,7 +100,7 @@
         <dependency>
             <groupId>com.dashboard</groupId>
             <artifactId>common</artifactId>
-            <version>0.0.10</version>
+            <version>0.0.11</version>
         </dependency>
     </dependencies>
     <build>
