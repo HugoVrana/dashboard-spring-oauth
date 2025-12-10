@@ -1,6 +1,9 @@
 package com.dashboard.oauth.service.interfaces;
 
-import com.dashboard.oauth.dataTransferObject.*;
+import com.dashboard.oauth.dataTransferObject.auth.AuthResponse;
+import com.dashboard.oauth.dataTransferObject.auth.LoginRequest;
+import com.dashboard.oauth.dataTransferObject.auth.RegisterRequest;
+import com.dashboard.oauth.model.UserInfo;
 
 public interface IAuthenticationService {
     UserInfo register(RegisterRequest registerRequest);

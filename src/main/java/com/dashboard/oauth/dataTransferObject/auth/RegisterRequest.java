@@ -1,4 +1,4 @@
-package com.dashboard.oauth.dataTransferObject;
+package com.dashboard.oauth.dataTransferObject.auth;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

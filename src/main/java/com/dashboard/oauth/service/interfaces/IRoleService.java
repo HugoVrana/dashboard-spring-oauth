@@ -6,5 +6,6 @@ import java.util.Optional;
 
 public interface IRoleService {
     Optional<Role> getRoleById(ObjectId id);
+    Optional<Role> getRoleByName(String name);
     Role createRole(Role role);
 }
