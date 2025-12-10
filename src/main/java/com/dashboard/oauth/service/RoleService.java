@@ -27,6 +27,11 @@ public class RoleService implements IRoleService {
 
     @Override
     public Role createRole(Role role) {
+        return roleRepository.insert(role);
+    }
+
+    @Override
+    public Role updateRole(Role role) {
         return roleRepository.save(role);
     }
 }
