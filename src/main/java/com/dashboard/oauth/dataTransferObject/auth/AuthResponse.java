@@ -1,5 +1,6 @@
-package com.dashboard.oauth.dataTransferObject;
+package com.dashboard.oauth.dataTransferObject.auth;
 
+import com.dashboard.oauth.model.UserInfo;
 import lombok.Data;
 
 @Data

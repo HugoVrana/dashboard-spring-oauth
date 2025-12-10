@@ -3,13 +3,28 @@ package com.dashboard.oauth.controller;
 import com.dashboard.common.model.Audit;
 import com.dashboard.common.model.exception.InvalidRequestException;
 import com.dashboard.common.model.exception.ResourceNotFoundException;
-import com.dashboard.oauth.dataTransferObject.*;
+import com.dashboard.oauth.dataTransferObject.auth.AuthResponse;
+import com.dashboard.oauth.dataTransferObject.auth.LoginRequest;
+import com.dashboard.oauth.dataTransferObject.auth.RefreshTokenRequest;
+import com.dashboard.oauth.dataTransferObject.auth.RegisterRequest;
+import com.dashboard.oauth.dataTransferObject.grant.GrantCreate;
+import com.dashboard.oauth.dataTransferObject.grant.GrantRead;
+import com.dashboard.oauth.dataTransferObject.role.AddRoleRequest;
+import com.dashboard.oauth.dataTransferObject.role.CreateRole;
+import com.dashboard.oauth.dataTransferObject.role.RoleRead;
+import com.dashboard.oauth.dataTransferObject.user.UserInfoRead;
+import com.dashboard.oauth.mapper.interfaces.IGrantMapper;
+import com.dashboard.oauth.mapper.interfaces.IRoleMapper;
+import com.dashboard.oauth.mapper.interfaces.IUserInfoMapper;
 import com.dashboard.oauth.model.entities.ConflictException;
+import com.dashboard.oauth.model.entities.Grant;
 import com.dashboard.oauth.model.entities.Role;
 import com.dashboard.oauth.model.entities.User;
+import com.dashboard.oauth.model.UserInfo;
 import com.dashboard.oauth.service.UserDetailsImpl;
 import com.dashboard.oauth.service.interfaces.IAuthenticationService;
 import com.dashboard.oauth.service.interfaces.IDashboardUserDetailService;
+import com.dashboard.oauth.service.interfaces.IGrantService;
 import com.dashboard.oauth.service.interfaces.IRoleService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -34,9 +49,13 @@ public class AuthenticationController {
     private final IAuthenticationService authService;
     private final IDashboardUserDetailService userDetailsService;
     private final IRoleService roleService;
+    private final IGrantService grantService;
+    private final IUserInfoMapper userInfoMapper;
+    private final IRoleMapper roleMapper;
+    private final IGrantMapper grantMapper;
 
     @PostMapping("/register")
-    public ResponseEntity<UserInfo> register(@Valid @RequestBody RegisterRequest request) {
+    public ResponseEntity<UserInfoRead> register(@Valid @RequestBody RegisterRequest request) {
         try {
             UserDetails userDetails = userDetailsService.loadUserByUsername(request.getEmail());
             if (userDetails != null) {
@@ -53,7 +72,9 @@ public class AuthenticationController {
                 );
             }
             URI location = URI.create("/api/auth/register");
-            return ResponseEntity.created(location).body(userInfo);
+
+            UserInfoRead infoRead = userInfoMapper.toRead(userInfo);
+            return ResponseEntity.created(location).body(infoRead);
         }
         return ResponseEntity.badRequest().build();
     }
@@ -76,14 +97,21 @@ public class AuthenticationController {
     }
 
     @PostMapping("/role")
-    public ResponseEntity<Role> addRole(@Valid @RequestBody CreateRole createRole) {
+    public ResponseEntity<RoleRead> addRole(@Valid @RequestBody CreateRole createRole) {
+        Optional<Role> role = roleService.getRoleByName(createRole.getName());
+        if (role.isPresent()) {
+            throw new ConflictException("Role already exists");
+        }
+
         Role r = new Role();
         r.setName(createRole.getName());
         Audit a = new Audit();
         a.setCreatedAt(Instant.now());
         r.setAudit(a);
         r = roleService.createRole(r);
-        return ResponseEntity.ok(r);
+
+        RoleRead roleRead = roleMapper.toRead(r);
+        return ResponseEntity.ok(roleRead);
     }
 
     @PostMapping("/user/role")
@@ -133,14 +161,35 @@ public class AuthenticationController {
         return ResponseEntity.ok(response);
     }
 
+    @PostMapping("/grand")
+    public ResponseEntity<GrantRead> addGrant(@Valid @RequestBody GrantCreate grantCreate) {
+        Optional<Grant> grant = grantService.getGrantByName(grantCreate.getName());
+        if (grant.isPresent()) {
+            throw new ConflictException("Grant already exists");
+        }
+
+        Grant g = new Grant();
+        g.setName(grantCreate.getName());
+        g.setDescription(grantCreate.getDescription());
+        Audit a = new Audit();
+        a.setCreatedAt(Instant.now());
+        g.setAudit(a);
+        g = grantService.createGrant(g);
+        GrantRead grantRead = grantMapper.toRead(g);
+        return ResponseEntity.ok(grantRead);
+    }
+
     @GetMapping("/me")
-    public ResponseEntity<UserInfo> getCurrentUser(Authentication authentication) {
+    public ResponseEntity<UserInfoRead> getCurrentUser(Authentication authentication) {
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
         User user = userDetails.getUser();
         UserInfo userInfo = new UserInfo();
         userInfo.setId(user.get_id());
         userInfo.setEmail(user.getEmail());
         userInfo.setRole(user.getRoles());
-        return ResponseEntity.ok(userInfo);
+
+        UserInfoRead userInfoRead = userInfoMapper.toRead(userInfo);
+
+        return ResponseEntity.ok(userInfoRead);
     }
 }

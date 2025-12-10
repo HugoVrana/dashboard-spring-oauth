@@ -21,6 +21,11 @@ public class RoleService implements IRoleService {
     }
 
     @Override
+    public Optional<Role> getRoleByName(String name) {
+        return roleRepository.findByNameAndAudit_DeletedAtIsNull(name);
+    }
+
+    @Override
     public Role createRole(Role role) {
         return roleRepository.save(role);
     }

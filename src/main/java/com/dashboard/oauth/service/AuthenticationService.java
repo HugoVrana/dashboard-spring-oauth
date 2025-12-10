@@ -1,10 +1,10 @@
 package com.dashboard.oauth.service;
 
 import com.dashboard.common.model.Audit;
-import com.dashboard.oauth.dataTransferObject.AuthResponse;
-import com.dashboard.oauth.dataTransferObject.LoginRequest;
-import com.dashboard.oauth.dataTransferObject.RegisterRequest;
-import com.dashboard.oauth.dataTransferObject.UserInfo;
+import com.dashboard.oauth.dataTransferObject.auth.AuthResponse;
+import com.dashboard.oauth.dataTransferObject.auth.LoginRequest;
+import com.dashboard.oauth.dataTransferObject.auth.RegisterRequest;
+import com.dashboard.oauth.model.UserInfo;
 import com.dashboard.oauth.model.entities.RefreshToken;
 import com.dashboard.oauth.model.entities.User;
 import com.dashboard.oauth.repository.IRefreshTokenRepository;

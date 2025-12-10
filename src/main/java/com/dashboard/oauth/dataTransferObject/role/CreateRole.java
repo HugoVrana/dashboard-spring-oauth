@@ -1,4 +1,4 @@
-package com.dashboard.oauth.dataTransferObject;
+package com.dashboard.oauth.dataTransferObject.role;
 
 import lombok.Data;
 
