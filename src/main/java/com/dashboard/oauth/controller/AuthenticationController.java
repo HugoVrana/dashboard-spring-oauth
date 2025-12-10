@@ -10,7 +10,7 @@ import com.dashboard.oauth.dataTransferObject.auth.RefreshTokenRequest;
 import com.dashboard.oauth.dataTransferObject.auth.RegisterRequest;
 import com.dashboard.oauth.dataTransferObject.grant.GrantCreate;
 import com.dashboard.oauth.dataTransferObject.grant.GrantRead;
-import com.dashboard.oauth.dataTransferObject.role.AddGrantToRoleRequest;
+import com.dashboard.oauth.dataTransferObject.role.RoleGrantRequest;
 import com.dashboard.oauth.dataTransferObject.role.AddRoleRequest;
 import com.dashboard.oauth.dataTransferObject.role.CreateRole;
 import com.dashboard.oauth.dataTransferObject.role.RoleRead;
@@ -119,7 +119,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/role/grant")
-    public ResponseEntity<RoleRead> addGrantToRole(@Valid @RequestBody AddGrantToRoleRequest request) {
+    public ResponseEntity<RoleRead> addGrantToRole(@Valid @RequestBody RoleGrantRequest request) {
         if (!ObjectId.isValid(request.getRoleId())) {
             throw new InvalidRequestException("Role id is invalid.");
         }
@@ -158,6 +158,33 @@ public class AuthenticationController {
         }
         roleRead.setGrants(grants);
         return ResponseEntity.ok(roleRead);
+    }
+
+    @DeleteMapping("/role/grant")
+    public ResponseEntity<Integer> removeGrantFromRole(@Valid @RequestBody RoleGrantRequest request) {
+        if (!ObjectId.isValid(request.getRoleId())) {
+            throw new InvalidRequestException("Role id is invalid.");
+        }
+        Optional<Role> role = roleService.getRoleById(new ObjectId(request.getRoleId()));
+        if (role.isEmpty()) {
+            throw new ResourceNotFoundException("Role not found");
+        }
+        Role roleToUpdate = role.get();
+        if (roleToUpdate.getGrants() == null){
+            return ResponseEntity.ok(0);
+        }
+        if (!ObjectId.isValid(request.getGrantId())) {
+            throw new InvalidRequestException("Grant id is invalid.");
+        }
+        Optional<Grant> grant = grantService.getGrantById(new ObjectId(request.getGrantId()));
+        if (grant.isEmpty()) {
+            throw new ResourceNotFoundException("Grant not found");
+        }
+        Grant grantToRemove = grant.get();
+        roleToUpdate.getGrants().remove(grantToRemove);
+        roleToUpdate.getAudit().setUpdatedAt(Instant.now());
+        Role updatedRole = roleService.updateRole(roleToUpdate);
+        return ResponseEntity.ok(updatedRole.getGrants().size());
     }
 
     @PostMapping("/user/role")
