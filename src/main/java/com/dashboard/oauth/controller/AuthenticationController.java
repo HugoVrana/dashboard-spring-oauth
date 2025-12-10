@@ -1,6 +1,7 @@
 package com.dashboard.oauth.controller;
 
 import com.dashboard.common.model.Audit;
+import com.dashboard.common.model.exception.ConflictException;
 import com.dashboard.common.model.exception.InvalidRequestException;
 import com.dashboard.common.model.exception.ResourceNotFoundException;
 import com.dashboard.oauth.dataTransferObject.auth.AuthResponse;
@@ -16,11 +17,10 @@ import com.dashboard.oauth.dataTransferObject.user.UserInfoRead;
 import com.dashboard.oauth.mapper.interfaces.IGrantMapper;
 import com.dashboard.oauth.mapper.interfaces.IRoleMapper;
 import com.dashboard.oauth.mapper.interfaces.IUserInfoMapper;
-import com.dashboard.oauth.model.entities.ConflictException;
+import com.dashboard.oauth.model.UserInfo;
 import com.dashboard.oauth.model.entities.Grant;
 import com.dashboard.oauth.model.entities.Role;
 import com.dashboard.oauth.model.entities.User;
-import com.dashboard.oauth.model.UserInfo;
 import com.dashboard.oauth.service.UserDetailsImpl;
 import com.dashboard.oauth.service.interfaces.IAuthenticationService;
 import com.dashboard.oauth.service.interfaces.IDashboardUserDetailService;
@@ -80,7 +80,8 @@ public class AuthenticationController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
+    public ResponseEntity<
+            AuthResponse> login(@Valid @RequestBody LoginRequest request) {
         return ResponseEntity.ok(authService.login(request));
     }
 
