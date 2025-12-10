@@ -1,6 +1,6 @@
 package com.dashboard.oauth.service.interfaces;
 
-import com.dashboard.oauth.datatransferobjects.UserInfo;
+import com.dashboard.oauth.dataTransferObject.UserInfo;
 import io.jsonwebtoken.Claims;
 import org.springframework.security.core.userdetails.UserDetails;
 

@@ -1,6 +1,6 @@
 package com.dashboard.oauth.service;
 
-import com.dashboard.oauth.datatransferobjects.UserInfo;
+import com.dashboard.oauth.dataTransferObject.UserInfo;
 import com.dashboard.oauth.service.interfaces.IJwtService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
