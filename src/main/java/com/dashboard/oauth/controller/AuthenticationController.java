@@ -180,13 +180,16 @@ public class AuthenticationController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<UserInfo> getCurrentUser(Authentication authentication) {
+    public ResponseEntity<UserInfoRead> getCurrentUser(Authentication authentication) {
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
         User user = userDetails.getUser();
         UserInfo userInfo = new UserInfo();
         userInfo.setId(user.get_id());
         userInfo.setEmail(user.getEmail());
         userInfo.setRole(user.getRoles());
-        return ResponseEntity.ok(userInfo);
+
+        UserInfoRead userInfoRead = userInfoMapper.toRead(userInfo);
+
+        return ResponseEntity.ok(userInfoRead);
     }
 }
