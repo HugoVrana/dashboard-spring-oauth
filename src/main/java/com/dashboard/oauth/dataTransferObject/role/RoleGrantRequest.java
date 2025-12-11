@@ -4,7 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 @Data
-public class AddGrantToRoleRequest {
+public class RoleGrantRequest {
     @NotBlank(message = "Grant ID is required")
     private String grantId;
 
