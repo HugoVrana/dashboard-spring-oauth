@@ -176,6 +176,9 @@ public class AuthenticationController {
         if (!ObjectId.isValid(request.getGrantId())) {
             throw new InvalidRequestException("Grant id is invalid.");
         }
+
+        Integer before = roleToUpdate.getGrants().size();
+
         Optional<Grant> grant = grantService.getGrantById(new ObjectId(request.getGrantId()));
         if (grant.isEmpty()) {
             throw new ResourceNotFoundException("Grant not found");
@@ -184,7 +187,9 @@ public class AuthenticationController {
         roleToUpdate.getGrants().remove(grantToRemove);
         roleToUpdate.getAudit().setUpdatedAt(Instant.now());
         Role updatedRole = roleService.updateRole(roleToUpdate);
-        return ResponseEntity.ok(updatedRole.getGrants().size());
+        Integer after = updatedRole.getGrants().size();
+        Integer countAffected = before - after;
+        return ResponseEntity.ok(countAffected);
     }
 
     @PostMapping("/user/role")
