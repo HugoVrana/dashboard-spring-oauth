@@ -101,6 +101,14 @@ public class AuthenticationController {
             List<RoleRead> roleReadList = new ArrayList<>();
             for (Role r :  user.getRoles()) {
                 RoleRead rr = roleMapper.toRead(r);
+
+                List<GrantRead> grants = new ArrayList<>();
+                for (Grant g : r.getGrants()) {
+                    GrantRead gr = grantMapper.toRead(g);
+                    grants.add(gr);
+                }
+                rr.setGrants(grants);
+
                 roleReadList.add(rr);
             }
             infoRead.setRoleReads(roleReadList.toArray(new RoleRead[0]));
