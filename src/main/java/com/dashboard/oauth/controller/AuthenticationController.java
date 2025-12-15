@@ -67,6 +67,18 @@ public class AuthenticationController {
         }
         catch (UsernameNotFoundException notFoundException) {
             // User doesn't exist, we can proceed with registration
+
+            // check if the role id is valid
+            if (!ObjectId.isValid(request.getRoleId())) {
+                throw new InvalidRequestException("Role id is invalid.");
+            }
+
+            ObjectId roleId = new ObjectId(request.getRoleId());
+            Optional<Role> role = roleService.getRoleById(roleId);
+            if  (role.isEmpty()) {
+                throw new ResourceNotFoundException("Role with id " + roleId + " not found");
+            }
+
             UserInfo userInfo = authService.register(request);
             if (userInfo == null) {
                 throw new ResponseStatusException(
@@ -74,17 +86,32 @@ public class AuthenticationController {
                         "Failed to register user"
                 );
             }
+
+            Optional<User> optionalUser = userDetailsService.getUserDetails(userInfo.getId());
+            if  (optionalUser.isEmpty()) {
+                throw new ResourceNotFoundException("User we just registered can't be found");
+            }
+            User user = optionalUser.get();
+
+            user = userDetailsService.addUserToRole(user, role.get());
+            userInfo.setRole(user.getRoles().stream().toList());
             URI location = URI.create("/api/auth/register");
 
             UserInfoRead infoRead = userInfoMapper.toRead(userInfo);
+            List<RoleRead> roleReadList = new ArrayList<>();
+            for (Role r :  user.getRoles()) {
+                RoleRead rr = roleMapper.toRead(r);
+                roleReadList.add(rr);
+            }
+            infoRead.setRoleReads(roleReadList.toArray(new RoleRead[0]));
+
             return ResponseEntity.created(location).body(infoRead);
         }
         return ResponseEntity.badRequest().build();
     }
 
     @PostMapping("/login")
-    public ResponseEntity<
-            AuthResponse> login(@Valid @RequestBody LoginRequest request) {
+    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
         return ResponseEntity.ok(authService.login(request));
     }
 
