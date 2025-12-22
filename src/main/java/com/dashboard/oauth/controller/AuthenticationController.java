@@ -120,7 +120,8 @@ public class AuthenticationController {
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
-        return ResponseEntity.ok(authService.login(request));
+        AuthResponse response = authService.login(request);
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/refresh")
@@ -268,8 +269,10 @@ public class AuthenticationController {
         userInfo.setEmail(updatedUser.getEmail());
         userInfo.setRole(updatedUser.getRoles());
 
+        UserInfoRead userInfoRead = userInfoMapper.toRead(userInfo);
+
         AuthResponse response = new AuthResponse();
-        response.setUser(userInfo);
+        response.setUser(userInfoRead);
 
         return ResponseEntity.ok(response);
     }
