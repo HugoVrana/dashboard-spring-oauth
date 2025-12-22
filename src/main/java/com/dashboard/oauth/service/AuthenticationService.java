@@ -4,8 +4,16 @@ import com.dashboard.common.model.Audit;
 import com.dashboard.oauth.dataTransferObject.auth.AuthResponse;
 import com.dashboard.oauth.dataTransferObject.auth.LoginRequest;
 import com.dashboard.oauth.dataTransferObject.auth.RegisterRequest;
+import com.dashboard.oauth.dataTransferObject.grant.GrantRead;
+import com.dashboard.oauth.dataTransferObject.role.RoleRead;
+import com.dashboard.oauth.dataTransferObject.user.UserInfoRead;
+import com.dashboard.oauth.mapper.GrantMapper;
+import com.dashboard.oauth.mapper.RoleMapper;
+import com.dashboard.oauth.mapper.UserInfoMapper;
 import com.dashboard.oauth.model.UserInfo;
+import com.dashboard.oauth.model.entities.Grant;
 import com.dashboard.oauth.model.entities.RefreshToken;
+import com.dashboard.oauth.model.entities.Role;
 import com.dashboard.oauth.model.entities.User;
 import com.dashboard.oauth.repository.IRefreshTokenRepository;
 import com.dashboard.oauth.repository.IUserRepository;
@@ -20,6 +28,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -31,6 +40,9 @@ public class AuthenticationService implements IAuthenticationService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
+    private final UserInfoMapper userInfoMapper;
+    private final RoleMapper roleMapper;
+    private final GrantMapper grantMapper;
 
     @Value("${jwt.expiration}")
     private Long jwtExpiration;
@@ -84,15 +96,29 @@ public class AuthenticationService implements IAuthenticationService {
         info.setEmail(user.getEmail());
         info.setRole(user.getRoles());
 
+        UserInfoRead userInfoRead = userInfoMapper.toRead(info);
+
+        List<RoleRead> roleReads = new ArrayList<>();
+        for (Role role : info.getRole()) {
+            RoleRead rr = roleMapper.toRead(role);
+            ArrayList<GrantRead> grants = new ArrayList<>();
+            for (Grant grant : role.getGrants()){
+                GrantRead gr = grantMapper.toRead(grant);
+                grants.add(gr);
+            }
+            rr.setGrants(grants);
+            roleReads.add(rr);
+        }
+        userInfoRead.setRoleReads(roleReads.toArray(new RoleRead[0]));
+
         String accessToken = jwtService.generateToken(info);
         String refreshToken = createRefreshToken(user);
 
         AuthResponse response = new AuthResponse();
+        response.setUser(userInfoRead);
         response.setAccessToken(accessToken);
         response.setRefreshToken(refreshToken);
         response.setExpiresIn(jwtExpiration);
-        response.setUser(info);
-
         return response;
     }
 
@@ -114,12 +140,13 @@ public class AuthenticationService implements IAuthenticationService {
         info.setRole(user.getRoles());
         String accessToken = jwtService.generateToken(info);
 
+        UserInfoRead userInfoRead = userInfoMapper.toRead(info);
 
         AuthResponse response = new AuthResponse();
         response.setAccessToken(accessToken);
         response.setRefreshToken(refreshTokenStr);
         response.setExpiresIn(jwtExpiration);
-        response.setUser(info);
+        response.setUser(userInfoRead);
 
         return response;
     }

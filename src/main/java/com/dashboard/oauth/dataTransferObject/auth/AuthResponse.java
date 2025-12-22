@@ -1,6 +1,6 @@
 package com.dashboard.oauth.dataTransferObject.auth;
 
-import com.dashboard.oauth.model.UserInfo;
+import com.dashboard.oauth.dataTransferObject.user.UserInfoRead;
 import lombok.Data;
 
 @Data
@@ -9,5 +9,5 @@ public class AuthResponse {
     private String refreshToken;
     private String tokenType;
     private Long expiresIn;
-    private UserInfo user;
+    private UserInfoRead user;
 }
