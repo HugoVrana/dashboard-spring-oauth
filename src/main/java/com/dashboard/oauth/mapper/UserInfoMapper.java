@@ -5,6 +5,7 @@ import com.dashboard.oauth.dataTransferObject.user.UserInfoRead;
 import com.dashboard.oauth.mapper.interfaces.IUserInfoMapper;
 import com.dashboard.oauth.model.UserInfo;
 import com.dashboard.oauth.model.entities.Role;
+import com.dashboard.oauth.model.entities.User;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -13,6 +14,14 @@ public class UserInfoMapper implements IUserInfoMapper {
 
     public UserInfoMapper(RoleMapper roleMapper) {
         this.roleMapper = roleMapper;
+    }
+
+    public UserInfo toUserInfo(User user) {
+        UserInfo userInfo = new UserInfo();
+        userInfo.setId(user.get_id());
+        userInfo.setEmail(user.getEmail());
+        userInfo.setRole(user.getRoles());
+        return userInfo;
     }
 
     @Override
