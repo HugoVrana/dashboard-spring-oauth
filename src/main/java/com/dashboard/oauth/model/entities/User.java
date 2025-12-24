@@ -15,10 +15,14 @@ import java.util.List;
 public class User {
     @Id
     private ObjectId _id;
+
     @Indexed(unique = true)
     private String email;
+
     private String password;
+
     @DBRef
     private List<Role> roles;
+    
     private Audit audit;
 }
