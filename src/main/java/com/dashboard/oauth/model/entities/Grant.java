@@ -12,8 +12,11 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public class Grant {
     @Id
     private ObjectId _id;
+
     @Indexed(unique = true)
     private String name;
+
     private String description;
+
     private Audit audit;
 }

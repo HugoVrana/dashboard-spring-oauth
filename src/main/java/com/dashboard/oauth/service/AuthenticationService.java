@@ -126,7 +126,7 @@ public class AuthenticationService implements IAuthenticationService {
         RefreshToken refreshToken = refreshTokenRepository.findByToken(refreshTokenStr)
                 .orElseThrow(() -> new RuntimeException("Invalid refresh token"));
 
-        if (refreshToken.getExpiryDate().toInstant().isBefore(Instant.now())) {
+        if (refreshToken.getExpiryDate().isBefore(Instant.now())) {
             refreshTokenRepository.delete(refreshToken);
             throw new RuntimeException("Refresh token expired");
         }
@@ -156,12 +156,11 @@ public class AuthenticationService implements IAuthenticationService {
         refreshTokenRepository.deleteByUserId(user.get_id().toHexString());
 
         String tokenValue = UUID.randomUUID().toString();
-        RefreshToken refreshToken = new RefreshToken(
-                tokenValue,
-                user.get_id().toHexString(),
-                Instant.now().plusMillis(refreshExpiration)
-        );
-
+        RefreshToken refreshToken = RefreshToken.builder()
+                .token(tokenValue)
+                .userId(user.get_id().toHexString())
+                .expiryDate(Instant.now().plusMillis(refreshExpiration))
+                .build();
         refreshTokenRepository.save(refreshToken);
         return tokenValue;
     }
