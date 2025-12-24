@@ -22,6 +22,8 @@ import com.dashboard.oauth.model.UserInfo;
 import com.dashboard.oauth.model.entities.Grant;
 import com.dashboard.oauth.model.entities.Role;
 import com.dashboard.oauth.model.entities.User;
+import com.dashboard.oauth.repository.IUserRepository;
+import com.dashboard.oauth.service.JwtService;
 import com.dashboard.oauth.service.UserDetailsImpl;
 import com.dashboard.oauth.service.interfaces.IAuthenticationService;
 import com.dashboard.oauth.service.interfaces.IDashboardUserDetailService;
@@ -56,6 +58,8 @@ public class AuthenticationController {
     private final IUserInfoMapper userInfoMapper;
     private final IRoleMapper roleMapper;
     private final IGrantMapper grantMapper;
+    private final JwtService jwtService;
+    private final IUserRepository iUserRepository;
 
     @PostMapping("/register")
     public ResponseEntity<UserInfoRead> register(@Valid @RequestBody RegisterRequest request) {
@@ -130,9 +134,17 @@ public class AuthenticationController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout(Authentication authentication) {
-        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-        authService.logout(userDetails.getUser().get_id().toHexString());
+    public ResponseEntity<Void> logout(@RequestHeader("Authorization") String authHeader) {
+        // Extract token from "Bearer <token>"
+        String token = authHeader.substring(7);
+        // Decode the JWT to get the user ID, or use a service to invalidate the token
+        String username = jwtService.extractUsername(token);
+        Optional<User> optionalUser = iUserRepository.findByEmail(username);
+        if (optionalUser.isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+        User user = optionalUser.get();
+        authService.logout(user.get_id().toHexString());
         return ResponseEntity.ok().build();
     }
 
