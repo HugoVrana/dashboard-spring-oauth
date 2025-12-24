@@ -22,13 +22,8 @@ import com.dashboard.oauth.model.UserInfo;
 import com.dashboard.oauth.model.entities.Grant;
 import com.dashboard.oauth.model.entities.Role;
 import com.dashboard.oauth.model.entities.User;
-import com.dashboard.oauth.repository.IUserRepository;
-import com.dashboard.oauth.service.JwtService;
 import com.dashboard.oauth.service.UserDetailsImpl;
-import com.dashboard.oauth.service.interfaces.IAuthenticationService;
-import com.dashboard.oauth.service.interfaces.IDashboardUserDetailService;
-import com.dashboard.oauth.service.interfaces.IGrantService;
-import com.dashboard.oauth.service.interfaces.IRoleService;
+import com.dashboard.oauth.service.interfaces.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
@@ -53,13 +48,13 @@ public class AuthenticationController {
 
     private final IAuthenticationService authService;
     private final IDashboardUserDetailService userDetailsService;
+    private final IUserService userService;
     private final IRoleService roleService;
     private final IGrantService grantService;
+    private final IJwtService jwtService;
     private final IUserInfoMapper userInfoMapper;
     private final IRoleMapper roleMapper;
     private final IGrantMapper grantMapper;
-    private final JwtService jwtService;
-    private final IUserRepository iUserRepository;
 
     @PostMapping("/register")
     public ResponseEntity<UserInfoRead> register(@Valid @RequestBody RegisterRequest request) {
@@ -83,22 +78,28 @@ public class AuthenticationController {
                 throw new ResourceNotFoundException("Role with id " + roleId + " not found");
             }
 
-            UserInfo userInfo = authService.register(request);
-            if (userInfo == null) {
+            User user = authService.register(request);
+            if (user == null) {
                 throw new ResponseStatusException(
                         HttpStatus.INTERNAL_SERVER_ERROR,
                         "Failed to register user"
                 );
             }
 
-            Optional<User> optionalUser = userDetailsService.getUserDetails(userInfo.getId());
-            if  (optionalUser.isEmpty()) {
-                throw new ResourceNotFoundException("User we just registered can't be found");
-            }
-            User user = optionalUser.get();
+            List<Role> roles = user.getRoles();
+            roles.add(role.get());
+            user.setRoles(roles);
+            user = userService.saveUser(user);
 
-            user = userDetailsService.addUserToRole(user, role.get());
-            userInfo.setRole(user.getRoles().stream().toList());
+            if (user == null) {
+                throw new ResponseStatusException(
+                        HttpStatus.INTERNAL_SERVER_ERROR,
+                        "Failed to add role to user"
+                );
+            }
+
+            UserInfo userInfo = userInfoMapper.toUserInfo(user);
+
             URI location = URI.create("/api/auth/register");
 
             UserInfoRead infoRead = userInfoMapper.toRead(userInfo);
@@ -138,8 +139,8 @@ public class AuthenticationController {
         // Extract token from "Bearer <token>"
         String token = authHeader.substring(7);
         // Decode the JWT to get the user ID, or use a service to invalidate the token
-        String username = jwtService.extractUsername(token);
-        Optional<User> optionalUser = iUserRepository.findByEmail(username);
+        String email = jwtService.extractUsername(token);
+        Optional<User> optionalUser = userService.getUserByEmail(email);
         if (optionalUser.isEmpty()) {
             return ResponseEntity.badRequest().build();
         }
@@ -246,12 +247,13 @@ public class AuthenticationController {
             throw new InvalidRequestException("User id is invalid.");
         }
         ObjectId userId = new ObjectId(request.getUserId());
-        Optional<User> details = userDetailsService.getUserDetails(userId);
-        if (details.isEmpty()) {
+
+        Optional<User> optionalUser = userService.getUserById(userId);
+        if (optionalUser.isEmpty()) {
             throw new ResourceNotFoundException("User not found");
         }
 
-        User user = details.get();
+        User user = optionalUser.get();
 
         if (!ObjectId.isValid(request.getRoleId())) {
             throw new InvalidRequestException("Role id is invalid.");
@@ -268,8 +270,9 @@ public class AuthenticationController {
             throw new ConflictException("User already has this role");
         }
 
-        User updatedUser = userDetailsService.addUserToRole(user, roleToAdd);
-        if (updatedUser == null) {
+        user.getRoles().add(roleToAdd);
+        user = userService.saveUser(user);
+        if (user == null) {
             throw new ResponseStatusException(
                     HttpStatus.INTERNAL_SERVER_ERROR,
                     "Failed to add role to user"
@@ -277,9 +280,9 @@ public class AuthenticationController {
         }
 
         UserInfo userInfo = new UserInfo();
-        userInfo.setId(updatedUser.get_id());
-        userInfo.setEmail(updatedUser.getEmail());
-        userInfo.setRole(updatedUser.getRoles());
+        userInfo.setId(user.get_id());
+        userInfo.setEmail(user.getEmail());
+        userInfo.setRole(user.getRoles());
 
         UserInfoRead userInfoRead = userInfoMapper.toRead(userInfo);
 

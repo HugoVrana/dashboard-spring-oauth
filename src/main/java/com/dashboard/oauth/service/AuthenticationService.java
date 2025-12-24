@@ -7,9 +7,9 @@ import com.dashboard.oauth.dataTransferObject.auth.RegisterRequest;
 import com.dashboard.oauth.dataTransferObject.grant.GrantRead;
 import com.dashboard.oauth.dataTransferObject.role.RoleRead;
 import com.dashboard.oauth.dataTransferObject.user.UserInfoRead;
-import com.dashboard.oauth.mapper.GrantMapper;
-import com.dashboard.oauth.mapper.RoleMapper;
-import com.dashboard.oauth.mapper.UserInfoMapper;
+import com.dashboard.oauth.mapper.interfaces.IGrantMapper;
+import com.dashboard.oauth.mapper.interfaces.IRoleMapper;
+import com.dashboard.oauth.mapper.interfaces.IUserInfoMapper;
 import com.dashboard.oauth.model.UserInfo;
 import com.dashboard.oauth.model.entities.Grant;
 import com.dashboard.oauth.model.entities.RefreshToken;
@@ -40,9 +40,9 @@ public class AuthenticationService implements IAuthenticationService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
-    private final UserInfoMapper userInfoMapper;
-    private final RoleMapper roleMapper;
-    private final GrantMapper grantMapper;
+    private final IUserInfoMapper userInfoMapper;
+    private final IRoleMapper roleMapper;
+    private final IGrantMapper grantMapper;
 
     @Value("${jwt.expiration}")
     private Long jwtExpiration;
@@ -50,7 +50,7 @@ public class AuthenticationService implements IAuthenticationService {
     @Value("${jwt.refresh-expiration}")
     private Long refreshExpiration;
 
-    public UserInfo register(RegisterRequest request) {
+    public User register(RegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new AuthenticationServiceException("The user with email : " + request.getEmail() + " already exists");
         }
@@ -65,13 +65,7 @@ public class AuthenticationService implements IAuthenticationService {
         user.setAudit(audit);
 
         user = userRepository.save(user);
-
-        UserInfo info = new UserInfo();
-        info.setId(user.get_id());
-        info.setEmail(user.getEmail());
-        info.setRole(user.getRoles());
-
-        return info;
+        return user;
     }
 
     public AuthResponse login(LoginRequest request) {
