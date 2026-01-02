@@ -1,6 +1,7 @@
 package com.dashboard.oauth.service;
 
 import com.dashboard.oauth.model.UserInfo;
+import com.dashboard.oauth.model.entities.Grant;
 import com.dashboard.oauth.service.interfaces.IJwtService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -24,11 +25,15 @@ public class JwtService implements IJwtService {
     @Value("${JWT.EXPIRATION}")
     private Long expiration;
 
-    @Value("${JWT.REFRESH_EXPIRATION}")
-    private Long refreshExpiration;
-
     public String generateToken(UserInfo userDetails) {
         Map<String, Object> claims = new HashMap<>();
+        claims.put("userId", userDetails.getId());
+        claims.put("grants", userDetails.getRole().stream()
+                .flatMap(role -> role.getGrants().stream())
+                .map(Grant::getName)
+                .distinct()
+                .toList()
+        );
         return createToken(claims, userDetails.getEmail());
     }
 

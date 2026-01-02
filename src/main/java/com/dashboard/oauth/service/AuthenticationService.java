@@ -18,6 +18,7 @@ import com.dashboard.oauth.model.entities.User;
 import com.dashboard.oauth.repository.IRefreshTokenRepository;
 import com.dashboard.oauth.repository.IUserRepository;
 import com.dashboard.oauth.service.interfaces.IAuthenticationService;
+import com.dashboard.oauth.service.interfaces.IJwtService;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Value;
@@ -38,7 +39,7 @@ public class AuthenticationService implements IAuthenticationService {
     private final IUserRepository userRepository;
     private final IRefreshTokenRepository refreshTokenRepository;
     private final PasswordEncoder passwordEncoder;
-    private final JwtService jwtService;
+    private final IJwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private final IUserInfoMapper userInfoMapper;
     private final IRoleMapper roleMapper;
@@ -69,7 +70,7 @@ public class AuthenticationService implements IAuthenticationService {
     }
 
     public AuthResponse login(LoginRequest request) {
-        Optional<User> optionalUser = userRepository.findByEmail(request.getEmail());
+        Optional<User> optionalUser = userRepository.findByEmailAndAudit_DeletedAtIsNull(request.getEmail());
         if (optionalUser.isEmpty()) {
             throw new RuntimeException("Invalid email or password");
         }

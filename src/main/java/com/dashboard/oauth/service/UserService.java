@@ -22,12 +22,11 @@ public class UserService implements IUserService {
 
     @Override
     public Optional<User> getUserById(ObjectId id) {
-        return userRepository.findById(id);
+        return userRepository.getUserBy_idAndAudit_DeletedAtIsNull(id);
     }
 
     @Override
     public Optional<User> getUserByEmail(String email){
-        return userRepository.findByEmail(email);
+        return userRepository.findByEmailAndAudit_DeletedAtIsNull(email);
     }
-
 }
