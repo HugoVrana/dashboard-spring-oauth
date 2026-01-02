@@ -48,9 +48,6 @@ public class AuthenticationService implements IAuthenticationService {
     @Value("${jwt.expiration}")
     private Long jwtExpiration;
 
-    @Value("${jwt.refresh-expiration}")
-    private Long refreshExpiration;
-
     public User register(RegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new AuthenticationServiceException("The user with email : " + request.getEmail() + " already exists");
@@ -107,12 +104,21 @@ public class AuthenticationService implements IAuthenticationService {
         userInfoRead.setRoleReads(roleReads.toArray(new RoleRead[0]));
 
         String accessToken = jwtService.generateToken(info);
-        String refreshToken = createRefreshToken(user);
+
+        refreshTokenRepository.deleteByUserId(user.get_id().toHexString());
+
+        String tokenValue = UUID.randomUUID().toString();
+        RefreshToken refreshToken = RefreshToken.builder()
+                .token(tokenValue)
+                .userId(user.get_id().toHexString())
+                .expiryDate(Instant.now().plusMillis(jwtExpiration))
+                .build();
+        refreshTokenRepository.save(refreshToken);
 
         AuthResponse response = new AuthResponse();
         response.setUser(userInfoRead);
         response.setAccessToken(accessToken);
-        response.setRefreshToken(refreshToken);
+        response.setRefreshToken(tokenValue);
         response.setExpiresIn(jwtExpiration);
         return response;
     }
@@ -144,20 +150,6 @@ public class AuthenticationService implements IAuthenticationService {
         response.setUser(userInfoRead);
 
         return response;
-    }
-
-    private String createRefreshToken(User user) {
-        // Delete existing refresh tokens for this user
-        refreshTokenRepository.deleteByUserId(user.get_id().toHexString());
-
-        String tokenValue = UUID.randomUUID().toString();
-        RefreshToken refreshToken = RefreshToken.builder()
-                .token(tokenValue)
-                .userId(user.get_id().toHexString())
-                .expiryDate(Instant.now().plusMillis(refreshExpiration))
-                .build();
-        refreshTokenRepository.save(refreshToken);
-        return tokenValue;
     }
 
     public void logout(String userId) {
