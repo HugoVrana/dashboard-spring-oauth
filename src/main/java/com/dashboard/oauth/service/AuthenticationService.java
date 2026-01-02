@@ -18,6 +18,7 @@ import com.dashboard.oauth.model.entities.User;
 import com.dashboard.oauth.repository.IRefreshTokenRepository;
 import com.dashboard.oauth.repository.IUserRepository;
 import com.dashboard.oauth.service.interfaces.IAuthenticationService;
+import com.dashboard.oauth.service.interfaces.IJwtService;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Value;
@@ -38,7 +39,7 @@ public class AuthenticationService implements IAuthenticationService {
     private final IUserRepository userRepository;
     private final IRefreshTokenRepository refreshTokenRepository;
     private final PasswordEncoder passwordEncoder;
-    private final JwtService jwtService;
+    private final IJwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private final IUserInfoMapper userInfoMapper;
     private final IRoleMapper roleMapper;
@@ -46,9 +47,6 @@ public class AuthenticationService implements IAuthenticationService {
 
     @Value("${jwt.expiration}")
     private Long jwtExpiration;
-
-    @Value("${jwt.refresh-expiration}")
-    private Long refreshExpiration;
 
     public User register(RegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
@@ -69,7 +67,7 @@ public class AuthenticationService implements IAuthenticationService {
     }
 
     public AuthResponse login(LoginRequest request) {
-        Optional<User> optionalUser = userRepository.findByEmail(request.getEmail());
+        Optional<User> optionalUser = userRepository.findByEmailAndAudit_DeletedAtIsNull(request.getEmail());
         if (optionalUser.isEmpty()) {
             throw new RuntimeException("Invalid email or password");
         }
@@ -106,12 +104,21 @@ public class AuthenticationService implements IAuthenticationService {
         userInfoRead.setRoleReads(roleReads.toArray(new RoleRead[0]));
 
         String accessToken = jwtService.generateToken(info);
-        String refreshToken = createRefreshToken(user);
+
+        refreshTokenRepository.deleteByUserId(user.get_id().toHexString());
+
+        String tokenValue = UUID.randomUUID().toString();
+        RefreshToken refreshToken = RefreshToken.builder()
+                .token(tokenValue)
+                .userId(user.get_id().toHexString())
+                .expiryDate(Instant.now().plusMillis(jwtExpiration))
+                .build();
+        refreshTokenRepository.save(refreshToken);
 
         AuthResponse response = new AuthResponse();
         response.setUser(userInfoRead);
         response.setAccessToken(accessToken);
-        response.setRefreshToken(refreshToken);
+        response.setRefreshToken(tokenValue);
         response.setExpiresIn(jwtExpiration);
         return response;
     }
@@ -143,20 +150,6 @@ public class AuthenticationService implements IAuthenticationService {
         response.setUser(userInfoRead);
 
         return response;
-    }
-
-    private String createRefreshToken(User user) {
-        // Delete existing refresh tokens for this user
-        refreshTokenRepository.deleteByUserId(user.get_id().toHexString());
-
-        String tokenValue = UUID.randomUUID().toString();
-        RefreshToken refreshToken = RefreshToken.builder()
-                .token(tokenValue)
-                .userId(user.get_id().toHexString())
-                .expiryDate(Instant.now().plusMillis(refreshExpiration))
-                .build();
-        refreshTokenRepository.save(refreshToken);
-        return tokenValue;
     }
 
     public void logout(String userId) {
