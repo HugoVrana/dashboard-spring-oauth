@@ -28,7 +28,7 @@ public class JwtService implements IJwtService {
 
     public String generateToken(UserInfo userDetails) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put("userId", userDetails.getId());
+        claims.put("userId", userDetails.getId().toString());
         claims.put("grants", userDetails.getRole().stream()
                 .flatMap(role -> role.getGrants().stream())
                 .map(Grant::getName)
