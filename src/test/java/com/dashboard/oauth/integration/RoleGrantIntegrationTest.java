@@ -10,8 +10,9 @@ import com.dashboard.oauth.repository.IRoleRepository;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.testcontainers.junit.jupiter.Testcontainers;
 import org.springframework.http.MediaType;
+import org.testcontainers.junit.jupiter.Testcontainers;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
