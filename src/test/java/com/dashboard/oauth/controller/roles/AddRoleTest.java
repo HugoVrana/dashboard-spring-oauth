@@ -1,4 +1,4 @@
-package com.dashboard.oauth.controller.auth;
+package com.dashboard.oauth.controller.roles;
 
 import com.dashboard.oauth.dataTransferObject.role.CreateRole;
 import com.dashboard.oauth.dataTransferObject.role.RoleRead;
@@ -12,7 +12,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-class RoleTest extends BaseAuthControllerTest {
+class AddRoleTest extends BaseRoleControllerTest {
 
     @Test
     void shouldReturn200WhenSuccessful() throws Exception {
@@ -30,7 +30,7 @@ class RoleTest extends BaseAuthControllerTest {
         when(roleService.createRole(any(Role.class))).thenReturn(createdRole);
         when(roleMapper.toRead(any(Role.class))).thenReturn(roleRead);
 
-        mockMvc.perform(post("/api/auth/role")
+        mockMvc.perform(post("/api/role/")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(createRole)))
                 .andExpect(status().isOk())
@@ -47,7 +47,7 @@ class RoleTest extends BaseAuthControllerTest {
 
         when(roleService.getRoleByName(testRoleName)).thenReturn(Optional.of(existingRole));
 
-        mockMvc.perform(post("/api/auth/role")
+        mockMvc.perform(post("/api/role/")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(createRole)))
                 .andExpect(status().isConflict());

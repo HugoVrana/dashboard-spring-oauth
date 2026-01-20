@@ -1,4 +1,4 @@
-package com.dashboard.oauth.controller.auth;
+package com.dashboard.oauth.controller.grants;
 
 import com.dashboard.oauth.dataTransferObject.grant.GrantCreate;
 import com.dashboard.oauth.dataTransferObject.grant.GrantRead;
@@ -12,7 +12,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-class GrantTest extends BaseAuthControllerTest {
+class AddGrantTest extends BaseGrantControllerTest {
 
     @Test
     void shouldReturn200WhenSuccessful() throws Exception {
@@ -30,7 +30,7 @@ class GrantTest extends BaseAuthControllerTest {
         when(grantService.createGrant(any(Grant.class))).thenReturn(createdGrant);
         when(grantMapper.toRead(any(Grant.class))).thenReturn(grantRead);
 
-        mockMvc.perform(post("/api/auth/grant")
+        mockMvc.perform(post("/api/grant/")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(grantCreate)))
                 .andExpect(status().isOk())
@@ -48,7 +48,7 @@ class GrantTest extends BaseAuthControllerTest {
 
         when(grantService.getGrantByName(testGrantName)).thenReturn(Optional.of(existingGrant));
 
-        mockMvc.perform(post("/api/auth/grant")
+        mockMvc.perform(post("/api/grant/")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(grantCreate)))
                 .andExpect(status().isConflict());
