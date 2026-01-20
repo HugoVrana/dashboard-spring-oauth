@@ -1,6 +1,5 @@
 package com.dashboard.oauth.controller;
 
-import com.dashboard.common.model.Audit;
 import com.dashboard.common.model.exception.ConflictException;
 import com.dashboard.common.model.exception.InvalidRequestException;
 import com.dashboard.common.model.exception.ResourceNotFoundException;
@@ -8,11 +7,8 @@ import com.dashboard.oauth.dataTransferObject.auth.AuthResponse;
 import com.dashboard.oauth.dataTransferObject.auth.LoginRequest;
 import com.dashboard.oauth.dataTransferObject.auth.RefreshTokenRequest;
 import com.dashboard.oauth.dataTransferObject.auth.RegisterRequest;
-import com.dashboard.oauth.dataTransferObject.grant.GrantCreate;
 import com.dashboard.oauth.dataTransferObject.grant.GrantRead;
 import com.dashboard.oauth.dataTransferObject.role.AddRoleRequest;
-import com.dashboard.oauth.dataTransferObject.role.CreateRole;
-import com.dashboard.oauth.dataTransferObject.role.RoleGrantRequest;
 import com.dashboard.oauth.dataTransferObject.role.RoleRead;
 import com.dashboard.oauth.dataTransferObject.user.UserInfoRead;
 import com.dashboard.oauth.mapper.interfaces.IGrantMapper;
@@ -35,7 +31,6 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import java.net.URI;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -50,11 +45,10 @@ public class AuthenticationController {
     private final IDashboardUserDetailService userDetailsService;
     private final IUserService userService;
     private final IRoleService roleService;
-    private final IGrantService grantService;
     private final IJwtService jwtService;
     private final IUserInfoMapper userInfoMapper;
-    private final IRoleMapper roleMapper;
     private final IGrantMapper grantMapper;
+    private final IRoleMapper roleMapper;
 
     @PostMapping("/register")
     public ResponseEntity<UserInfoRead> register(@Valid @RequestBody RegisterRequest request) {
@@ -149,98 +143,6 @@ public class AuthenticationController {
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/role")
-    public ResponseEntity<RoleRead> addRole(@Valid @RequestBody CreateRole createRole) {
-        Optional<Role> role = roleService.getRoleByName(createRole.getName());
-        if (role.isPresent()) {
-            throw new ConflictException("Role already exists");
-        }
-
-        Role r = new Role();
-        r.setName(createRole.getName());
-        Audit a = new Audit();
-        a.setCreatedAt(Instant.now());
-        r.setAudit(a);
-        r = roleService.createRole(r);
-
-        RoleRead roleRead = roleMapper.toRead(r);
-        return ResponseEntity.ok(roleRead);
-    }
-
-    @PostMapping("/role/grant")
-    public ResponseEntity<RoleRead> addGrantToRole(@Valid @RequestBody RoleGrantRequest request) {
-        if (!ObjectId.isValid(request.getRoleId())) {
-            throw new InvalidRequestException("Role id is invalid.");
-        }
-        Optional<Role> role = roleService.getRoleById(new ObjectId(request.getRoleId()));
-        if (role.isEmpty()) {
-            throw new ResourceNotFoundException("Role not found");
-        }
-        Role roleToUpdate = role.get();
-
-        if (!ObjectId.isValid(request.getGrantId())) {
-            throw new InvalidRequestException("Grant id is invalid.");
-        }
-        Optional<Grant> grant = grantService.getGrantById(new ObjectId(request.getGrantId()));
-        if (grant.isEmpty()) {
-            throw new ResourceNotFoundException("Grant not found");
-        }
-        Grant grantToAdd = grant.get();
-
-        if (roleToUpdate.getGrants() != null && roleToUpdate.getGrants().contains(grantToAdd)){
-            throw new ConflictException("Role already has this grant");
-        }
-
-        if (roleToUpdate.getGrants() == null){
-            roleToUpdate.setGrants(new ArrayList<>());
-        }
-
-        roleToUpdate.getGrants().add(grantToAdd);
-        roleToUpdate.getAudit().setUpdatedAt(Instant.now());
-        Role updatedRole = roleService.updateRole(roleToUpdate);
-
-        RoleRead roleRead = roleMapper.toRead(updatedRole);
-        List<GrantRead> grants = new ArrayList<>();
-        for (Grant g : updatedRole.getGrants()) {
-            GrantRead grantRead = grantMapper.toRead(g);
-            grants.add(grantRead);
-        }
-        roleRead.setGrants(grants);
-        return ResponseEntity.ok(roleRead);
-    }
-
-    @DeleteMapping("/role/grant")
-    public ResponseEntity<Integer> removeGrantFromRole(@Valid @RequestBody RoleGrantRequest request) {
-        if (!ObjectId.isValid(request.getRoleId())) {
-            throw new InvalidRequestException("Role id is invalid.");
-        }
-        Optional<Role> role = roleService.getRoleById(new ObjectId(request.getRoleId()));
-        if (role.isEmpty()) {
-            throw new ResourceNotFoundException("Role not found");
-        }
-        Role roleToUpdate = role.get();
-        if (roleToUpdate.getGrants() == null){
-            return ResponseEntity.ok(0);
-        }
-        if (!ObjectId.isValid(request.getGrantId())) {
-            throw new InvalidRequestException("Grant id is invalid.");
-        }
-
-        Integer before = roleToUpdate.getGrants().size();
-
-        Optional<Grant> grant = grantService.getGrantById(new ObjectId(request.getGrantId()));
-        if (grant.isEmpty()) {
-            throw new ResourceNotFoundException("Grant not found");
-        }
-        Grant grantToRemove = grant.get();
-        roleToUpdate.getGrants().remove(grantToRemove);
-        roleToUpdate.getAudit().setUpdatedAt(Instant.now());
-        Role updatedRole = roleService.updateRole(roleToUpdate);
-        Integer after = updatedRole.getGrants().size();
-        Integer countAffected = before - after;
-        return ResponseEntity.ok(countAffected);
-    }
-
     @PostMapping("/user/role")
     public ResponseEntity<AuthResponse> addUserRole(@Valid @RequestBody AddRoleRequest request) {
         if (!ObjectId.isValid(request.getUserId())) {
@@ -290,24 +192,6 @@ public class AuthenticationController {
         response.setUser(userInfoRead);
 
         return ResponseEntity.ok(response);
-    }
-
-    @PostMapping("/grant")
-    public ResponseEntity<GrantRead> addGrant(@Valid @RequestBody GrantCreate grantCreate) {
-        Optional<Grant> grant = grantService.getGrantByName(grantCreate.getName());
-        if (grant.isPresent()) {
-            throw new ConflictException("Grant already exists");
-        }
-
-        Grant g = new Grant();
-        g.setName(grantCreate.getName());
-        g.setDescription(grantCreate.getDescription());
-        Audit a = new Audit();
-        a.setCreatedAt(Instant.now());
-        g.setAudit(a);
-        g = grantService.createGrant(g);
-        GrantRead grantRead = grantMapper.toRead(g);
-        return ResponseEntity.ok(grantRead);
     }
 
     @GetMapping("/me")

@@ -1,19 +1,21 @@
 package com.dashboard.oauth.integration;
 
+import com.dashboard.common.model.Audit;
 import com.dashboard.oauth.dataTransferObject.auth.AuthResponse;
 import com.dashboard.oauth.dataTransferObject.auth.LoginRequest;
 import com.dashboard.oauth.dataTransferObject.auth.RefreshTokenRequest;
 import com.dashboard.oauth.dataTransferObject.auth.RegisterRequest;
-import com.dashboard.oauth.dataTransferObject.role.CreateRole;
 import com.dashboard.oauth.model.entities.Role;
 import com.dashboard.oauth.repository.IRoleRepository;
 import com.dashboard.oauth.repository.IUserRepository;
 import com.dashboard.oauth.repository.IRefreshTokenRepository;
 import org.junit.jupiter.api.*;
-import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MvcResult;
+
+import java.time.Instant;
+import java.util.ArrayList;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -30,29 +32,33 @@ class AuthFlowIntegrationTest extends BaseIntegrationTest {
     @Autowired
     private IUserRepository userRepository;
 
-    private static String testEmail;
-    private static String testPassword;
-    private static String testRoleId;
-    private static String accessToken;
-    private static String refreshToken;
+    @Autowired
+    private IRefreshTokenRepository refreshTokenRepository;
+
+    private String testEmail;
+    private String testPassword;
+    private String testRoleId;
+    private String accessToken;
+    private String refreshToken;
 
     @BeforeAll
-    static void initTestData() {
-        // Will be set by Faker in tests
-    }
+    void setUpTestData() {
+        testEmail = faker.internet().emailAddress();
+        testPassword = faker.internet().password(8, 16, true, true);
 
-    @BeforeEach
-    void setUp() {
-        if (testEmail == null) {
-            testEmail = faker.internet().emailAddress();
-            testPassword = faker.internet().password(8, 16, true, true);
-        }
+        // Create role directly in database (role creation endpoint now requires auth)
+        Role role = new Role();
+        role.setName("ROLE_USER");
+        role.setGrants(new ArrayList<>());
+        Audit audit = new Audit();
+        audit.setCreatedAt(Instant.now());
+        role.setAudit(audit);
+        role = roleRepository.save(role);
+        testRoleId = role.get_id().toHexString();
     }
 
     @AfterAll
-    void cleanUp(@Autowired IUserRepository userRepository,
-                 @Autowired IRoleRepository roleRepository,
-                 @Autowired IRefreshTokenRepository refreshTokenRepository) {
+    void cleanUp() {
         refreshTokenRepository.deleteAll();
         userRepository.deleteAll();
         roleRepository.deleteAll();
@@ -60,24 +66,6 @@ class AuthFlowIntegrationTest extends BaseIntegrationTest {
 
     @Test
     @Order(1)
-    void shouldCreateRole() throws Exception {
-        CreateRole createRole = new CreateRole();
-        createRole.setName("ROLE_USER");
-
-        MvcResult result = mockMvc.perform(post("/api/auth/role")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(createRole)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.name").value("ROLE_USER"))
-                .andReturn();
-
-        // Get the role ID from the database
-        Role role = roleRepository.findByNameAndAudit_DeletedAtIsNull("ROLE_USER").orElseThrow();
-        testRoleId = role.get_id().toHexString();
-    }
-
-    @Test
-    @Order(2)
     void shouldRegisterNewUser() throws Exception {
         RegisterRequest request = new RegisterRequest();
         request.setEmail(testEmail);
@@ -95,7 +83,7 @@ class AuthFlowIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
-    @Order(3)
+    @Order(2)
     void shouldFailToRegisterDuplicateUser() throws Exception {
         RegisterRequest request = new RegisterRequest();
         request.setEmail(testEmail);
@@ -109,7 +97,7 @@ class AuthFlowIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
-    @Order(4)
+    @Order(3)
     void shouldLoginAndReceiveTokens() throws Exception {
         LoginRequest request = new LoginRequest();
         request.setEmail(testEmail);
@@ -134,7 +122,7 @@ class AuthFlowIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
-    @Order(5)
+    @Order(4)
     void shouldFailLoginWithWrongPassword() throws Exception {
         LoginRequest request = new LoginRequest();
         request.setEmail(testEmail);
@@ -147,7 +135,7 @@ class AuthFlowIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
-    @Order(6)
+    @Order(5)
     void shouldRefreshToken() throws Exception {
         RefreshTokenRequest request = new RefreshTokenRequest();
         request.setRefreshToken(refreshToken);
@@ -166,7 +154,7 @@ class AuthFlowIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
-    @Order(7)
+    @Order(6)
     void shouldLogout() throws Exception {
         mockMvc.perform(post("/api/auth/logout")
                         .header("Authorization", "Bearer " + accessToken))
@@ -174,7 +162,7 @@ class AuthFlowIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
-    @Order(8)
+    @Order(7)
     void shouldFailRefreshAfterLogout() throws Exception {
         RefreshTokenRequest request = new RefreshTokenRequest();
         request.setRefreshToken(refreshToken);
