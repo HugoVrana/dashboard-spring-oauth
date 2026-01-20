@@ -44,7 +44,7 @@ public class ApiLoggingInterceptor implements HandlerInterceptor {
                 Instant timestamp = startTime != null ? startTime : Instant.now();
                 LogBuilderHelper logBuilderHelper = new LogBuilderHelper(objectMapper);
                 ApiCallLog.ApiCallLogBuilder builder = logBuilderHelper.buildBaseLog(
-                        "spring-dashboard",
+                        "spring-dashboard-oauth",
                         request,
                         response,
                         timestamp,
