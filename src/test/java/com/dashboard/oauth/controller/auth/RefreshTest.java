@@ -2,6 +2,8 @@ package com.dashboard.oauth.controller.auth;
 
 import com.dashboard.oauth.dataTransferObject.auth.AuthResponse;
 import com.dashboard.oauth.dataTransferObject.auth.RefreshTokenRequest;
+import io.qameta.allure.Story;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import static org.mockito.Mockito.when;
@@ -9,9 +11,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@Story("Refresh flow")
+@DisplayName("POST api/auth/refresh")
 class RefreshTest extends BaseAuthControllerTest {
 
     @Test
+    @DisplayName("Should return 200 with new tokens")
     void shouldReturn200WithNewTokens() throws Exception {
         RefreshTokenRequest request = new RefreshTokenRequest();
         request.setRefreshToken(testRefreshToken);
@@ -31,6 +36,7 @@ class RefreshTest extends BaseAuthControllerTest {
     }
 
     @Test
+    @DisplayName("Should return 500 when refresh token is invalid")
     void shouldReturn500WhenRefreshTokenInvalid() throws Exception {
         RefreshTokenRequest request = new RefreshTokenRequest();
         request.setRefreshToken("invalid-refresh-token");
@@ -45,6 +51,7 @@ class RefreshTest extends BaseAuthControllerTest {
     }
 
     @Test
+    @DisplayName("Should return 500 when refresh token expired")
     void shouldReturn500WhenRefreshTokenExpired() throws Exception {
         RefreshTokenRequest request = new RefreshTokenRequest();
         request.setRefreshToken(testRefreshToken);

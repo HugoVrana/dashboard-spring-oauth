@@ -2,6 +2,8 @@ package com.dashboard.oauth.controller.auth;
 
 import com.dashboard.oauth.dataTransferObject.auth.AuthResponse;
 import com.dashboard.oauth.dataTransferObject.auth.LoginRequest;
+import io.qameta.allure.Story;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import static org.mockito.ArgumentMatchers.any;
@@ -10,9 +12,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@Story("Login flow")
+@DisplayName("POST api/auth/login")
 class LoginTest extends BaseAuthControllerTest {
 
     @Test
+    @DisplayName("Should return 200 with tokens on successful login")
     void shouldReturn200WithTokens() throws Exception {
         LoginRequest request = new LoginRequest();
         request.setEmail(testEmail);

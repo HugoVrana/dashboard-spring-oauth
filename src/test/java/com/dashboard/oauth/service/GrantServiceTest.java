@@ -6,6 +6,7 @@ import com.dashboard.oauth.repository.IGrantRepository;
 import net.datafaker.Faker;
 import org.bson.types.ObjectId;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -17,6 +18,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+@DisplayName("Grant Service")
 @ExtendWith(MockitoExtension.class)
 class GrantServiceTest {
 
@@ -53,6 +55,7 @@ class GrantServiceTest {
     }
 
     @Test
+    @DisplayName("Get existing Grant by Name")
     void getGrantByName_shouldReturnGrant_whenGrantExists() {
         when(grantRepository.findByName(testGrantName)).thenReturn(Optional.of(testGrant));
 
@@ -64,6 +67,7 @@ class GrantServiceTest {
     }
 
     @Test
+    @DisplayName("Get nonexistent Grant by Name")
     void getGrantByName_shouldReturnEmpty_whenGrantNotFound() {
         when(grantRepository.findByName(testGrantName)).thenReturn(Optional.empty());
 
@@ -74,6 +78,7 @@ class GrantServiceTest {
     }
 
     @Test
+    @DisplayName("Get existing Grant by Id")
     void getGrantById_shouldReturnGrant_whenGrantExists() {
         when(grantRepository.findById(testGrantId)).thenReturn(Optional.of(testGrant));
 
@@ -85,6 +90,7 @@ class GrantServiceTest {
     }
 
     @Test
+    @DisplayName("Get nonexistent Grant by Id")
     void getGrantById_shouldReturnEmpty_whenGrantNotFound() {
         when(grantRepository.findById(testGrantId)).thenReturn(Optional.empty());
 
@@ -95,6 +101,7 @@ class GrantServiceTest {
     }
 
     @Test
+    @DisplayName("Create Grant")
     void createGrant_shouldReturnCreatedGrant() {
         when(grantRepository.save(any(Grant.class))).thenReturn(testGrant);
 

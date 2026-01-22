@@ -3,6 +3,7 @@ package com.dashboard.oauth.controller.grants;
 import com.dashboard.oauth.dataTransferObject.grant.GrantCreate;
 import com.dashboard.oauth.dataTransferObject.grant.GrantRead;
 import com.dashboard.oauth.model.entities.Grant;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import java.util.Optional;
@@ -12,9 +13,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@DisplayName("POST api/grant/")
 class AddGrantTest extends BaseGrantControllerTest {
 
     @Test
+    @DisplayName("Should return 200 with created grant")
     void shouldReturn200WhenSuccessful() throws Exception {
         GrantCreate grantCreate = new GrantCreate();
         grantCreate.setName(testGrantName);
@@ -39,6 +42,7 @@ class AddGrantTest extends BaseGrantControllerTest {
     }
 
     @Test
+    @DisplayName("Should return 409 when grant already exists")
     void shouldReturn409WhenGrantExists() throws Exception {
         GrantCreate grantCreate = new GrantCreate();
         grantCreate.setName(testGrantName);

@@ -6,6 +6,7 @@ import com.dashboard.oauth.repository.IUserRepository;
 import net.datafaker.Faker;
 import org.bson.types.ObjectId;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -20,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
+@DisplayName("User Details Service")
 @ExtendWith(MockitoExtension.class)
 class UserDetailsServiceImplTest {
 
@@ -55,6 +57,7 @@ class UserDetailsServiceImplTest {
     }
 
     @Test
+    @DisplayName("Get user by email")
     void loadUserByUsername_shouldReturnUserDetails_whenUserExists() {
         when(userRepository.findByEmailAndAudit_DeletedAtIsNull(testEmail))
                 .thenReturn(Optional.of(testUser));
@@ -68,6 +71,7 @@ class UserDetailsServiceImplTest {
     }
 
     @Test
+    @DisplayName("Throw exception when user not found")
     void loadUserByUsername_shouldThrowException_whenUserNotFound() {
         when(userRepository.findByEmailAndAudit_DeletedAtIsNull(testEmail))
                 .thenReturn(Optional.empty());

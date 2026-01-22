@@ -77,7 +77,16 @@ unit-test-job:
   script:
     - echo "Running unit tests..."
     - mvn $MAVEN_CLI_OPTS test
+    - mvn $MAVEN_CLI_OPTS allure:report
     - echo "Tests complete."
+  artifacts:
+    when: always
+    paths:
+      - target/site/allure-maven-plugin/
+    reports:
+      junit:
+       - target/surefire-reports/TEST-*.xml
+    expire_in: 7 days
 
 lint-test-job:
   stage: test

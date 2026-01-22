@@ -4,12 +4,14 @@ import com.dashboard.common.model.Audit;
 import com.dashboard.oauth.model.entities.User;
 import com.dashboard.oauth.service.JwtService;
 import com.dashboard.oauth.service.UserDetailsImpl;
+import io.qameta.allure.Story;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import net.datafaker.Faker;
 import org.bson.types.ObjectId;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -22,6 +24,8 @@ import java.util.ArrayList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
+@Story( "JWT Filter")
+@DisplayName( "Jwt Auth Filter")
 @ExtendWith(MockitoExtension.class)
 class JwtAuthFilterTest {
 
