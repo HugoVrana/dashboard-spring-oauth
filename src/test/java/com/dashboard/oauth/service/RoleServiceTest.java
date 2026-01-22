@@ -6,6 +6,7 @@ import com.dashboard.oauth.repository.IRoleRepository;
 import net.datafaker.Faker;
 import org.bson.types.ObjectId;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -18,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+@DisplayName("Role Service")
 @ExtendWith(MockitoExtension.class)
 class RoleServiceTest {
 
@@ -54,6 +56,7 @@ class RoleServiceTest {
     }
 
     @Test
+    @DisplayName("Get all roles")
     void getRoleById_shouldReturnRole_whenRoleExists() {
         when(roleRepository.findById(testRoleId)).thenReturn(Optional.of(testRole));
 
@@ -65,6 +68,7 @@ class RoleServiceTest {
     }
 
     @Test
+    @DisplayName("Get nonexistent role")
     void getRoleById_shouldReturnEmpty_whenRoleNotFound() {
         when(roleRepository.findById(testRoleId)).thenReturn(Optional.empty());
 
@@ -75,6 +79,7 @@ class RoleServiceTest {
     }
 
     @Test
+    @DisplayName("Get role by name")
     void getRoleByName_shouldReturnRole_whenRoleExists() {
         when(roleRepository.findByNameAndAudit_DeletedAtIsNull(testRoleName))
                 .thenReturn(Optional.of(testRole));
@@ -87,6 +92,7 @@ class RoleServiceTest {
     }
 
     @Test
+    @DisplayName("Get nonexistent role by name")
     void getRoleByName_shouldReturnEmpty_whenRoleNotFound() {
         when(roleRepository.findByNameAndAudit_DeletedAtIsNull(testRoleName))
                 .thenReturn(Optional.empty());
@@ -98,6 +104,7 @@ class RoleServiceTest {
     }
 
     @Test
+    @DisplayName("Create role")
     void createRole_shouldReturnCreatedRole() {
         when(roleRepository.insert(any(Role.class))).thenReturn(testRole);
 
@@ -109,6 +116,7 @@ class RoleServiceTest {
     }
 
     @Test
+    @DisplayName("Update role")
     void updateRole_shouldReturnUpdatedRole() {
         testRole.setName("UPDATED_ROLE");
         when(roleRepository.save(any(Role.class))).thenReturn(testRole);

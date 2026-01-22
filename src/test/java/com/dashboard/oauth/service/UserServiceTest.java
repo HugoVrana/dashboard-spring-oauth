@@ -6,6 +6,7 @@ import com.dashboard.oauth.repository.IUserRepository;
 import net.datafaker.Faker;
 import org.bson.types.ObjectId;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -18,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+@DisplayName("User Service")
 @ExtendWith(MockitoExtension.class)
 class UserServiceTest {
 
@@ -55,6 +57,7 @@ class UserServiceTest {
     }
 
     @Test
+    @DisplayName("Save user")
     void saveUser_shouldReturnSavedUser() {
         when(userRepository.save(any(User.class))).thenReturn(testUser);
 
@@ -66,6 +69,7 @@ class UserServiceTest {
     }
 
     @Test
+    @DisplayName("Get user by id")
     void getUserById_shouldReturnUser_whenUserExists() {
         when(userRepository.getUserBy_idAndAudit_DeletedAtIsNull(testUserId))
                 .thenReturn(Optional.of(testUser));
@@ -78,6 +82,7 @@ class UserServiceTest {
     }
 
     @Test
+    @DisplayName("Get nonexistent user by id")
     void getUserById_shouldReturnEmpty_whenUserNotFound() {
         when(userRepository.getUserBy_idAndAudit_DeletedAtIsNull(testUserId))
                 .thenReturn(Optional.empty());
@@ -89,6 +94,7 @@ class UserServiceTest {
     }
 
     @Test
+    @DisplayName("Get user by email")
     void getUserByEmail_shouldReturnUser_whenUserExists() {
         when(userRepository.findByEmailAndAudit_DeletedAtIsNull(testEmail))
                 .thenReturn(Optional.of(testUser));
@@ -101,6 +107,7 @@ class UserServiceTest {
     }
 
     @Test
+    @DisplayName("Get nonexistent user by email")
     void getUserByEmail_shouldReturnEmpty_whenUserNotFound() {
         when(userRepository.findByEmailAndAudit_DeletedAtIsNull(testEmail))
                 .thenReturn(Optional.empty());

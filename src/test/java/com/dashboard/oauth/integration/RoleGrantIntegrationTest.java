@@ -26,6 +26,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+@DisplayName("Role grant flow")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class RoleGrantIntegrationTest extends BaseIntegrationTest {
@@ -100,6 +101,7 @@ class RoleGrantIntegrationTest extends BaseIntegrationTest {
 
     @Test
     @Order(1)
+    @DisplayName("Create role and grant")
     void shouldCreateRole() throws Exception {
         CreateRole createRole = new CreateRole();
         createRole.setName(testRoleName);
@@ -117,6 +119,7 @@ class RoleGrantIntegrationTest extends BaseIntegrationTest {
 
     @Test
     @Order(2)
+    @DisplayName("Fail to create duplicate role")
     void shouldFailToCreateDuplicateRole() throws Exception {
         CreateRole createRole = new CreateRole();
         createRole.setName(testRoleName);
@@ -130,6 +133,7 @@ class RoleGrantIntegrationTest extends BaseIntegrationTest {
 
     @Test
     @Order(3)
+    @DisplayName("Create grant")
     void shouldCreateGrant() throws Exception {
         GrantCreate grantCreate = new GrantCreate();
         grantCreate.setName(testGrantName);
@@ -148,6 +152,7 @@ class RoleGrantIntegrationTest extends BaseIntegrationTest {
 
     @Test
     @Order(4)
+    @DisplayName("Fail to create grant with duplicate name")
     void shouldFailToCreateDuplicateGrant() throws Exception {
         GrantCreate grantCreate = new GrantCreate();
         grantCreate.setName(testGrantName);
@@ -162,6 +167,7 @@ class RoleGrantIntegrationTest extends BaseIntegrationTest {
 
     @Test
     @Order(5)
+    @DisplayName("Add grant to role")
     void shouldAddGrantToRole() throws Exception {
         RoleGrantRequest request = new RoleGrantRequest();
         request.setRoleId(testRoleId);
@@ -183,6 +189,7 @@ class RoleGrantIntegrationTest extends BaseIntegrationTest {
 
     @Test
     @Order(6)
+    @DisplayName("Fail to add duplicate grant to role")
     void shouldFailToAddDuplicateGrantToRole() throws Exception {
         RoleGrantRequest request = new RoleGrantRequest();
         request.setRoleId(testRoleId);
@@ -197,6 +204,7 @@ class RoleGrantIntegrationTest extends BaseIntegrationTest {
 
     @Test
     @Order(7)
+    @DisplayName("Remove grant from role")
     void shouldRemoveGrantFromRole() throws Exception {
         RoleGrantRequest request = new RoleGrantRequest();
         request.setRoleId(testRoleId);
@@ -216,6 +224,7 @@ class RoleGrantIntegrationTest extends BaseIntegrationTest {
 
     @Test
     @Order(8)
+    @DisplayName("Return 0 when removing non-existent grant from role")
     void shouldReturn0WhenRemovingNonExistentGrantFromRole() throws Exception {
         RoleGrantRequest request = new RoleGrantRequest();
         request.setRoleId(testRoleId);

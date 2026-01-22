@@ -3,6 +3,7 @@ package com.dashboard.oauth.controller.roles;
 import com.dashboard.oauth.dataTransferObject.role.CreateRole;
 import com.dashboard.oauth.dataTransferObject.role.RoleRead;
 import com.dashboard.oauth.model.entities.Role;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import java.util.Optional;
@@ -12,9 +13,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@DisplayName("POST api/role/")
 class AddRoleTest extends BaseRoleControllerTest {
 
     @Test
+    @DisplayName("Should return 200 with created role")
     void shouldReturn200WhenSuccessful() throws Exception {
         CreateRole createRole = new CreateRole();
         createRole.setName(testRoleName);
@@ -38,6 +41,7 @@ class AddRoleTest extends BaseRoleControllerTest {
     }
 
     @Test
+    @DisplayName("Should return 409 when role already exists")
     void shouldReturn409WhenRoleExists() throws Exception {
         CreateRole createRole = new CreateRole();
         createRole.setName(testRoleName);

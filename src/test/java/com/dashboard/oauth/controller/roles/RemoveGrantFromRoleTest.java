@@ -3,6 +3,8 @@ package com.dashboard.oauth.controller.roles;
 import com.dashboard.oauth.dataTransferObject.role.RoleGrantRequest;
 import com.dashboard.oauth.model.entities.Grant;
 import com.dashboard.oauth.model.entities.Role;
+import io.qameta.allure.Story;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 
@@ -16,8 +18,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@Story("Remove grant from role flow")
+@DisplayName("DELETE api/role/grant")
 class RemoveGrantFromRoleTest extends BaseRoleControllerTest {
     @Test
+    @DisplayName("Should return 200 with count affected")
     void removeGrant_shouldReturn200WithCountAffected() throws Exception {
         RoleGrantRequest request = new RoleGrantRequest();
         request.setRoleId(testRoleId.toHexString());
@@ -42,6 +47,7 @@ class RemoveGrantFromRoleTest extends BaseRoleControllerTest {
     }
 
     @Test
+    @DisplayName("Should return 404 when role not found")
     void removeGrant_shouldReturn404WhenRoleNotFound() throws Exception {
         RoleGrantRequest request = new RoleGrantRequest();
         request.setRoleId(testRoleId.toHexString());
@@ -56,6 +62,7 @@ class RemoveGrantFromRoleTest extends BaseRoleControllerTest {
     }
 
     @Test
+    @DisplayName("Should return 404 when grant not found")
     void removeGrant_shouldReturn404WhenGrantNotFound() throws Exception {
         RoleGrantRequest request = new RoleGrantRequest();
         request.setRoleId(testRoleId.toHexString());
@@ -74,6 +81,7 @@ class RemoveGrantFromRoleTest extends BaseRoleControllerTest {
     }
 
     @Test
+    @DisplayName("Should return 0 when grant not in role")
     void removeGrant_shouldReturn0WhenGrantNotInRole() throws Exception {
         RoleGrantRequest request = new RoleGrantRequest();
         request.setRoleId(testRoleId.toHexString());
@@ -96,6 +104,7 @@ class RemoveGrantFromRoleTest extends BaseRoleControllerTest {
     }
 
     @Test
+    @DisplayName("Should return 400 when role id or grant id is invalid")
     void removeGrant_shouldReturn400WhenRoleIdInvalid() throws Exception {
         RoleGrantRequest request = new RoleGrantRequest();
         request.setRoleId("invalid-id");
@@ -108,6 +117,7 @@ class RemoveGrantFromRoleTest extends BaseRoleControllerTest {
     }
 
     @Test
+    @DisplayName("Should return 400 when grant id is invalid")
     void removeGrant_shouldReturn400WhenGrantIdInvalid() throws Exception {
         RoleGrantRequest request = new RoleGrantRequest();
         request.setRoleId(testRoleId.toHexString());

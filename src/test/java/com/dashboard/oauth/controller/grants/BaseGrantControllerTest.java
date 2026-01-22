@@ -8,9 +8,15 @@ import com.dashboard.oauth.mapper.interfaces.IGrantMapper;
 import com.dashboard.oauth.model.entities.Grant;
 import com.dashboard.oauth.service.interfaces.IGrantService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.qameta.allure.Epic;
+import io.qameta.allure.Feature;
 import net.datafaker.Faker;
 import org.bson.types.ObjectId;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
+import org.junit.jupiter.api.parallel.ResourceLock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -19,8 +25,13 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import java.time.Instant;
 
+@Epic("Grants")
+@Feature("Grants")
+@Tag("controller-grants")
 @WebMvcTest(GrantController.class)
 @AutoConfigureMockMvc(addFilters = false)
+@Execution(ExecutionMode.SAME_THREAD)
+@ResourceLock("spring-context")
 public abstract class BaseGrantControllerTest {
 
     @Autowired

@@ -11,9 +11,16 @@ import com.dashboard.oauth.service.GrantService;
 import com.dashboard.oauth.service.JwtService;
 import com.dashboard.oauth.service.interfaces.IUserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.qameta.allure.Epic;
+import io.qameta.allure.Feature;
 import org.bson.types.ObjectId;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
+import org.junit.jupiter.api.parallel.ResourceLock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -34,8 +41,13 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+@Epic("Token")
+@Feature("Token")
+@Tag("controller-tokens")
 @WebMvcTest(TokenController.class)
 @AutoConfigureMockMvc(addFilters = false)
+@Execution(ExecutionMode.SAME_THREAD)
+@ResourceLock("spring-context")
 class TokenControllerTest {
 
     @Autowired
@@ -75,6 +87,7 @@ class TokenControllerTest {
     }
 
     @Test
+    @DisplayName("Should return 200 OK when token is valid")
     void introspect_shouldReturnActiveTokenInfo() throws Exception {
         TokenIntrospectionRequest request = new TokenIntrospectionRequest();
         request.setToken("valid-jwt-token");
@@ -103,6 +116,7 @@ class TokenControllerTest {
     }
 
     @Test
+    @DisplayName("Should return 401 Unauthorized when secret header is invalid")
     void introspect_shouldReturnUnauthorizedWhenSecretInvalid() throws Exception {
         TokenIntrospectionRequest request = new TokenIntrospectionRequest();
         request.setToken("valid-jwt-token");
@@ -115,6 +129,7 @@ class TokenControllerTest {
     }
 
     @Test
+    @DisplayName("Should return 400 Bad Request when token is invalid")
     void introspect_shouldReturnInactiveWhenUserNotFound() throws Exception {
         TokenIntrospectionRequest request = new TokenIntrospectionRequest();
         request.setToken("valid-jwt-token");
@@ -137,6 +152,7 @@ class TokenControllerTest {
     }
 
     @Test
+    @DisplayName("Should return 400 Bad Request when token is invalid")
     void introspect_shouldReturnInactiveWhenUserDeleted() throws Exception {
         TokenIntrospectionRequest request = new TokenIntrospectionRequest();
         request.setToken("valid-jwt-token");
@@ -161,6 +177,7 @@ class TokenControllerTest {
     }
 
     @Test
+    @DisplayName("Should return 400 Bad Request when token is invalid")
     void introspect_shouldReturnInactiveWhenGrantNotFound() throws Exception {
         TokenIntrospectionRequest request = new TokenIntrospectionRequest();
         request.setToken("valid-jwt-token");
@@ -184,6 +201,7 @@ class TokenControllerTest {
     }
 
     @Test
+    @DisplayName("Should return 400 Bad Request when token is invalid")
     void introspect_shouldReturnInactiveWhenGrantDeleted() throws Exception {
         TokenIntrospectionRequest request = new TokenIntrospectionRequest();
         request.setToken("valid-jwt-token");
@@ -210,6 +228,7 @@ class TokenControllerTest {
     }
 
     @Test
+    @DisplayName("Should return 400 Bad Request when token is invalid")
     void introspect_shouldReturnEmptyResponseOnJwtException() throws Exception {
         TokenIntrospectionRequest request = new TokenIntrospectionRequest();
         request.setToken("invalid-jwt-token");
@@ -226,6 +245,7 @@ class TokenControllerTest {
     }
 
     @Test
+    @DisplayName("Should return 400 Bad Request when token is invalid")
     void introspect_shouldReturnInactiveWhenTokenExpired() throws Exception {
         TokenIntrospectionRequest request = new TokenIntrospectionRequest();
         request.setToken("expired-jwt-token");
@@ -250,6 +270,7 @@ class TokenControllerTest {
     }
 
     @Test
+    @DisplayName("Should return 500 Internal Server Error when service secret header is missing")
     void introspect_shouldReturn500WhenServiceSecretHeaderMissing() throws Exception {
         TokenIntrospectionRequest request = new TokenIntrospectionRequest();
         request.setToken("valid-jwt-token");

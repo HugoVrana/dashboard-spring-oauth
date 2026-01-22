@@ -22,6 +22,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@DisplayName("Auth flow")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class AuthFlowIntegrationTest extends BaseIntegrationTest {
@@ -66,6 +67,7 @@ class AuthFlowIntegrationTest extends BaseIntegrationTest {
 
     @Test
     @Order(1)
+    @DisplayName("Register new user")
     void shouldRegisterNewUser() throws Exception {
         RegisterRequest request = new RegisterRequest();
         request.setEmail(testEmail);
@@ -84,6 +86,7 @@ class AuthFlowIntegrationTest extends BaseIntegrationTest {
 
     @Test
     @Order(2)
+    @DisplayName("Fail to register duplicate user")
     void shouldFailToRegisterDuplicateUser() throws Exception {
         RegisterRequest request = new RegisterRequest();
         request.setEmail(testEmail);
@@ -98,6 +101,7 @@ class AuthFlowIntegrationTest extends BaseIntegrationTest {
 
     @Test
     @Order(3)
+    @DisplayName("Login and receive tokens")
     void shouldLoginAndReceiveTokens() throws Exception {
         LoginRequest request = new LoginRequest();
         request.setEmail(testEmail);
@@ -123,6 +127,7 @@ class AuthFlowIntegrationTest extends BaseIntegrationTest {
 
     @Test
     @Order(4)
+    @DisplayName("Fail login with wrong password")
     void shouldFailLoginWithWrongPassword() throws Exception {
         LoginRequest request = new LoginRequest();
         request.setEmail(testEmail);
@@ -136,6 +141,7 @@ class AuthFlowIntegrationTest extends BaseIntegrationTest {
 
     @Test
     @Order(5)
+    @DisplayName("Refresh token")
     void shouldRefreshToken() throws Exception {
         RefreshTokenRequest request = new RefreshTokenRequest();
         request.setRefreshToken(refreshToken);
@@ -155,6 +161,7 @@ class AuthFlowIntegrationTest extends BaseIntegrationTest {
 
     @Test
     @Order(6)
+    @DisplayName("Logout")
     void shouldLogout() throws Exception {
         mockMvc.perform(post("/api/auth/logout")
                         .header("Authorization", "Bearer " + accessToken))
@@ -163,6 +170,7 @@ class AuthFlowIntegrationTest extends BaseIntegrationTest {
 
     @Test
     @Order(7)
+    @DisplayName("Fail refresh after logout")
     void shouldFailRefreshAfterLogout() throws Exception {
         RefreshTokenRequest request = new RefreshTokenRequest();
         request.setRefreshToken(refreshToken);

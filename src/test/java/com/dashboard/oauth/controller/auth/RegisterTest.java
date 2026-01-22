@@ -7,6 +7,8 @@ import com.dashboard.oauth.model.UserInfo;
 import com.dashboard.oauth.model.entities.Role;
 import com.dashboard.oauth.model.entities.User;
 import com.dashboard.oauth.service.UserDetailsImpl;
+import io.qameta.allure.Story;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -18,9 +20,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@Story("Register flow")
+@DisplayName("POST api/auth/register")
 class RegisterTest extends BaseAuthControllerTest {
 
     @Test
+    @DisplayName("Should return 201 with user info")
     void shouldReturn201WhenSuccessful() throws Exception {
         RegisterRequest request = new RegisterRequest();
         request.setEmail(testEmail);
@@ -53,6 +58,7 @@ class RegisterTest extends BaseAuthControllerTest {
     }
 
     @Test
+    @DisplayName("Should return 409 when user exists")
     void shouldReturn409WhenUserExists() throws Exception {
         RegisterRequest request = new RegisterRequest();
         request.setEmail(testEmail);
@@ -70,6 +76,7 @@ class RegisterTest extends BaseAuthControllerTest {
     }
 
     @Test
+    @DisplayName("Should return 400 when email is invalid")
     void shouldReturn400WhenRoleIdInvalid() throws Exception {
         RegisterRequest request = new RegisterRequest();
         request.setEmail(testEmail);
@@ -86,6 +93,7 @@ class RegisterTest extends BaseAuthControllerTest {
     }
 
     @Test
+    @DisplayName("Should return 404 when role not found")
     void shouldReturn404WhenRoleNotFound() throws Exception {
         RegisterRequest request = new RegisterRequest();
         request.setEmail(testEmail);
@@ -103,6 +111,7 @@ class RegisterTest extends BaseAuthControllerTest {
     }
 
     @Test
+    @DisplayName("Should return 500 when user service throws exception")
     void shouldReturn400WhenEmailMissing() throws Exception {
         RegisterRequest request = new RegisterRequest();
         request.setPassword(testPassword);
@@ -115,6 +124,7 @@ class RegisterTest extends BaseAuthControllerTest {
     }
 
     @Test
+    @DisplayName("Should return 500 when user service throws exception")
     void shouldReturn400WhenPasswordMissing() throws Exception {
         RegisterRequest request = new RegisterRequest();
         request.setEmail(testEmail);
@@ -127,6 +137,7 @@ class RegisterTest extends BaseAuthControllerTest {
     }
 
     @Test
+    @DisplayName("Should return 500 when user service throws exception")
     void shouldReturn400WhenRoleIdMissing() throws Exception {
         RegisterRequest request = new RegisterRequest();
         request.setEmail(testEmail);
@@ -139,6 +150,7 @@ class RegisterTest extends BaseAuthControllerTest {
     }
 
     @Test
+    @DisplayName("Should return 400 when email is invalid")
     void shouldReturn400WhenEmailInvalid() throws Exception {
         RegisterRequest request = new RegisterRequest();
         request.setEmail("not-an-email");

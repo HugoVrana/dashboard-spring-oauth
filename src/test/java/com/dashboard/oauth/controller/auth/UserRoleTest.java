@@ -5,6 +5,8 @@ import com.dashboard.oauth.dataTransferObject.user.UserInfoRead;
 import com.dashboard.oauth.model.UserInfo;
 import com.dashboard.oauth.model.entities.Role;
 import com.dashboard.oauth.model.entities.User;
+import io.qameta.allure.Story;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import java.util.ArrayList;
@@ -15,9 +17,12 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@Story("Add user role flow")
+@DisplayName("POST api/auth/user/role")
 class UserRoleTest extends BaseAuthControllerTest {
 
     @Test
+    @DisplayName("Should return 200 when successful")
     void shouldReturn200WhenSuccessful() throws Exception {
         AddRoleRequest request = new AddRoleRequest();
         request.setUserId(testUserId.toHexString());
@@ -46,6 +51,7 @@ class UserRoleTest extends BaseAuthControllerTest {
     }
 
     @Test
+    @DisplayName("Should return 400 when user id is invalid")
     void shouldReturn400WhenUserIdInvalid() throws Exception {
         AddRoleRequest request = new AddRoleRequest();
         request.setUserId("invalid-id");
@@ -58,6 +64,7 @@ class UserRoleTest extends BaseAuthControllerTest {
     }
 
     @Test
+    @DisplayName("Should return 400 when role id is invalid")
     void shouldReturn400WhenRoleIdInvalid() throws Exception {
         AddRoleRequest request = new AddRoleRequest();
         request.setUserId(testUserId.toHexString());
@@ -74,6 +81,7 @@ class UserRoleTest extends BaseAuthControllerTest {
     }
 
     @Test
+    @DisplayName("Should return 404 when user not found")
     void shouldReturn404WhenUserNotFound() throws Exception {
         AddRoleRequest request = new AddRoleRequest();
         request.setUserId(testUserId.toHexString());
@@ -88,6 +96,7 @@ class UserRoleTest extends BaseAuthControllerTest {
     }
 
     @Test
+    @DisplayName("Should return 404 when role not found")
     void shouldReturn404WhenRoleNotFound() throws Exception {
         AddRoleRequest request = new AddRoleRequest();
         request.setUserId(testUserId.toHexString());
@@ -105,6 +114,7 @@ class UserRoleTest extends BaseAuthControllerTest {
     }
 
     @Test
+    @DisplayName("Should return 409 when user already has role")
     void shouldReturn409WhenUserAlreadyHasRole() throws Exception {
         AddRoleRequest request = new AddRoleRequest();
         request.setUserId(testUserId.toHexString());

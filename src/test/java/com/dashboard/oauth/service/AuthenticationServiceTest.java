@@ -14,6 +14,7 @@ import com.dashboard.oauth.repository.IUserRepository;
 import com.dashboard.oauth.service.interfaces.IJwtService;
 import org.bson.types.ObjectId;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -34,6 +35,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
+@DisplayName("Auth Service")
 @ExtendWith(MockitoExtension.class)
 class AuthenticationServiceTest {
 
@@ -66,6 +68,7 @@ class AuthenticationServiceTest {
     }
 
     @Test
+    @DisplayName("Should return user info when user is authenticated")
     void register_shouldCreateNewUser() {
         RegisterRequest request = new RegisterRequest();
         request.setEmail("newuser@example.com");
@@ -91,6 +94,7 @@ class AuthenticationServiceTest {
     }
 
     @Test
+    @DisplayName("Should throw exception when user already exists")
     void register_shouldThrowExceptionWhenEmailExists() {
         RegisterRequest request = new RegisterRequest();
         request.setEmail("existing@example.com");
@@ -108,6 +112,7 @@ class AuthenticationServiceTest {
     }
 
     @Test
+    @DisplayName("Should throw exception when password is too short")
     void login_shouldReturnAuthResponse() {
         LoginRequest request = new LoginRequest();
         request.setEmail("test@example.com");
@@ -133,6 +138,7 @@ class AuthenticationServiceTest {
     }
 
     @Test
+    @DisplayName("Should throw exception when user is not found")
     void login_shouldThrowExceptionWhenUserNotFound() {
         LoginRequest request = new LoginRequest();
         request.setEmail("nonexistent@example.com");
@@ -150,6 +156,7 @@ class AuthenticationServiceTest {
     }
 
     @Test
+    @DisplayName("Should throw exception when password is invalid")
     void login_shouldThrowExceptionWhenPasswordInvalid() {
         LoginRequest request = new LoginRequest();
         request.setEmail("test@example.com");
@@ -171,6 +178,7 @@ class AuthenticationServiceTest {
     }
 
     @Test
+    @DisplayName("Should delete existing refresh token before creating new")
     void login_shouldDeleteExistingRefreshTokenBeforeCreatingNew() {
         LoginRequest request = new LoginRequest();
         request.setEmail("test@example.com");
@@ -193,6 +201,7 @@ class AuthenticationServiceTest {
     }
 
     @Test
+    @DisplayName("Should return new access token when refresh token is valid")
     void refreshToken_shouldReturnNewAccessToken() {
         String refreshTokenStr = "valid-refresh-token";
         User user = createTestUser();
@@ -219,6 +228,7 @@ class AuthenticationServiceTest {
     }
 
     @Test
+    @DisplayName("Should throw exception when refresh token is invalid")
     void refreshToken_shouldThrowExceptionWhenTokenNotFound() {
         String refreshTokenStr = "invalid-refresh-token";
 
@@ -233,6 +243,7 @@ class AuthenticationServiceTest {
     }
 
     @Test
+    @DisplayName("Should throw exception when refresh token is expired")
     void refreshToken_shouldThrowExceptionWhenTokenExpired() {
         String refreshTokenStr = "expired-refresh-token";
         RefreshToken refreshToken = RefreshToken.builder()
@@ -253,6 +264,7 @@ class AuthenticationServiceTest {
     }
 
     @Test
+    @DisplayName("Should throw exception when user is not found")
     void refreshToken_shouldThrowExceptionWhenUserNotFound() {
         String refreshTokenStr = "valid-refresh-token";
         ObjectId userId = new ObjectId();
@@ -274,6 +286,7 @@ class AuthenticationServiceTest {
     }
 
     @Test
+    @DisplayName("Should delete refresh token when logout is called")
     void logout_shouldDeleteRefreshTokenByUserId() {
         String userId = new ObjectId().toHexString();
 
@@ -283,6 +296,7 @@ class AuthenticationServiceTest {
     }
 
     @Test
+    @DisplayName("Should encode password before saving user")
     void register_shouldEncodePassword() {
         RegisterRequest request = new RegisterRequest();
         request.setEmail("newuser@example.com");
@@ -300,6 +314,7 @@ class AuthenticationServiceTest {
     }
 
     @Test
+    @DisplayName("Should save refresh token with correct expiry date")
     void login_shouldSaveRefreshTokenWithCorrectExpiration() {
         LoginRequest request = new LoginRequest();
         request.setEmail("test@example.com");

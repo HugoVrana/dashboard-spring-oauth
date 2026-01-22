@@ -7,6 +7,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import org.bson.types.ObjectId;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -16,6 +17,7 @@ import java.util.Collections;
 import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
+@DisplayName("JWT Service")
 class JwtServiceTest {
 
     private JwtService jwtService;
@@ -30,6 +32,7 @@ class JwtServiceTest {
     }
 
     @Test
+    @DisplayName("Should generate valid JWT token")
     void generateToken_shouldCreateValidToken() {
         UserInfo userInfo = createTestUserInfo();
 
@@ -41,6 +44,7 @@ class JwtServiceTest {
     }
 
     @Test
+    @DisplayName("Should extract username from JWT token")
     void extractUsername_shouldReturnCorrectEmail() {
         UserInfo userInfo = createTestUserInfo();
         String token = jwtService.generateToken(userInfo);
@@ -51,6 +55,7 @@ class JwtServiceTest {
     }
 
     @Test
+    @DisplayName("Should extract claims from JWT token")
     void extractClaim_shouldReturnUserId() {
         UserInfo userInfo = createTestUserInfo();
         String token = jwtService.generateToken(userInfo);
@@ -62,6 +67,7 @@ class JwtServiceTest {
     }
 
     @Test
+    @DisplayName("Should extract claims from JWT token")
     void extractClaim_shouldReturnGrants() {
         UserInfo userInfo = createTestUserInfo();
         String token = jwtService.generateToken(userInfo);
@@ -75,6 +81,7 @@ class JwtServiceTest {
     }
 
     @Test
+    @DisplayName("Should extract claims from JWT token")
     void extractClaim_shouldReturnExpiration() {
         UserInfo userInfo = createTestUserInfo();
         String token = jwtService.generateToken(userInfo);
@@ -86,6 +93,7 @@ class JwtServiceTest {
     }
 
     @Test
+    @DisplayName("Should validate JWT token")
     void validateToken_shouldReturnTrueForValidToken() {
         UserInfo userInfo = createTestUserInfo();
         String token = jwtService.generateToken(userInfo);
@@ -101,6 +109,7 @@ class JwtServiceTest {
     }
 
     @Test
+    @DisplayName("Should validate JWT token")
     void validateToken_shouldReturnFalseForWrongUsername() {
         UserInfo userInfo = createTestUserInfo();
         String token = jwtService.generateToken(userInfo);
@@ -116,6 +125,7 @@ class JwtServiceTest {
     }
 
     @Test
+    @DisplayName("Should validate JWT token")
     void validateToken_shouldReturnFalseForExpiredToken() {
         // Set a very short expiration
         ReflectionTestUtils.setField(jwtService, "expiration", 1L); // 1ms
@@ -140,6 +150,7 @@ class JwtServiceTest {
     }
 
     @Test
+    @DisplayName("Should handle empty grants")
     void generateToken_shouldHandleEmptyGrants() {
         UserInfo userInfo = new UserInfo();
         userInfo.setId(new ObjectId());
@@ -161,6 +172,7 @@ class JwtServiceTest {
     }
 
     @Test
+    @DisplayName("Should deduplicate grants")
     void generateToken_shouldDeduplicateGrants() {
         UserInfo userInfo = new UserInfo();
         userInfo.setId(new ObjectId());
