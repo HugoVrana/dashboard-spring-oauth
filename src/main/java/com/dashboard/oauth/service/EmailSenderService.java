@@ -1,5 +1,6 @@
 package com.dashboard.oauth.service;
 
+import com.dashboard.oauth.environment.EmailProperties;
 import com.dashboard.oauth.service.interfaces.IEmailSenderService;
 import com.resend.Resend;
 import com.resend.core.exception.ResendException;
@@ -13,11 +14,12 @@ import org.springframework.stereotype.Service;
 public class EmailSenderService implements IEmailSenderService {
 
     private final Resend resend;
+    private final EmailProperties emailProperties;
 
     @Override
     public String sendEmail(String to, String subject, String content) throws ResendException {
         CreateEmailOptions params = CreateEmailOptions.builder()
-                .from("Acme <onboarding@resend.dev>")
+                .from(emailProperties.getFromAddress())
                 .to(to)
                 .subject(subject)
                 .html(content)

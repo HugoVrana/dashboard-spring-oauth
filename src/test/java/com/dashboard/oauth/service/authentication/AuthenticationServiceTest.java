@@ -1,32 +1,22 @@
-package com.dashboard.oauth.service;
+package com.dashboard.oauth.service.authentication;
 
 import com.dashboard.common.model.Audit;
 import com.dashboard.oauth.dataTransferObject.auth.AuthResponse;
 import com.dashboard.oauth.dataTransferObject.auth.LoginRequest;
 import com.dashboard.oauth.dataTransferObject.auth.RegisterRequest;
 import com.dashboard.oauth.dataTransferObject.user.UserInfoRead;
-import com.dashboard.oauth.mapper.interfaces.IUserInfoMapper;
 import com.dashboard.oauth.model.UserInfo;
 import com.dashboard.oauth.model.entities.RefreshToken;
 import com.dashboard.oauth.model.entities.User;
-import com.dashboard.oauth.repository.IRefreshTokenRepository;
-import com.dashboard.oauth.repository.IUserRepository;
-import com.dashboard.oauth.service.interfaces.IJwtService;
 import org.bson.types.ObjectId;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.test.util.ReflectionTestUtils;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Optional;
@@ -37,35 +27,7 @@ import static org.mockito.Mockito.*;
 
 @DisplayName("Auth Service")
 @ExtendWith(MockitoExtension.class)
-class AuthenticationServiceTest {
-
-    @Mock
-    private IUserRepository userRepository;
-
-    @Mock
-    private IRefreshTokenRepository refreshTokenRepository;
-
-    @Mock
-    private PasswordEncoder passwordEncoder;
-
-    @Mock
-    private IJwtService jwtService;
-
-    @Mock
-    private AuthenticationManager authenticationManager;
-
-    @Mock
-    private IUserInfoMapper userInfoMapper;
-
-    @InjectMocks
-    private AuthenticationService authenticationService;
-
-    private static final Long JWT_EXPIRATION = 86400000L;
-
-    @BeforeEach
-    void setUp() {
-        ReflectionTestUtils.setField(authenticationService, "jwtExpiration", JWT_EXPIRATION);
-    }
+class AuthenticationServiceTest extends BaseAuthenticationServiceTest {
 
     @Test
     @DisplayName("Should return user info when user is authenticated")

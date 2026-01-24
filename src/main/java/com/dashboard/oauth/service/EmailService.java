@@ -1,6 +1,7 @@
 package com.dashboard.oauth.service;
 
 import com.dashboard.common.model.Audit;
+import com.dashboard.oauth.environment.EmailProperties;
 import com.dashboard.oauth.model.entities.EmailSendAttempt;
 import com.dashboard.oauth.model.entities.User;
 import com.dashboard.oauth.model.entities.VerificationToken;
@@ -26,6 +27,7 @@ public class EmailService implements IEmailService {
     private final IUserRepository userRepository;
     private final IEmailSenderService emailSenderService;
     private final IEmailSendAttemptRepository emailSendAttemptRepository;
+    private final EmailProperties emailProperties;
 
     @Override
     public void sendPendingVerificationEmails() {
@@ -120,12 +122,14 @@ public class EmailService implements IEmailService {
     }
 
     private String buildVerificationEmailContent(String token) {
+        String verifyUrl = emailProperties.getBaseUrl() + "/verify-email?token=" + token;
         return "<p>Please verify your email by clicking the link below:</p>" +
-                "<p><a href=\"https://example.com/verify?token=" + token + "\">Verify Email</a></p>";
+                "<p><a href=\"" + verifyUrl + "\">Verify Email</a></p>";
     }
 
     private String buildPasswordResetEmailContent(String token) {
+        String resetUrl = emailProperties.getBaseUrl() + "/reset-password?token=" + token;
         return "<p>Click the link below to reset your password:</p>" +
-                "<p><a href=\"https://example.com/reset-password?token=" + token + "\">Reset Password</a></p>";
+                "<p><a href=\"" + resetUrl + "\">Reset Password</a></p>";
     }
 }

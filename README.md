@@ -61,6 +61,9 @@ resend.api-key=<resend-api-key>
 | POST | `/api/auth/refresh` | Refresh access token |
 | POST | `/api/auth/logout` | Invalidate refresh token |
 | GET | `/api/auth/me` | Get current user info |
+| POST | `/api/auth/verify-email?token=xxx` | Verify email address |
+| POST | `/api/auth/forgot-password` | Request password reset email |
+| POST | `/api/auth/reset-password` | Reset password with token |
 
 ### Roles & Grants
 | Method | Endpoint | Description |
@@ -77,12 +80,76 @@ resend.api-key=<resend-api-key>
 
 ## Email System
 
-Emails for verification and password reset are sent via a scheduled job:
+Emails for verification and password reset are sent via a scheduled job using Resend.
 
-1. User registers → `VerificationToken` created with `emailSentAt=null`
-2. Scheduler runs every minute → finds users with unsent emails
-3. Sends email via Resend → records `EmailSendAttempt` → updates `emailSentAt`
-4. On failure → attempt marked FAILED, retried on next scheduler run
+### Email Verification Flow
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 1. REGISTRATION                                                             │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ User registers → User created with:                                         │
+│   • emailVerified = false                                                   │
+│   • emailVerificationToken.token = UUID                                     │
+│   • emailVerificationToken.emailSentAt = null                               │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                    ↓
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 2. SCHEDULER (runs every minute)                                            │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ Finds users where emailVerificationToken.emailSentAt = null                 │
+│   → Sends verification email via Resend                                     │
+│   → Creates EmailSendAttempt record (SENT or FAILED)                        │
+│   → On success: sets emailSentAt = now                                      │
+│   → On failure: leaves emailSentAt = null (retried next run)                │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                    ↓
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 3. USER CLICKS EMAIL LINK                                                   │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ Frontend calls: POST /api/auth/verify-email?token=xxx                       │
+│   → Token validated (exists, not expired, not used)                         │
+│   → User updated: emailVerified = true, emailVerificationToken = null       │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Password Reset Flow
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 1. FORGOT PASSWORD REQUEST                                                  │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ POST /api/auth/forgot-password { email: "user@example.com" }                │
+│   → Creates passwordResetToken with emailSentAt = null                      │
+│   → Returns 200 OK (always, to prevent email enumeration)                   │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                    ↓
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 2. SCHEDULER (runs every minute)                                            │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ Finds users where passwordResetToken.emailSentAt = null                     │
+│   → Sends password reset email via Resend                                   │
+│   → Creates EmailSendAttempt record                                         │
+│   → Updates emailSentAt on success                                          │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                    ↓
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 3. USER CLICKS EMAIL LINK & SUBMITS NEW PASSWORD                            │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ POST /api/auth/reset-password { token: "xxx", newPassword: "newpass" }      │
+│   → Token validated (exists, not expired, not used)                         │
+│   → Password updated, passwordResetToken = null                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Configuration
+
+```properties
+email.baseUrl=http://localhost:3000
+email.fromAddress=Acme <onboarding@resend.dev>
+email.verificationTokenExpirationMs=86400000  # 24 hours
+email.passwordResetTokenExpirationMs=3600000  # 1 hour
+```
 
 ## Related Projects
 

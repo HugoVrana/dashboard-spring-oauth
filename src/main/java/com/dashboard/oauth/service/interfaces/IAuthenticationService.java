@@ -10,4 +10,7 @@ public interface IAuthenticationService {
     AuthResponse login(LoginRequest loginRequest);
     AuthResponse refreshToken(String refreshToken);
     void logout(String userId);
+    void verifyEmail(String token);
+    void forgotPassword(String email);
+    void resetPassword(String token, String newPassword);
 }
