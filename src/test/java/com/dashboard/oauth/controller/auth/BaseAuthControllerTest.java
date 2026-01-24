@@ -7,7 +7,6 @@ import com.dashboard.oauth.filter.JwtAuthFilter;
 import com.dashboard.oauth.mapper.interfaces.IGrantMapper;
 import com.dashboard.oauth.mapper.interfaces.IRoleMapper;
 import com.dashboard.oauth.mapper.interfaces.IUserInfoMapper;
-import com.dashboard.oauth.model.entities.Grant;
 import com.dashboard.oauth.model.entities.Role;
 import com.dashboard.oauth.model.entities.User;
 import com.dashboard.oauth.service.interfaces.*;
@@ -73,6 +72,9 @@ public abstract class BaseAuthControllerTest {
     protected IGrantMapper grantMapper;
 
     @MockitoBean
+    protected IEmailService emailService;
+
+    @MockitoBean
     protected JwtAuthFilter jwtAuthFilter;
 
     @MockitoBean
@@ -135,18 +137,5 @@ public abstract class BaseAuthControllerTest {
         role.setAudit(audit);
 
         return role;
-    }
-
-    protected Grant createTestGrant() {
-        Grant grant = new Grant();
-        grant.set_id(testGrantId);
-        grant.setName(testGrantName);
-        grant.setDescription(testGrantDescription);
-
-        Audit audit = new Audit();
-        audit.setCreatedAt(Instant.now());
-        grant.setAudit(audit);
-
-        return grant;
     }
 }
