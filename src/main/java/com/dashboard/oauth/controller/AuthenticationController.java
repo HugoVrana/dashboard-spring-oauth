@@ -46,6 +46,7 @@ public class AuthenticationController {
     private final IUserService userService;
     private final IRoleService roleService;
     private final IJwtService jwtService;
+
     private final IUserInfoMapper userInfoMapper;
     private final IGrantMapper grantMapper;
     private final IRoleMapper roleMapper;

@@ -25,7 +25,7 @@ import java.util.Optional;
 @CrossOrigin
 @RequestMapping("/api/oauth2")
 @RequiredArgsConstructor
-public class TokenController {
+public class OAuth2Controller {
 
     private final IUserService userService;
     private final Oauth2Properties properties;

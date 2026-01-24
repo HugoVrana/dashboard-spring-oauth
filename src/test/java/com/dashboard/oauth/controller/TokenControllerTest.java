@@ -44,7 +44,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Epic("Token")
 @Feature("Token")
 @Tag("controller-tokens")
-@WebMvcTest(TokenController.class)
+@WebMvcTest(OAuth2Controller.class)
 @AutoConfigureMockMvc(addFilters = false)
 @Execution(ExecutionMode.SAME_THREAD)
 @ResourceLock("spring-context")
