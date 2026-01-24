@@ -33,9 +33,12 @@ class EmailSenderServiceTest {
 
     private EmailSenderService emailSenderService;
 
+    private static final String TEST_FROM_ADDRESS = "Acme <onboarding@resend.dev>";
+
     @BeforeEach
     void setUp() {
         EmailProperties emailProperties = new EmailProperties();
+        emailProperties.setFromAddress(TEST_FROM_ADDRESS);
         emailSenderService = new EmailSenderService(resend, emailProperties);
     }
 
@@ -79,7 +82,7 @@ class EmailSenderServiceTest {
         assertThat(capturedOptions.getTo()).contains(to);
         assertThat(capturedOptions.getSubject()).isEqualTo(subject);
         assertThat(capturedOptions.getHtml()).isEqualTo(content);
-        assertThat(capturedOptions.getFrom()).isEqualTo("Acme <onboarding@resend.dev>");
+        assertThat(capturedOptions.getFrom()).isEqualTo(TEST_FROM_ADDRESS);
     }
 
     @Test
