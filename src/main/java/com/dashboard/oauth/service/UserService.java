@@ -29,4 +29,6 @@ public class UserService implements IUserService {
     public Optional<User> getUserByEmail(String email){
         return userRepository.findByEmailAndAudit_DeletedAtIsNull(email);
     }
+
+
 }

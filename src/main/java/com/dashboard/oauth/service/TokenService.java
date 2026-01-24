@@ -13,6 +13,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.temporal.TemporalAmount;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -30,7 +31,6 @@ public class TokenService implements ITokenService {
         token.setExpiryDate(Instant.now().plus(Duration.ofDays(1)));
         token.setCreatedAt(Instant.now());
         token.setUsed(false);
-
         user.setEmailVerificationToken(token);
         userRepository.save(user);
 
@@ -60,7 +60,6 @@ public class TokenService implements ITokenService {
                 .orElseThrow(() -> new RuntimeException("Invalid verification token"));
 
         VerificationToken token = user.getEmailVerificationToken();
-
         if (token == null || !token.isValid()) {
             throw new RuntimeException("Token expired or already used");
         }
@@ -85,7 +84,6 @@ public class TokenService implements ITokenService {
                 .orElseThrow(() -> new RuntimeException("Invalid reset token"));
 
         VerificationToken token = user.getPasswordResetToken();
-
         if (token == null || !token.isValid()) {
             throw new RuntimeException("Token expired or already used");
         }
@@ -98,10 +96,11 @@ public class TokenService implements ITokenService {
         token.setUsed(true);
         token.setUsedAt(Instant.now());
 
-        // Clear any email verification token for security
-        if (user.getEmailVerificationToken() != null) {
-            user.getEmailVerificationToken().setUsed(true);
-        }
+        user.setPasswordResetToken(token);
+
+        Audit a = user.getAudit();
+        a.setUpdatedAt(Instant.now());
+        user.setAudit(a);
 
         userRepository.save(user);
     }

@@ -28,9 +28,9 @@ public class User {
 
     private LocalDateTime emailVerifiedAt;
 
-    private Optional<VerificationToken> emailVerificationToken;
+    private VerificationToken emailVerificationToken;
 
-    private Optional<VerificationToken> passwordResetToken;
+    private VerificationToken passwordResetToken;
 
     @DBRef
     private List<Role> roles;

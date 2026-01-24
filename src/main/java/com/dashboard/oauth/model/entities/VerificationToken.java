@@ -13,6 +13,7 @@ public class VerificationToken {
     private Instant expiryDate;
     private Boolean used = false;
     private Instant usedAt;
+    private Instant emailSentAt;
     private Instant createdAt;
 
     public boolean isExpired() {

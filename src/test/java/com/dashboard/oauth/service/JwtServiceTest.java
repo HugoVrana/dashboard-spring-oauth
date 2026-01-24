@@ -1,5 +1,6 @@
 package com.dashboard.oauth.service;
 
+import com.dashboard.oauth.environment.JWTProperties;
 import com.dashboard.oauth.model.UserInfo;
 import com.dashboard.oauth.model.entities.Grant;
 import com.dashboard.oauth.model.entities.Role;
@@ -26,7 +27,18 @@ class JwtServiceTest {
 
     @BeforeEach
     void setUp() {
-        jwtService = new JwtService();
+        JWTProperties jwtProperties = new JWTProperties(){
+            @Override
+            public String getSecret() {
+                return TEST_SECRET;
+            }
+
+            @Override
+            public Long getExpiration() {
+                return TEST_EXPIRATION;
+            }
+        };
+        jwtService = new JwtService(jwtProperties);
         ReflectionTestUtils.setField(jwtService, "secret", TEST_SECRET);
         ReflectionTestUtils.setField(jwtService, "expiration", TEST_EXPIRATION);
     }
