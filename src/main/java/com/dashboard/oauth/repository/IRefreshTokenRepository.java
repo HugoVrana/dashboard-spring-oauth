@@ -7,6 +7,6 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import java.util.Optional;
 
 public interface IRefreshTokenRepository extends MongoRepository<RefreshToken, ObjectId> {
-    Optional<RefreshToken> findByToken(String token);
+    Optional<RefreshToken> findByToken(ObjectId token);
     void deleteByUserId(String userId);
 }

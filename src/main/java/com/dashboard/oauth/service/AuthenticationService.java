@@ -34,7 +34,6 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -64,7 +63,7 @@ public class AuthenticationService implements IAuthenticationService {
         user.setEmailVerified(false);
 
         VerificationToken verificationToken = new VerificationToken();
-        verificationToken.setToken(UUID.randomUUID().toString());
+        verificationToken.set_id(new ObjectId());
         verificationToken.setCreatedAt(Instant.now());
         verificationToken.setExpiryDate(Instant.now().plusMillis(emailProperties.getVerificationTokenExpirationMs()));
         verificationToken.setUsed(false);
@@ -119,9 +118,9 @@ public class AuthenticationService implements IAuthenticationService {
 
         refreshTokenRepository.deleteByUserId(user.get_id().toHexString());
 
-        String tokenValue = UUID.randomUUID().toString();
+        ObjectId refreshTokenId = new ObjectId();
         RefreshToken refreshToken = RefreshToken.builder()
-                .token(tokenValue)
+                .token(refreshTokenId)
                 .userId(user.get_id().toHexString())
                 .expiryDate(Instant.now().plusMillis(jwtExpiration))
                 .build();
@@ -130,13 +129,16 @@ public class AuthenticationService implements IAuthenticationService {
         AuthResponse response = new AuthResponse();
         response.setUser(userInfoRead);
         response.setAccessToken(accessToken);
-        response.setRefreshToken(tokenValue);
+        response.setRefreshToken(refreshTokenId.toHexString());
         response.setExpiresIn(jwtExpiration);
         return response;
     }
 
     public AuthResponse refreshToken(String refreshTokenStr) {
-        RefreshToken refreshToken = refreshTokenRepository.findByToken(refreshTokenStr)
+        if (!ObjectId.isValid(refreshTokenStr)) {
+            throw new RuntimeException("Invalid refresh token");
+        }
+        RefreshToken refreshToken = refreshTokenRepository.findByToken(new ObjectId(refreshTokenStr))
                 .orElseThrow(() -> new RuntimeException("Invalid refresh token"));
 
         if (refreshToken.getExpiryDate().isBefore(Instant.now())) {
@@ -170,7 +172,10 @@ public class AuthenticationService implements IAuthenticationService {
 
     @Override
     public void verifyEmail(String token) {
-        User user = userRepository.getUserByEmailVerificationToken_TokenAndAudit_DeletedAtIsNull(token)
+        if (!ObjectId.isValid(token)) {
+            throw new RuntimeException("Invalid verification token");
+        }
+        User user = userRepository.getUserByEmailVerificationToken__idAndAudit_DeletedAtIsNull(new ObjectId(token))
                 .orElseThrow(() -> new RuntimeException("Invalid verification token"));
 
         VerificationToken verificationToken = user.getEmailVerificationToken();
@@ -202,7 +207,7 @@ public class AuthenticationService implements IAuthenticationService {
         User user = optionalUser.get();
 
         VerificationToken resetToken = new VerificationToken();
-        resetToken.setToken(UUID.randomUUID().toString());
+        resetToken.set_id(new ObjectId());
         resetToken.setCreatedAt(Instant.now());
         resetToken.setExpiryDate(Instant.now().plusMillis(emailProperties.getPasswordResetTokenExpirationMs()));
         resetToken.setUsed(false);
@@ -213,7 +218,10 @@ public class AuthenticationService implements IAuthenticationService {
 
     @Override
     public void resetPassword(String token, String newPassword) {
-        User user = userRepository.getUserByPasswordResetToken_TokenAndAudit_DeletedAtIsNull(token)
+        if (!ObjectId.isValid(token)) {
+            throw new RuntimeException("Invalid password reset token");
+        }
+        User user = userRepository.getUserByPasswordResetToken__idAndAudit_DeletedAtIsNull(new ObjectId(token))
                 .orElseThrow(() -> new RuntimeException("Invalid password reset token"));
 
         VerificationToken resetToken = user.getPasswordResetToken();
