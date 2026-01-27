@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 
@@ -33,7 +34,36 @@ public class EmailService implements IEmailService {
     public void sendPendingVerificationEmails() {
         List<User> users = userRepository.findUsersWithUnsentVerificationEmail();
         for (User user : users) {
-            sendVerificationEmail(user);
+            VerificationToken token = user.getEmailVerificationToken();
+            if (token == null) {
+                return;
+            }
+
+            String subject = "Verify your email";
+
+            String verifyUrl = emailProperties.getBaseUrl() + "/verify-email?token=" + token.getToken();
+            String content = "<p>Please verify your email by clicking the link below:</p>" +
+                    "<p><a href=\"" + verifyUrl + "\">Verify Email</a></p>";
+
+            EmailSendAttempt attempt = createAttempt(user, EmailType.VERIFICATION, token.getToken());
+            Instant startTime = Instant.now();
+
+            try {
+                String messageId = emailSenderService.sendEmail(user.getEmail(), subject, content);
+                markAttemptSuccess(attempt, messageId);
+                token.setEmailSentAt(Instant.now());
+                userRepository.save(user);
+                long durationMs = Duration.between(startTime, Instant.now()).toMillis();
+                log.info("event=email_send status=SENT emailType=VERIFICATION userId={} email={} tokenId={} messageId={} durationMs={}",
+                        user.get_id().toHexString(), user.getEmail(), token.getToken(), messageId, durationMs);
+            } catch (ResendException e) {
+                markAttemptFailed(attempt, e.getMessage());
+                long durationMs = Duration.between(startTime, Instant.now()).toMillis();
+                log.error("event=email_send status=FAILED emailType=VERIFICATION userId={} email={} tokenId={} error={} durationMs={}",
+                        user.get_id().toHexString(), user.getEmail(), token.getToken(), e.getMessage(), durationMs);
+            }
+
+            emailSendAttemptRepository.save(attempt);
         }
     }
 
@@ -41,58 +71,37 @@ public class EmailService implements IEmailService {
     public void sendPendingPasswordResetEmails() {
         List<User> users = userRepository.findUsersWithUnsentPasswordResetEmail();
         for (User user : users) {
-            sendPasswordResetEmail(user);
+            VerificationToken token = user.getPasswordResetToken();
+            if (token == null) {
+                break;
+            }
+
+            String subject = "Reset your password";
+
+            String resetUrl = emailProperties.getBaseUrl() + "/reset-password?token=" + token.getToken();
+            String content = "<p>Click the link below to reset your password:</p>" +
+                    "<p><a href=\"" + resetUrl + "\">Reset Password</a></p>";
+
+            EmailSendAttempt attempt = createAttempt(user, EmailType.PASSWORD_RESET, token.getToken());
+            Instant startTime = Instant.now();
+
+            try {
+                String messageId = emailSenderService.sendEmail(user.getEmail(), subject, content);
+                markAttemptSuccess(attempt, messageId);
+                token.setEmailSentAt(Instant.now());
+                userRepository.save(user);
+                long durationMs = Duration.between(startTime, Instant.now()).toMillis();
+                log.info("event=email_send status=SENT emailType=PASSWORD_RESET userId={} email={} tokenId={} messageId={} durationMs={}",
+                        user.get_id().toHexString(), user.getEmail(), token.getToken(), messageId, durationMs);
+            } catch (ResendException e) {
+                markAttemptFailed(attempt, e.getMessage());
+                long durationMs = Duration.between(startTime, Instant.now()).toMillis();
+                log.error("event=email_send status=FAILED emailType=PASSWORD_RESET userId={} email={} tokenId={} error={} durationMs={}",
+                        user.get_id().toHexString(), user.getEmail(), token.getToken(), e.getMessage(), durationMs);
+            }
+
+            emailSendAttemptRepository.save(attempt);
         }
-    }
-
-    private void sendVerificationEmail(User user) {
-        VerificationToken token = user.getEmailVerificationToken();
-        if (token == null) {
-            return;
-        }
-
-        String subject = "Verify your email";
-        String content = buildVerificationEmailContent(token.getToken());
-
-        EmailSendAttempt attempt = createAttempt(user, EmailType.VERIFICATION, token.getToken());
-
-        try {
-            String messageId = emailSenderService.sendEmail(user.getEmail(), subject, content);
-            markAttemptSuccess(attempt, messageId);
-            token.setEmailSentAt(Instant.now());
-            userRepository.save(user);
-            log.info("Verification email sent to {} with messageId {}", user.getEmail(), messageId);
-        } catch (ResendException e) {
-            markAttemptFailed(attempt, e.getMessage());
-            log.error("Failed to send verification email to {}: {}", user.getEmail(), e.getMessage());
-        }
-
-        emailSendAttemptRepository.save(attempt);
-    }
-
-    private void sendPasswordResetEmail(User user) {
-        VerificationToken token = user.getPasswordResetToken();
-        if (token == null) {
-            return;
-        }
-
-        String subject = "Reset your password";
-        String content = buildPasswordResetEmailContent(token.getToken());
-
-        EmailSendAttempt attempt = createAttempt(user, EmailType.PASSWORD_RESET, token.getToken());
-
-        try {
-            String messageId = emailSenderService.sendEmail(user.getEmail(), subject, content);
-            markAttemptSuccess(attempt, messageId);
-            token.setEmailSentAt(Instant.now());
-            userRepository.save(user);
-            log.info("Password reset email sent to {} with messageId {}", user.getEmail(), messageId);
-        } catch (ResendException e) {
-            markAttemptFailed(attempt, e.getMessage());
-            log.error("Failed to send password reset email to {}: {}", user.getEmail(), e.getMessage());
-        }
-
-        emailSendAttemptRepository.save(attempt);
     }
 
     private EmailSendAttempt createAttempt(User user, EmailType emailType, String tokenId) {
@@ -119,17 +128,5 @@ public class EmailService implements IEmailService {
     private void markAttemptFailed(EmailSendAttempt attempt, String errorMessage) {
         attempt.setStatus(EmailSendStatus.FAILED);
         attempt.setErrorMessage(errorMessage);
-    }
-
-    private String buildVerificationEmailContent(String token) {
-        String verifyUrl = emailProperties.getBaseUrl() + "/verify-email?token=" + token;
-        return "<p>Please verify your email by clicking the link below:</p>" +
-                "<p><a href=\"" + verifyUrl + "\">Verify Email</a></p>";
-    }
-
-    private String buildPasswordResetEmailContent(String token) {
-        String resetUrl = emailProperties.getBaseUrl() + "/reset-password?token=" + token;
-        return "<p>Click the link below to reset your password:</p>" +
-                "<p><a href=\"" + resetUrl + "\">Reset Password</a></p>";
     }
 }

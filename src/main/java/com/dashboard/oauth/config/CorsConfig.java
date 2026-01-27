@@ -21,7 +21,7 @@ public class CorsConfig {
                         .maxAge(3600);
 
                 registry.addMapping("/oauth2/**")
-                        .allowedOrigins("http://localhost:8080")  // Your Data API origin
+                        .allowedOrigins("https://spring-dashboard-1.onrender.com")  // Your Data API origin
                         .allowedMethods("POST")
                         .allowedHeaders("*")
                         .allowCredentials(true);
