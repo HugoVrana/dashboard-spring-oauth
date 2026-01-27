@@ -1,5 +1,6 @@
 package com.dashboard.oauth.service;
 
+import com.dashboard.oauth.environment.JWTProperties;
 import com.dashboard.oauth.model.UserInfo;
 import com.dashboard.oauth.model.entities.Grant;
 import com.dashboard.oauth.service.interfaces.IJwtService;
@@ -7,7 +8,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
-import org.springframework.beans.factory.annotation.Value;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import javax.crypto.SecretKey;
@@ -18,13 +19,10 @@ import java.util.Map;
 import java.util.function.Function;
 
 @Service
+@RequiredArgsConstructor
 public class JwtService implements IJwtService {
 
-    @Value("${JWT.SECRET}")
-    private String secret;
-
-    @Value("${JWT.EXPIRATION}")
-    private Long expiration;
+    private final JWTProperties jwtProperties;
 
     public String generateToken(UserInfo userDetails) {
         Map<String, Object> claims = new HashMap<>();
@@ -37,7 +35,7 @@ public class JwtService implements IJwtService {
         );
 
         Instant now = Instant.now();
-        Instant expiryInstant = now.plusMillis(expiration);
+        Instant expiryInstant = now.plusMillis(jwtProperties.getExpiration());
         SecretKey s = getSignKey();
 
         return Jwts.builder()
@@ -70,7 +68,7 @@ public class JwtService implements IJwtService {
     }
 
     private SecretKey getSignKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(secret);
+        byte[] keyBytes = Decoders.BASE64.decode(jwtProperties.getSecret());
         return Keys.hmacShaKeyFor(keyBytes);
     }
 }

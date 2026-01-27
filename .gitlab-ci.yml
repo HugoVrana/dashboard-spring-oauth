@@ -68,17 +68,17 @@ include:
 build-job:
   stage: build
   script:
-    - echo "Compiling the code..."
-    - mvn $MAVEN_CLI_OPTS clean package
-    - echo "Compile complete."
+    - mvn $MAVEN_CLI_OPTS clean package -DskipTests
+  artifacts:
+    paths:
+      - target/
+    expire_in: 1 hour
 
 unit-test-job:
   stage: test
   script:
-    - echo "Running unit tests..."
     - mvn $MAVEN_CLI_OPTS test
     - mvn $MAVEN_CLI_OPTS allure:report
-    - echo "Tests complete."
   artifacts:
     when: always
     paths:

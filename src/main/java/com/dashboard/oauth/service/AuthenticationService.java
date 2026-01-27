@@ -7,6 +7,7 @@ import com.dashboard.oauth.dataTransferObject.auth.RegisterRequest;
 import com.dashboard.oauth.dataTransferObject.grant.GrantRead;
 import com.dashboard.oauth.dataTransferObject.role.RoleRead;
 import com.dashboard.oauth.dataTransferObject.user.UserInfoRead;
+import com.dashboard.oauth.environment.EmailProperties;
 import com.dashboard.oauth.mapper.interfaces.IGrantMapper;
 import com.dashboard.oauth.mapper.interfaces.IRoleMapper;
 import com.dashboard.oauth.mapper.interfaces.IUserInfoMapper;
@@ -15,12 +16,14 @@ import com.dashboard.oauth.model.entities.Grant;
 import com.dashboard.oauth.model.entities.RefreshToken;
 import com.dashboard.oauth.model.entities.Role;
 import com.dashboard.oauth.model.entities.User;
+import com.dashboard.oauth.model.entities.VerificationToken;
 import com.dashboard.oauth.repository.IRefreshTokenRepository;
 import com.dashboard.oauth.repository.IUserRepository;
 import com.dashboard.oauth.service.interfaces.IAuthenticationService;
 import com.dashboard.oauth.service.interfaces.IJwtService;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationServiceException;
@@ -44,11 +47,12 @@ public class AuthenticationService implements IAuthenticationService {
     private final IUserInfoMapper userInfoMapper;
     private final IRoleMapper roleMapper;
     private final IGrantMapper grantMapper;
+    private final EmailProperties emailProperties;
 
     @Value("${jwt.expiration}")
     private Long jwtExpiration;
 
-    public User register(RegisterRequest request) {
+    public User register(@NotNull RegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new AuthenticationServiceException("The user with email : " + request.getEmail() + " already exists");
         }
@@ -57,6 +61,14 @@ public class AuthenticationService implements IAuthenticationService {
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRoles(new ArrayList<>());
+        user.setEmailVerified(false);
+
+        VerificationToken verificationToken = new VerificationToken();
+        verificationToken.setToken(UUID.randomUUID().toString());
+        verificationToken.setCreatedAt(Instant.now());
+        verificationToken.setExpiryDate(Instant.now().plusMillis(emailProperties.getVerificationTokenExpirationMs()));
+        verificationToken.setUsed(false);
+        user.setEmailVerificationToken(verificationToken);
 
         Audit audit = new Audit();
         audit.setCreatedAt(Instant.now());
@@ -66,7 +78,7 @@ public class AuthenticationService implements IAuthenticationService {
         return user;
     }
 
-    public AuthResponse login(LoginRequest request) {
+    public AuthResponse login(@NotNull LoginRequest request) {
         Optional<User> optionalUser = userRepository.findByEmailAndAudit_DeletedAtIsNull(request.getEmail());
         if (optionalUser.isEmpty()) {
             throw new RuntimeException("Invalid email or password");
@@ -154,5 +166,70 @@ public class AuthenticationService implements IAuthenticationService {
 
     public void logout(String userId) {
         refreshTokenRepository.deleteByUserId(userId);
+    }
+
+    @Override
+    public void verifyEmail(String token) {
+        User user = userRepository.getUserByEmailVerificationToken_TokenAndAudit_DeletedAtIsNull(token)
+                .orElseThrow(() -> new RuntimeException("Invalid verification token"));
+
+        VerificationToken verificationToken = user.getEmailVerificationToken();
+        if (verificationToken == null) {
+            throw new RuntimeException("Invalid verification token");
+        }
+
+        if (!verificationToken.isValid()) {
+            throw new RuntimeException("Verification token is expired or already used");
+        }
+
+        verificationToken.setUsed(true);
+        verificationToken.setUsedAt(Instant.now());
+        user.setEmailVerified(true);
+        user.setEmailVerifiedAt(java.time.LocalDateTime.now());
+        user.setEmailVerificationToken(null);
+
+        userRepository.save(user);
+    }
+
+    @Override
+    public void forgotPassword(String email) {
+        Optional<User> optionalUser = userRepository.findByEmailAndAudit_DeletedAtIsNull(email);
+        if (optionalUser.isEmpty()) {
+            // Don't reveal if user exists or not for security
+            return;
+        }
+
+        User user = optionalUser.get();
+
+        VerificationToken resetToken = new VerificationToken();
+        resetToken.setToken(UUID.randomUUID().toString());
+        resetToken.setCreatedAt(Instant.now());
+        resetToken.setExpiryDate(Instant.now().plusMillis(emailProperties.getPasswordResetTokenExpirationMs()));
+        resetToken.setUsed(false);
+
+        user.setPasswordResetToken(resetToken);
+        userRepository.save(user);
+    }
+
+    @Override
+    public void resetPassword(String token, String newPassword) {
+        User user = userRepository.getUserByPasswordResetToken_TokenAndAudit_DeletedAtIsNull(token)
+                .orElseThrow(() -> new RuntimeException("Invalid password reset token"));
+
+        VerificationToken resetToken = user.getPasswordResetToken();
+        if (resetToken == null) {
+            throw new RuntimeException("Invalid password reset token");
+        }
+
+        if (!resetToken.isValid()) {
+            throw new RuntimeException("Password reset token is expired or already used");
+        }
+
+        resetToken.setUsed(true);
+        resetToken.setUsedAt(Instant.now());
+        user.setPassword(passwordEncoder.encode(newPassword));
+        user.setPasswordResetToken(null);
+
+        userRepository.save(user);
     }
 }

@@ -34,13 +34,15 @@ Spring Boot 3.5.7 OAuth2 authorization server with JWT authentication and MongoD
 
 ### Key Packages
 
-- `config/` - SecurityConfig (JWT filter chain, BCrypt encoder), CorsConfig
+- `config/` - SecurityConfig (JWT filter chain, BCrypt encoder), CorsConfig, ResendConfig
 - `controller/` - AuthenticationController (`/api/auth/*`), TokenController (`/api/oauth2/introspect`)
-- `service/` - AuthenticationService, JwtService (JJWT library), UserService, RoleService, GrantService
+- `service/` - AuthenticationService, JwtService (JJWT library), UserService, RoleService, GrantService, EmailService, EmailSenderService
 - `filter/JwtAuthFilter` - Extracts JWT from Authorization header, validates, sets authentication
-- `model/entities/` - User, Role, Grant, RefreshToken (all with soft delete via Audit.deletedAt)
+- `model/entities/` - User, Role, Grant, RefreshToken, VerificationToken, EmailSendAttempt (all with soft delete via Audit.deletedAt)
+- `model/enums/` - EmailType (VERIFICATION, PASSWORD_RESET), EmailSendStatus (QUEUED, SENT, DELIVERED, BOUNCED, FAILED)
 - `mapper/` - Interface-based mappers (IUserInfoMapper, IRoleMapper, IGrantMapper)
 - `dataTransferObject/` - Request/response DTOs for auth, role, grant, user operations
+- `scheduler/` - EmailScheduler (scheduled email sending)
 
 ### Authorization Model
 
@@ -48,15 +50,44 @@ Spring Boot 3.5.7 OAuth2 authorization server with JWT authentication and MongoD
 - JWT claims include userId, email (subject), and flattened grants list
 - Roles become GrantedAuthorities as "ROLE_[name]"
 
+### Email System
+
+Scheduled email sending for verification and password reset emails via Resend API.
+
+**Architecture:**
+```
+EmailScheduler (triggers every minute)
+    ↓
+EmailService (orchestrates)
+    ├── Fetches users with unsent emails (IUserRepository)
+    ├── Sends via EmailSenderService (Resend API)
+    ├── Records EmailSendAttempt for history/audit
+    └── Updates VerificationToken.emailSentAt on success
+```
+
+**Key Classes:**
+- `EmailScheduler` - Thin scheduler, just triggers `EmailService` methods
+- `EmailService` - Orchestrates: fetch users → send email → record attempt → update token
+- `EmailSenderService` - Low-level Resend API wrapper, returns message ID
+- `VerificationToken` - Embedded in User for emailVerificationToken and passwordResetToken
+- `EmailSendAttempt` - Separate collection for send history/audit trail
+
+**Flow:**
+1. User registers/requests reset → `VerificationToken` created with `emailSentAt=null`
+2. Scheduler runs → finds users with unsent emails
+3. For each user: create attempt → send → update status → save attempt
+4. On failure: attempt marked FAILED, `emailSentAt` stays null for retry on next run
+
 ### Database
 
-MongoDB with collections: users, roles, grants, refreshTokens. All entities use soft delete pattern (check `deletedAt != null`).
+MongoDB with collections: users, roles, grants, refresh_tokens, email_send_attempts. All entities use soft delete pattern (check `deletedAt != null`).
 
 ### External Dependencies
 
 - `com.dashboard:common` - Shared Audit model, custom exceptions (ConflictException, ResourceNotFoundException, InvalidRequestException), GrafanaHttpClient for logging
 - JJWT 0.12.3 for JWT operations
 - springdoc-openapi for API documentation
+- Resend Java SDK for transactional emails
 
 ### Configuration Properties
 
@@ -65,6 +96,7 @@ Key properties in `application.properties`:
 - `JWT.EXPIRATION` - Token expiration in milliseconds (default 86400000 = 24h)
 - `spring.security.oauth2.secret` - Service secret for token introspection endpoint
 - `spring.data.mongodb.uri` - MongoDB Atlas connection string
+- `resend.api-key` - Resend API key for sending emails
 
 ## API Endpoints
 

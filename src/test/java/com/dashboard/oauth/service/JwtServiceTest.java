@@ -1,5 +1,6 @@
 package com.dashboard.oauth.service;
 
+import com.dashboard.oauth.environment.JWTProperties;
 import com.dashboard.oauth.model.UserInfo;
 import com.dashboard.oauth.model.entities.Grant;
 import com.dashboard.oauth.model.entities.Role;
@@ -11,7 +12,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.test.util.ReflectionTestUtils;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -26,9 +26,10 @@ class JwtServiceTest {
 
     @BeforeEach
     void setUp() {
-        jwtService = new JwtService();
-        ReflectionTestUtils.setField(jwtService, "secret", TEST_SECRET);
-        ReflectionTestUtils.setField(jwtService, "expiration", TEST_EXPIRATION);
+        JWTProperties jwtProperties = new JWTProperties();
+        jwtProperties.setSecret(TEST_SECRET);
+        jwtProperties.setExpiration(TEST_EXPIRATION);
+        jwtService = new JwtService(jwtProperties);
     }
 
     @Test
@@ -127,10 +128,14 @@ class JwtServiceTest {
     @Test
     @DisplayName("Should validate JWT token")
     void validateToken_shouldReturnFalseForExpiredToken() {
-        // Set a very short expiration
-        ReflectionTestUtils.setField(jwtService, "expiration", 1L); // 1ms
+        // Create a new JwtService with a very short expiration
+        JWTProperties shortExpirationProps = new JWTProperties();
+        shortExpirationProps.setSecret(TEST_SECRET);
+        shortExpirationProps.setExpiration(1L); // 1ms
+        JwtService shortExpirationJwtService = new JwtService(shortExpirationProps);
+
         UserInfo userInfo = createTestUserInfo();
-        String token = jwtService.generateToken(userInfo);
+        String token = shortExpirationJwtService.generateToken(userInfo);
 
         // Wait for token to expire
         try {
