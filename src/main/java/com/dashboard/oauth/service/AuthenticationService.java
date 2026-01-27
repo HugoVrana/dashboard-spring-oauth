@@ -23,6 +23,7 @@ import com.dashboard.oauth.service.interfaces.IAuthenticationService;
 import com.dashboard.oauth.service.interfaces.IJwtService;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationServiceException;
@@ -51,7 +52,7 @@ public class AuthenticationService implements IAuthenticationService {
     @Value("${jwt.expiration}")
     private Long jwtExpiration;
 
-    public User register(RegisterRequest request) {
+    public User register(@NotNull RegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new AuthenticationServiceException("The user with email : " + request.getEmail() + " already exists");
         }
@@ -77,7 +78,7 @@ public class AuthenticationService implements IAuthenticationService {
         return user;
     }
 
-    public AuthResponse login(LoginRequest request) {
+    public AuthResponse login(@NotNull LoginRequest request) {
         Optional<User> optionalUser = userRepository.findByEmailAndAudit_DeletedAtIsNull(request.getEmail());
         if (optionalUser.isEmpty()) {
             throw new RuntimeException("Invalid email or password");
