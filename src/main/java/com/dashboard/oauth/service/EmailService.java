@@ -15,6 +15,7 @@ import com.dashboard.oauth.service.interfaces.IEmailTemplateService;
 import com.resend.core.exception.ResendException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -104,7 +105,7 @@ public class EmailService implements IEmailService {
         }
     }
 
-    private EmailSendAttempt createAttempt(User user, EmailType emailType, String tokenId) {
+    private EmailSendAttempt createAttempt(@NotNull User user, EmailType emailType, String tokenId) {
         Audit audit = new Audit();
         audit.setCreatedAt(Instant.now());
 
@@ -119,13 +120,13 @@ public class EmailService implements IEmailService {
                 .build();
     }
 
-    private void markAttemptSuccess(EmailSendAttempt attempt, String messageId) {
+    private void markAttemptSuccess(@NotNull EmailSendAttempt attempt, String messageId) {
         attempt.setStatus(EmailSendStatus.SENT);
         attempt.setResendMessageId(messageId);
         attempt.setSentAt(Instant.now());
     }
 
-    private void markAttemptFailed(EmailSendAttempt attempt, String errorMessage) {
+    private void markAttemptFailed(@NotNull EmailSendAttempt attempt, String errorMessage) {
         attempt.setStatus(EmailSendStatus.FAILED);
         attempt.setErrorMessage(errorMessage);
     }
