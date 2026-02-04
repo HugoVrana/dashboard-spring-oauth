@@ -47,7 +47,7 @@ public class EmailService implements IEmailService {
             long expirationHours = emailProperties.getVerificationTokenExpirationMs() / (1000 * 60 * 60);
             String content = emailTemplateService.renderVerificationEmail(verifyUrl, expirationHours);
 
-            EmailSendAttempt attempt = createAttempt(user, EmailType.VERIFICATION, token.getToken());
+            EmailSendAttempt attempt = createAttempt(user, EmailType.VERIFICATION, tokenHex);
             Instant startTime = Instant.now();
 
             try {
@@ -57,12 +57,12 @@ public class EmailService implements IEmailService {
                 userRepository.save(user);
                 long durationMs = Duration.between(startTime, Instant.now()).toMillis();
                 log.info("event=email_send status=SENT emailType=VERIFICATION userId={} email={} tokenId={} messageId={} durationMs={}",
-                        user.get_id().toHexString(), user.getEmail(), token.getToken(), messageId, durationMs);
+                        user.get_id().toHexString(), user.getEmail(), tokenHex, messageId, durationMs);
             } catch (ResendException e) {
                 markAttemptFailed(attempt, e.getMessage());
                 long durationMs = Duration.between(startTime, Instant.now()).toMillis();
                 log.error("event=email_send status=FAILED emailType=VERIFICATION userId={} email={} tokenId={} error={} durationMs={}",
-                        user.get_id().toHexString(), user.getEmail(), token.getToken(), e.getMessage(), durationMs);
+                        user.get_id().toHexString(), user.getEmail(), tokenHex, e.getMessage(), durationMs);
             }
 
             emailSendAttemptRepository.save(attempt);
@@ -83,7 +83,7 @@ public class EmailService implements IEmailService {
             long expirationHours = emailProperties.getPasswordResetTokenExpirationMs() / (1000 * 60 * 60);
             String content = emailTemplateService.renderPasswordResetEmail(resetUrl, expirationHours);
 
-            EmailSendAttempt attempt = createAttempt(user, EmailType.PASSWORD_RESET, token.getToken());
+            EmailSendAttempt attempt = createAttempt(user, EmailType.PASSWORD_RESET, tokenHex);
             Instant startTime = Instant.now();
 
             try {
@@ -93,12 +93,12 @@ public class EmailService implements IEmailService {
                 userRepository.save(user);
                 long durationMs = Duration.between(startTime, Instant.now()).toMillis();
                 log.info("event=email_send status=SENT emailType=PASSWORD_RESET userId={} email={} tokenId={} messageId={} durationMs={}",
-                        user.get_id().toHexString(), user.getEmail(), token.getToken(), messageId, durationMs);
+                        user.get_id().toHexString(), user.getEmail(), tokenHex, messageId, durationMs);
             } catch (ResendException e) {
                 markAttemptFailed(attempt, e.getMessage());
                 long durationMs = Duration.between(startTime, Instant.now()).toMillis();
                 log.error("event=email_send status=FAILED emailType=PASSWORD_RESET userId={} email={} tokenId={} error={} durationMs={}",
-                        user.get_id().toHexString(), user.getEmail(), token.getToken(), e.getMessage(), durationMs);
+                        user.get_id().toHexString(), user.getEmail(), tokenHex, e.getMessage(), durationMs);
             }
 
             emailSendAttemptRepository.save(attempt);

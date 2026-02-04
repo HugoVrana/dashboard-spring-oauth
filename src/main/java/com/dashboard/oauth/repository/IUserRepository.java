@@ -10,8 +10,8 @@ import java.util.Optional;
 public interface IUserRepository extends MongoRepository<User, ObjectId> {
     Optional<User> findByEmailAndAudit_DeletedAtIsNull(String email);
     Optional<User> getUserBy_idAndAudit_DeletedAtIsNull(ObjectId id);
-    Optional<User> getUserByPasswordResetToken_TokenAndAudit_DeletedAtIsNull(String passwordResetTokenToken);
-    Optional<User> getUserByEmailVerificationToken_TokenAndAudit_DeletedAtIsNull(String emailVerificationTokenToken);
+    Optional<User> getUserByPasswordResetToken__idAndAudit_DeletedAtIsNull(ObjectId passwordResetTokenToken);
+    Optional<User> getUserByEmailVerificationToken__idAndAudit_DeletedAtIsNull(ObjectId emailVerificationTokenToken);
     Boolean existsByEmail(String email);
     @Query("{ 'audit.deletedAt': null, 'emailVerificationToken': { $ne: null }, 'emailVerificationToken.emailSentAt': null }")
     List<User> findUsersWithUnsentVerificationEmail();

@@ -18,7 +18,7 @@ public class RefreshToken {
     private ObjectId id;
 
     @Indexed(unique = true)
-    private String token;
+    private ObjectId token;
 
     @Field("user_id")
     private String userId;

@@ -165,10 +165,11 @@ class AuthenticationServiceTest extends BaseAuthenticationServiceTest {
     @Test
     @DisplayName("Should return new access token when refresh token is valid")
     void refreshToken_shouldReturnNewAccessToken() {
-        String refreshTokenStr = "valid-refresh-token";
+        ObjectId refreshTokenId = new ObjectId();
+        String refreshTokenStr = refreshTokenId.toHexString();
         User user = createTestUser();
         RefreshToken refreshToken = RefreshToken.builder()
-                .token(refreshTokenStr)
+                .token(refreshTokenId)
                 .userId(user.get_id().toHexString())
                 .expiryDate(Instant.now().plusMillis(JWT_EXPIRATION))
                 .build();
@@ -176,7 +177,7 @@ class AuthenticationServiceTest extends BaseAuthenticationServiceTest {
         UserInfoRead userInfoRead = new UserInfoRead();
         userInfoRead.setEmail("test@example.com");
 
-        when(refreshTokenRepository.findByToken(refreshTokenStr)).thenReturn(Optional.of(refreshToken));
+        when(refreshTokenRepository.findByToken(refreshTokenId)).thenReturn(Optional.of(refreshToken));
         when(userRepository.findById(user.get_id())).thenReturn(Optional.of(user));
         when(jwtService.generateToken(any(UserInfo.class))).thenReturn("new-access-token");
         when(userInfoMapper.toRead(any(UserInfo.class))).thenReturn(userInfoRead);
@@ -192,9 +193,10 @@ class AuthenticationServiceTest extends BaseAuthenticationServiceTest {
     @Test
     @DisplayName("Should throw exception when refresh token is invalid")
     void refreshToken_shouldThrowExceptionWhenTokenNotFound() {
-        String refreshTokenStr = "invalid-refresh-token";
+        ObjectId refreshTokenId = new ObjectId();
+        String refreshTokenStr = refreshTokenId.toHexString();
 
-        when(refreshTokenRepository.findByToken(refreshTokenStr)).thenReturn(Optional.empty());
+        when(refreshTokenRepository.findByToken(refreshTokenId)).thenReturn(Optional.empty());
 
         RuntimeException exception = assertThrows(
                 RuntimeException.class,
@@ -205,16 +207,31 @@ class AuthenticationServiceTest extends BaseAuthenticationServiceTest {
     }
 
     @Test
+    @DisplayName("Should throw exception when refresh token format is invalid")
+    void refreshToken_shouldThrowExceptionWhenTokenFormatInvalid() {
+        String invalidTokenStr = "not-a-valid-objectid";
+
+        RuntimeException exception = assertThrows(
+                RuntimeException.class,
+                () -> authenticationService.refreshToken(invalidTokenStr)
+        );
+
+        assertEquals("Invalid refresh token", exception.getMessage());
+        verify(refreshTokenRepository, never()).findByToken(any(ObjectId.class));
+    }
+
+    @Test
     @DisplayName("Should throw exception when refresh token is expired")
     void refreshToken_shouldThrowExceptionWhenTokenExpired() {
-        String refreshTokenStr = "expired-refresh-token";
+        ObjectId refreshTokenId = new ObjectId();
+        String refreshTokenStr = refreshTokenId.toHexString();
         RefreshToken refreshToken = RefreshToken.builder()
-                .token(refreshTokenStr)
+                .token(refreshTokenId)
                 .userId(new ObjectId().toHexString())
                 .expiryDate(Instant.now().minusMillis(1000)) // Expired
                 .build();
 
-        when(refreshTokenRepository.findByToken(refreshTokenStr)).thenReturn(Optional.of(refreshToken));
+        when(refreshTokenRepository.findByToken(refreshTokenId)).thenReturn(Optional.of(refreshToken));
 
         RuntimeException exception = assertThrows(
                 RuntimeException.class,
@@ -228,15 +245,16 @@ class AuthenticationServiceTest extends BaseAuthenticationServiceTest {
     @Test
     @DisplayName("Should throw exception when user is not found")
     void refreshToken_shouldThrowExceptionWhenUserNotFound() {
-        String refreshTokenStr = "valid-refresh-token";
+        ObjectId refreshTokenId = new ObjectId();
+        String refreshTokenStr = refreshTokenId.toHexString();
         ObjectId userId = new ObjectId();
         RefreshToken refreshToken = RefreshToken.builder()
-                .token(refreshTokenStr)
+                .token(refreshTokenId)
                 .userId(userId.toHexString())
                 .expiryDate(Instant.now().plusMillis(JWT_EXPIRATION))
                 .build();
 
-        when(refreshTokenRepository.findByToken(refreshTokenStr)).thenReturn(Optional.of(refreshToken));
+        when(refreshTokenRepository.findByToken(refreshTokenId)).thenReturn(Optional.of(refreshToken));
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
         RuntimeException exception = assertThrows(
