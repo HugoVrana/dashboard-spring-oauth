@@ -8,6 +8,7 @@ import com.dashboard.oauth.repository.IEmailSendAttemptRepository;
 import com.dashboard.oauth.repository.IUserRepository;
 import com.dashboard.oauth.service.EmailService;
 import com.dashboard.oauth.service.interfaces.IEmailSenderService;
+import com.dashboard.oauth.service.interfaces.IEmailTemplateService;
 import io.qameta.allure.Epic;
 import io.qameta.allure.Feature;
 import net.datafaker.Faker;
@@ -34,6 +35,9 @@ public abstract class BaseEmailServiceTest {
 
     @Mock
     protected IEmailSendAttemptRepository emailSendAttemptRepository;
+
+    @Mock
+    protected IEmailTemplateService emailTemplateService;
 
     protected EmailService emailService;
 
@@ -71,7 +75,7 @@ public abstract class BaseEmailServiceTest {
     void setUp() {
         EmailProperties emailProperties = new EmailProperties();
         emailProperties.setBaseUrl("http://localhost:3000");
-        emailService = new EmailService(userRepository, emailSenderService, emailSendAttemptRepository, emailProperties);
+        emailService = new EmailService(userRepository, emailSenderService, emailSendAttemptRepository, emailTemplateService, emailProperties);
 
         testUserId = new ObjectId();
         testEmail = faker.internet().emailAddress();
