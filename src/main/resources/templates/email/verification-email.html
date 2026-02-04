@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Verify your email</title>
+    </head>
+    <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f4f4f5;">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #f4f4f5;">
+            <tr>
+                <td align="center" style="padding: 40px 20px;">
+                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width: 480px; background-color: #ffffff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                        <!-- Header -->
+                        <tr>
+                            <td style="padding: 32px 32px 24px 32px; text-align: center;">
+                                <h1 style="margin: 0; font-size: 24px; font-weight: 600; color: #18181b;">
+                                    Verify your email address
+                                </h1>
+                            </td>
+                        </tr>
+
+                        <!-- Content -->
+                        <tr>
+                            <td style="padding: 0 32px 24px 32px;">
+                                <p style="margin: 0 0 16px 0; font-size: 16px; line-height: 24px; color: #52525b;">
+                                    Thanks for signing up! Please verify your email address by clicking the button below.
+                                </p>
+                                <th:block th:replace="~{email/fragments :: expirationNotice(${expirationHours})}"/>
+                            </td>
+                        </tr>
+
+                        <!-- Button -->
+                        <th:block th:replace="~{email/fragments :: button(${verifyUrl}, 'Verify Email')}"/>
+
+                        <!-- Alternative Link -->
+                        <th:block th:replace="~{email/fragments :: fallbackLink(${verifyUrl})}"/>
+
+                        <!-- Footer -->
+                        <th:block th:replace="~{email/fragments :: footer('If you didn\'t create an account, you can safely ignore this email.')}"/>
+                    </table>
+                </td>
+            </tr>
+        </table>
+    </body>
+</html>

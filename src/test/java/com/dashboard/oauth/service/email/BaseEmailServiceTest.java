@@ -8,6 +8,7 @@ import com.dashboard.oauth.repository.IEmailSendAttemptRepository;
 import com.dashboard.oauth.repository.IUserRepository;
 import com.dashboard.oauth.service.EmailService;
 import com.dashboard.oauth.service.interfaces.IEmailSenderService;
+import com.dashboard.oauth.service.interfaces.IEmailTemplateService;
 import io.qameta.allure.Epic;
 import io.qameta.allure.Feature;
 import net.datafaker.Faker;
@@ -20,6 +21,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.Instant;
 import java.util.ArrayList;
+
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.lenient;
 
 @Epic("Authentication")
 @Feature("Email Service")
@@ -34,6 +39,9 @@ public abstract class BaseEmailServiceTest {
 
     @Mock
     protected IEmailSendAttemptRepository emailSendAttemptRepository;
+
+    @Mock
+    protected IEmailTemplateService emailTemplateService;
 
     protected EmailService emailService;
 
@@ -71,11 +79,19 @@ public abstract class BaseEmailServiceTest {
     void setUp() {
         EmailProperties emailProperties = new EmailProperties();
         emailProperties.setBaseUrl("http://localhost:3000");
-        emailService = new EmailService(userRepository, emailSenderService, emailSendAttemptRepository, emailProperties);
+        emailProperties.setVerificationTokenExpirationMs(86400000L); // 24 hours
+        emailProperties.setPasswordResetTokenExpirationMs(3600000L); // 1 hour
+        emailService = new EmailService(userRepository, emailSenderService, emailSendAttemptRepository, emailTemplateService, emailProperties);
 
         testUserId = new ObjectId();
         testEmail = faker.internet().emailAddress();
         testToken = createTestToken();
         testUser = createTestUser();
+
+        // Default template mocks - return simple HTML content (lenient because not all tests use both)
+        lenient().when(emailTemplateService.renderVerificationEmail(anyString(), anyLong()))
+                .thenReturn("<html>Verify email</html>");
+        lenient().when(emailTemplateService.renderPasswordResetEmail(anyString(), anyLong()))
+                .thenReturn("<html>Reset password</html>");
     }
 }
