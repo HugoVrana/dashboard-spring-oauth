@@ -22,6 +22,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.time.Instant;
 import java.util.ArrayList;
 
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.lenient;
+
 @Epic("Authentication")
 @Feature("Email Service")
 @Tag("service-email")
@@ -75,11 +79,19 @@ public abstract class BaseEmailServiceTest {
     void setUp() {
         EmailProperties emailProperties = new EmailProperties();
         emailProperties.setBaseUrl("http://localhost:3000");
+        emailProperties.setVerificationTokenExpirationMs(86400000L); // 24 hours
+        emailProperties.setPasswordResetTokenExpirationMs(3600000L); // 1 hour
         emailService = new EmailService(userRepository, emailSenderService, emailSendAttemptRepository, emailTemplateService, emailProperties);
 
         testUserId = new ObjectId();
         testEmail = faker.internet().emailAddress();
         testToken = createTestToken();
         testUser = createTestUser();
+
+        // Default template mocks - return simple HTML content (lenient because not all tests use both)
+        lenient().when(emailTemplateService.renderVerificationEmail(anyString(), anyLong()))
+                .thenReturn("<html>Verify email</html>");
+        lenient().when(emailTemplateService.renderPasswordResetEmail(anyString(), anyLong()))
+                .thenReturn("<html>Reset password</html>");
     }
 }
