@@ -39,7 +39,7 @@ public class EmailService implements IEmailService {
         for (User user : users) {
             VerificationToken token = user.getEmailVerificationToken();
             if (token == null) {
-                return;
+                break;
             }
 
             String subject = "Verify your email";

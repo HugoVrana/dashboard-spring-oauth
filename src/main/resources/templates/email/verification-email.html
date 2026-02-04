@@ -25,47 +25,18 @@
                                 <p style="margin: 0 0 16px 0; font-size: 16px; line-height: 24px; color: #52525b;">
                                     Thanks for signing up! Please verify your email address by clicking the button below.
                                 </p>
-                                <p style="margin: 0; font-size: 14px; line-height: 20px; color: #71717a;">
-                                    This link will expire in <span th:text="${expirationHours}">24</span> hours.
-                                </p>
+                                <th:block th:replace="~{email/fragments :: expirationNotice(${expirationHours})}"/>
                             </td>
                         </tr>
 
                         <!-- Button -->
-                        <tr>
-                            <td style="padding: 0 32px 32px 32px;">
-                                <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
-                                    <tr>
-                                        <td align="center">
-                                            <a th:href="${verifyUrl}" style="display: inline-block; padding: 12px 24px; font-size: 16px; font-weight: 500; color: #ffffff; background-color: #18181b; border-radius: 6px; text-decoration: none;">
-                                                Verify Email
-                                            </a>
-                                        </td>
-                                    </tr>
-                                </table>
-                            </td>
-                        </tr>
+                        <th:block th:replace="~{email/fragments :: button(${verifyUrl}, 'Verify Email')}"/>
 
                         <!-- Alternative Link -->
-                        <tr>
-                            <td style="padding: 0 32px 32px 32px; border-top: 1px solid #e4e4e7;">
-                                <p style="margin: 24px 0 8px 0; font-size: 14px; line-height: 20px; color: #71717a;">
-                                    If the button doesn't work, copy and paste this link into your browser:
-                                </p>
-                                <p style="margin: 0; font-size: 14px; line-height: 20px; word-break: break-all;">
-                                    <a th:href="${verifyUrl}" th:text="${verifyUrl}" style="color: #2563eb; text-decoration: none;"></a>
-                                </p>
-                            </td>
-                        </tr>
+                        <th:block th:replace="~{email/fragments :: fallbackLink(${verifyUrl})}"/>
 
                         <!-- Footer -->
-                        <tr>
-                            <td style="padding: 24px 32px; background-color: #fafafa; border-radius: 0 0 8px 8px;">
-                                <p style="margin: 0; font-size: 12px; line-height: 16px; color: #a1a1aa; text-align: center;">
-                                    If you didn't create an account, you can safely ignore this email.
-                                </p>
-                            </td>
-                        </tr>
+                        <th:block th:replace="~{email/fragments :: footer('If you didn\'t create an account, you can safely ignore this email.')}"/>
                     </table>
                 </td>
             </tr>
