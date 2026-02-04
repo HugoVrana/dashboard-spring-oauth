@@ -11,6 +11,7 @@ import com.dashboard.oauth.repository.IEmailSendAttemptRepository;
 import com.dashboard.oauth.repository.IUserRepository;
 import com.dashboard.oauth.service.interfaces.IEmailSenderService;
 import com.dashboard.oauth.service.interfaces.IEmailService;
+import com.dashboard.oauth.service.interfaces.IEmailTemplateService;
 import com.resend.core.exception.ResendException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +29,7 @@ public class EmailService implements IEmailService {
     private final IUserRepository userRepository;
     private final IEmailSenderService emailSenderService;
     private final IEmailSendAttemptRepository emailSendAttemptRepository;
+    private final IEmailTemplateService emailTemplateService;
     private final EmailProperties emailProperties;
 
     @Override
@@ -40,10 +42,9 @@ public class EmailService implements IEmailService {
             }
 
             String subject = "Verify your email";
-
             String verifyUrl = emailProperties.getBaseUrl() + "/verify-email?token=" + token.getToken();
-            String content = "<p>Please verify your email by clicking the link below:</p>" +
-                    "<p><a href=\"" + verifyUrl + "\">Verify Email</a></p>";
+            long expirationHours = emailProperties.getVerificationTokenExpirationMs() / (1000 * 60 * 60);
+            String content = emailTemplateService.renderVerificationEmail(verifyUrl, expirationHours);
 
             EmailSendAttempt attempt = createAttempt(user, EmailType.VERIFICATION, token.getToken());
             Instant startTime = Instant.now();
@@ -77,10 +78,9 @@ public class EmailService implements IEmailService {
             }
 
             String subject = "Reset your password";
-
             String resetUrl = emailProperties.getBaseUrl() + "/reset-password?token=" + token.getToken();
-            String content = "<p>Click the link below to reset your password:</p>" +
-                    "<p><a href=\"" + resetUrl + "\">Reset Password</a></p>";
+            long expirationHours = emailProperties.getPasswordResetTokenExpirationMs() / (1000 * 60 * 60);
+            String content = emailTemplateService.renderPasswordResetEmail(resetUrl, expirationHours);
 
             EmailSendAttempt attempt = createAttempt(user, EmailType.PASSWORD_RESET, token.getToken());
             Instant startTime = Instant.now();
