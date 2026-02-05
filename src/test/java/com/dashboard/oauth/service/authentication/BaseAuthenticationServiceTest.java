@@ -8,6 +8,7 @@ import com.dashboard.oauth.repository.IRefreshTokenRepository;
 import com.dashboard.oauth.repository.IUserRepository;
 import com.dashboard.oauth.service.AuthenticationService;
 import com.dashboard.oauth.service.interfaces.IJwtService;
+import com.dashboard.oauth.service.interfaces.IRoleService;
 import io.qameta.allure.Epic;
 import io.qameta.allure.Feature;
 import org.junit.jupiter.api.BeforeEach;
@@ -49,6 +50,9 @@ public abstract class BaseAuthenticationServiceTest {
     @Mock
     protected IGrantMapper grantMapper;
 
+    @Mock
+    protected IRoleService roleService;
+
     protected AuthenticationService authenticationService;
 
     protected static final Long JWT_EXPIRATION = 86400000L;
@@ -68,7 +72,8 @@ public abstract class BaseAuthenticationServiceTest {
                 userInfoMapper,
                 roleMapper,
                 grantMapper,
-                emailProperties
+                emailProperties,
+                roleService
         );
 
         ReflectionTestUtils.setField(authenticationService, "jwtExpiration", JWT_EXPIRATION);

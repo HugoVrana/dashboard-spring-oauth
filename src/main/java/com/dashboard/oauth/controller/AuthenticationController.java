@@ -9,15 +9,10 @@ import com.dashboard.oauth.dataTransferObject.auth.LoginRequest;
 import com.dashboard.oauth.dataTransferObject.auth.RefreshTokenRequest;
 import com.dashboard.oauth.dataTransferObject.auth.RegisterRequest;
 import com.dashboard.oauth.dataTransferObject.auth.ResetPasswordRequest;
-import com.dashboard.oauth.dataTransferObject.grant.GrantRead;
 import com.dashboard.oauth.dataTransferObject.role.AddRoleRequest;
-import com.dashboard.oauth.dataTransferObject.role.RoleRead;
 import com.dashboard.oauth.dataTransferObject.user.UserInfoRead;
-import com.dashboard.oauth.mapper.interfaces.IGrantMapper;
-import com.dashboard.oauth.mapper.interfaces.IRoleMapper;
 import com.dashboard.oauth.mapper.interfaces.IUserInfoMapper;
 import com.dashboard.oauth.model.UserInfo;
-import com.dashboard.oauth.model.entities.Grant;
 import com.dashboard.oauth.model.entities.Role;
 import com.dashboard.oauth.model.entities.User;
 import com.dashboard.oauth.service.UserDetailsImpl;
@@ -28,13 +23,9 @@ import org.bson.types.ObjectId;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -44,80 +35,17 @@ import java.util.Optional;
 public class AuthenticationController {
 
     private final IAuthenticationService authService;
-    private final IDashboardUserDetailService userDetailsService;
     private final IUserService userService;
     private final IRoleService roleService;
     private final IJwtService jwtService;
 
     private final IUserInfoMapper userInfoMapper;
-    private final IGrantMapper grantMapper;
-    private final IRoleMapper roleMapper;
 
     @PostMapping("/register")
     public ResponseEntity<UserInfoRead> register(@Valid @RequestBody RegisterRequest request) {
-        try {
-            UserDetails userDetails = userDetailsService.loadUserByUsername(request.getEmail());
-            if (userDetails != null) {
-                throw new ConflictException("User with this email already exists");
-            }
-        }
-        catch (UsernameNotFoundException notFoundException) {
-            // User doesn't exist, we can proceed with registration
-
-            // check if the role id is valid
-            if (!ObjectId.isValid(request.getRoleId())) {
-                throw new InvalidRequestException("Role id is invalid.");
-            }
-
-            ObjectId roleId = new ObjectId(request.getRoleId());
-            Optional<Role> role = roleService.getRoleById(roleId);
-            if  (role.isEmpty()) {
-                throw new ResourceNotFoundException("Role with id " + roleId + " not found");
-            }
-
-            User user = authService.register(request);
-            if (user == null) {
-                throw new ResponseStatusException(
-                        HttpStatus.INTERNAL_SERVER_ERROR,
-                        "Failed to register user"
-                );
-            }
-
-            List<Role> roles = user.getRoles();
-            roles.add(role.get());
-            user.setRoles(roles);
-            user = userService.saveUser(user);
-
-            if (user == null) {
-                throw new ResponseStatusException(
-                        HttpStatus.INTERNAL_SERVER_ERROR,
-                        "Failed to add role to user"
-                );
-            }
-
-            UserInfo userInfo = userInfoMapper.toUserInfo(user);
-
-            URI location = URI.create("/api/auth/register");
-
-            UserInfoRead infoRead = userInfoMapper.toRead(userInfo);
-            List<RoleRead> roleReadList = new ArrayList<>();
-            for (Role r :  user.getRoles()) {
-                RoleRead rr = roleMapper.toRead(r);
-
-                List<GrantRead> grants = new ArrayList<>();
-                for (Grant g : r.getGrants()) {
-                    GrantRead gr = grantMapper.toRead(g);
-                    grants.add(gr);
-                }
-                rr.setGrants(grants);
-
-                roleReadList.add(rr);
-            }
-            infoRead.setRoleReads(roleReadList.toArray(new RoleRead[0]));
-
-            return ResponseEntity.created(location).body(infoRead);
-        }
-        return ResponseEntity.badRequest().build();
+        UserInfoRead response = authService.register(request);
+        URI location = URI.create("/api/auth/register");
+        return ResponseEntity.created(location).body(response);
     }
 
     @PostMapping("/login")

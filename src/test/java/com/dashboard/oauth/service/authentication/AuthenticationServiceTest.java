@@ -1,12 +1,16 @@
 package com.dashboard.oauth.service.authentication;
 
 import com.dashboard.common.model.Audit;
+import com.dashboard.common.model.exception.ConflictException;
+import com.dashboard.common.model.exception.NotFoundException;
 import com.dashboard.oauth.dataTransferObject.auth.AuthResponse;
 import com.dashboard.oauth.dataTransferObject.auth.LoginRequest;
 import com.dashboard.oauth.dataTransferObject.auth.RegisterRequest;
+import com.dashboard.oauth.dataTransferObject.role.RoleRead;
 import com.dashboard.oauth.dataTransferObject.user.UserInfoRead;
 import com.dashboard.oauth.model.UserInfo;
 import com.dashboard.oauth.model.entities.RefreshToken;
+import com.dashboard.oauth.model.entities.Role;
 import com.dashboard.oauth.model.entities.User;
 import org.bson.types.ObjectId;
 import org.junit.jupiter.api.DisplayName;
@@ -30,29 +34,39 @@ import static org.mockito.Mockito.*;
 class AuthenticationServiceTest extends BaseAuthenticationServiceTest {
 
     @Test
-    @DisplayName("Should return user info when user is authenticated")
+    @DisplayName("Should return user info when user is registered")
     void register_shouldCreateNewUser() {
+        ObjectId roleId = new ObjectId();
         RegisterRequest request = new RegisterRequest();
         request.setEmail("newuser@example.com");
         request.setPassword("password123");
-        request.setRoleId(new ObjectId().toHexString());
+        request.setRoleId(roleId.toHexString());
+
+        Role role = new Role();
+        role.set_id(roleId);
+        role.setName("TEST_ROLE");
+        role.setGrants(new ArrayList<>());
 
         when(userRepository.existsByEmail("newuser@example.com")).thenReturn(false);
+        when(roleService.getRoleById(roleId)).thenReturn(Optional.of(role));
         when(passwordEncoder.encode("password123")).thenReturn("encodedPassword");
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
             User user = invocation.getArgument(0);
-            user.set_id(new ObjectId());
+            if (user.get_id() == null) user.set_id(new ObjectId());
             return user;
         });
 
-        User result = authenticationService.register(request);
+        UserInfoRead userInfoRead = new UserInfoRead();
+        userInfoRead.setEmail("newuser@example.com");
+        when(userInfoMapper.toUserInfo(any(User.class))).thenReturn(new UserInfo());
+        when(userInfoMapper.toRead(any(UserInfo.class))).thenReturn(userInfoRead);
+        when(roleMapper.toRead(any(Role.class))).thenReturn(new RoleRead());
+
+        UserInfoRead result = authenticationService.register(request);
 
         assertNotNull(result);
         assertEquals("newuser@example.com", result.getEmail());
-        assertEquals("encodedPassword", result.getPassword());
-        assertNotNull(result.getAudit());
-        assertNotNull(result.getAudit().getCreatedAt());
-        verify(userRepository).save(any(User.class));
+        verify(userRepository, times(2)).save(any(User.class));
     }
 
     @Test
@@ -64,8 +78,8 @@ class AuthenticationServiceTest extends BaseAuthenticationServiceTest {
 
         when(userRepository.existsByEmail("existing@example.com")).thenReturn(true);
 
-        AuthenticationServiceException exception = assertThrows(
-                AuthenticationServiceException.class,
+        ConflictException exception = assertThrows(
+                ConflictException.class,
                 () -> authenticationService.register(request)
         );
 
@@ -278,19 +292,33 @@ class AuthenticationServiceTest extends BaseAuthenticationServiceTest {
     @Test
     @DisplayName("Should encode password before saving user")
     void register_shouldEncodePassword() {
+        ObjectId roleId = new ObjectId();
         RegisterRequest request = new RegisterRequest();
         request.setEmail("newuser@example.com");
         request.setPassword("plainPassword");
-        request.setRoleId(new ObjectId().toHexString());
+        request.setRoleId(roleId.toHexString());
+
+        Role role = new Role();
+        role.set_id(roleId);
+        role.setName("TEST_ROLE");
+        role.setGrants(new ArrayList<>());
 
         when(userRepository.existsByEmail(anyString())).thenReturn(false);
+        when(roleService.getRoleById(roleId)).thenReturn(Optional.of(role));
         when(passwordEncoder.encode("plainPassword")).thenReturn("$2a$10$encodedPassword");
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(userInfoMapper.toUserInfo(any(User.class))).thenReturn(new UserInfo());
+        when(userInfoMapper.toRead(any(UserInfo.class))).thenReturn(new UserInfoRead());
+        when(roleMapper.toRead(any(Role.class))).thenReturn(new RoleRead());
 
-        User result = authenticationService.register(request);
+        authenticationService.register(request);
 
-        assertEquals("$2a$10$encodedPassword", result.getPassword());
         verify(passwordEncoder).encode("plainPassword");
+
+        ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
+        verify(userRepository, times(2)).save(userCaptor.capture());
+        User savedUser = userCaptor.getAllValues().get(0);
+        assertEquals("$2a$10$encodedPassword", savedUser.getPassword());
     }
 
     @Test
