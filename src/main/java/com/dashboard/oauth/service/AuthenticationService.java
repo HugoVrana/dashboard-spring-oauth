@@ -1,6 +1,10 @@
 package com.dashboard.oauth.service;
 
 import com.dashboard.common.model.Audit;
+import com.dashboard.common.model.exception.ConflictException;
+import com.dashboard.common.model.exception.InvalidRequestException;
+import com.dashboard.common.model.exception.NotFoundException;
+import com.dashboard.common.model.exception.ResourceNotFoundException;
 import com.dashboard.oauth.dataTransferObject.auth.AuthResponse;
 import com.dashboard.oauth.dataTransferObject.auth.LoginRequest;
 import com.dashboard.oauth.dataTransferObject.auth.RegisterRequest;
@@ -21,12 +25,12 @@ import com.dashboard.oauth.repository.IRefreshTokenRepository;
 import com.dashboard.oauth.repository.IUserRepository;
 import com.dashboard.oauth.service.interfaces.IAuthenticationService;
 import com.dashboard.oauth.service.interfaces.IJwtService;
+import com.dashboard.oauth.service.interfaces.IRoleService;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -47,14 +51,23 @@ public class AuthenticationService implements IAuthenticationService {
     private final IRoleMapper roleMapper;
     private final IGrantMapper grantMapper;
     private final EmailProperties emailProperties;
+    private final IRoleService roleService;
 
     @Value("${jwt.expiration}")
     private Long jwtExpiration;
 
-    public User register(@NotNull RegisterRequest request) {
+    public UserInfoRead register(@NotNull RegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new AuthenticationServiceException("The user with email : " + request.getEmail() + " already exists");
+            throw new ConflictException("User with this email already exists");
         }
+
+        if (!ObjectId.isValid(request.getRoleId())) {
+            throw new NotFoundException("Role id is invalid.");
+        }
+
+        ObjectId roleId = new ObjectId(request.getRoleId());
+        Role role = roleService.getRoleById(roleId)
+                .orElseThrow(() -> new ResourceNotFoundException("Role with id " + roleId + " not found"));
 
         User user = new User();
         user.setEmail(request.getEmail());
@@ -74,7 +87,27 @@ public class AuthenticationService implements IAuthenticationService {
         user.setAudit(audit);
 
         user = userRepository.save(user);
-        return user;
+
+        user.getRoles().add(role);
+        user = userRepository.save(user);
+
+        UserInfo userInfo = userInfoMapper.toUserInfo(user);
+        UserInfoRead infoRead = userInfoMapper.toRead(userInfo);
+
+        List<RoleRead> roleReadList = new ArrayList<>();
+        for (Role r : user.getRoles()) {
+            RoleRead rr = roleMapper.toRead(r);
+            List<GrantRead> grants = new ArrayList<>();
+            for (Grant g : r.getGrants()) {
+                GrantRead gr = grantMapper.toRead(g);
+                grants.add(gr);
+            }
+            rr.setGrants(grants);
+            roleReadList.add(rr);
+        }
+        infoRead.setRoleReads(roleReadList.toArray(new RoleRead[0]));
+
+        return infoRead;
     }
 
     public AuthResponse login(@NotNull LoginRequest request) {

@@ -1,20 +1,15 @@
 package com.dashboard.oauth.controller.auth;
 
+import com.dashboard.common.model.exception.ConflictException;
+import com.dashboard.common.model.exception.InvalidRequestException;
+import com.dashboard.common.model.exception.ResourceNotFoundException;
 import com.dashboard.oauth.dataTransferObject.auth.RegisterRequest;
-import com.dashboard.oauth.dataTransferObject.role.RoleRead;
 import com.dashboard.oauth.dataTransferObject.user.UserInfoRead;
-import com.dashboard.oauth.model.UserInfo;
-import com.dashboard.oauth.model.entities.Role;
-import com.dashboard.oauth.model.entities.User;
-import com.dashboard.oauth.service.UserDetailsImpl;
 import io.qameta.allure.Story;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import java.util.Optional;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -32,23 +27,10 @@ class RegisterTest extends BaseAuthControllerTest {
         request.setPassword(testPassword);
         request.setRoleId(testRoleId.toHexString());
 
-        Role role = createTestRole();
-        User user = createTestUser();
-        UserInfo userInfo = new UserInfo();
-        userInfo.setId(testUserId);
-        userInfo.setEmail(testEmail);
-
         UserInfoRead userInfoRead = new UserInfoRead();
         userInfoRead.setEmail(testEmail);
 
-        when(userDetailsService.loadUserByUsername(testEmail))
-                .thenThrow(new UsernameNotFoundException("User not found"));
-        when(roleService.getRoleById(testRoleId)).thenReturn(Optional.of(role));
-        when(authService.register(any(RegisterRequest.class))).thenReturn(user);
-        when(userService.saveUser(any(User.class))).thenReturn(user);
-        when(userInfoMapper.toUserInfo(any(User.class))).thenReturn(userInfo);
-        when(userInfoMapper.toRead(any(UserInfo.class))).thenReturn(userInfoRead);
-        when(roleMapper.toRead(any(Role.class))).thenReturn(new RoleRead());
+        when(authService.register(any(RegisterRequest.class))).thenReturn(userInfoRead);
 
         mockMvc.perform(post("/api/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -65,9 +47,8 @@ class RegisterTest extends BaseAuthControllerTest {
         request.setPassword(testPassword);
         request.setRoleId(testRoleId.toHexString());
 
-        UserDetailsImpl existingUserDetails = mock(UserDetailsImpl.class);
-        when(userDetailsService.loadUserByUsername(testEmail))
-                .thenReturn(existingUserDetails);
+        when(authService.register(any(RegisterRequest.class)))
+                .thenThrow(new ConflictException("User with this email already exists"));
 
         mockMvc.perform(post("/api/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -76,15 +57,15 @@ class RegisterTest extends BaseAuthControllerTest {
     }
 
     @Test
-    @DisplayName("Should return 400 when email is invalid")
+    @DisplayName("Should return 400 when role id is invalid")
     void shouldReturn400WhenRoleIdInvalid() throws Exception {
         RegisterRequest request = new RegisterRequest();
         request.setEmail(testEmail);
         request.setPassword(testPassword);
         request.setRoleId("invalid-role-id");
 
-        when(userDetailsService.loadUserByUsername(testEmail))
-                .thenThrow(new UsernameNotFoundException("User not found"));
+        when(authService.register(any(RegisterRequest.class)))
+                .thenThrow(new InvalidRequestException("Role id is invalid."));
 
         mockMvc.perform(post("/api/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -100,9 +81,8 @@ class RegisterTest extends BaseAuthControllerTest {
         request.setPassword(testPassword);
         request.setRoleId(testRoleId.toHexString());
 
-        when(userDetailsService.loadUserByUsername(testEmail))
-                .thenThrow(new UsernameNotFoundException("User not found"));
-        when(roleService.getRoleById(testRoleId)).thenReturn(Optional.empty());
+        when(authService.register(any(RegisterRequest.class)))
+                .thenThrow(new ResourceNotFoundException("Role not found"));
 
         mockMvc.perform(post("/api/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
