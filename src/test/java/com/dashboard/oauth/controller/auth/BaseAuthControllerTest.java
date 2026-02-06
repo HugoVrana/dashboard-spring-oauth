@@ -21,10 +21,12 @@ import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.junit.jupiter.api.parallel.ResourceLock;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import com.dashboard.oauth.controller.config.TestConfig;
 import org.springframework.test.web.servlet.MockMvc;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -34,6 +36,7 @@ import java.util.ArrayList;
 @Tag("controller-authentication")
 @WebMvcTest(AuthenticationController.class)
 @AutoConfigureMockMvc(addFilters = false)
+@Import(TestConfig.class)
 @Execution(ExecutionMode.SAME_THREAD)
 @ResourceLock("spring-context")
 public abstract class BaseAuthControllerTest {
@@ -82,6 +85,9 @@ public abstract class BaseAuthControllerTest {
 
     @MockitoBean
     protected GrafanaHttpClient grafanaHttpClient;
+
+    @MockitoBean
+    protected IActivityFeedService activityFeedService;
 
     protected final Faker faker = new Faker();
 

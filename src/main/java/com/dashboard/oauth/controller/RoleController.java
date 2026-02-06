@@ -1,5 +1,6 @@
 package com.dashboard.oauth.controller;
 
+import com.dashboard.common.model.ActivityEvent;
 import com.dashboard.common.model.Audit;
 import com.dashboard.common.model.exception.ConflictException;
 import com.dashboard.common.model.exception.InvalidRequestException;
@@ -12,6 +13,8 @@ import com.dashboard.oauth.mapper.interfaces.IGrantMapper;
 import com.dashboard.oauth.mapper.interfaces.IRoleMapper;
 import com.dashboard.oauth.model.entities.Grant;
 import com.dashboard.oauth.model.entities.Role;
+import com.dashboard.oauth.model.enums.ActivityEventType;
+import com.dashboard.oauth.service.interfaces.IActivityFeedService;
 import com.dashboard.oauth.service.interfaces.IGrantService;
 import com.dashboard.oauth.service.interfaces.IRoleService;
 import jakarta.validation.Valid;
@@ -23,6 +26,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @RestController
 @CrossOrigin
@@ -34,6 +38,7 @@ public class RoleController {
     private final IGrantService grantService;
     private final IRoleMapper roleMapper;
     private final IGrantMapper grantMapper;
+    private final IActivityFeedService activityFeedService;
 
     @PostMapping("/")
     public ResponseEntity<RoleRead> addRole(@Valid @RequestBody CreateRole createRole) {
@@ -48,6 +53,13 @@ public class RoleController {
         a.setCreatedAt(Instant.now());
         r.setAudit(a);
         r = roleService.createRole(r);
+
+        ActivityEvent activityEvent = ActivityEvent.builder()
+                .id(UUID.randomUUID().toString())
+                .timestamp(Instant.now())
+                .type(ActivityEventType.ROLE_ADDED.name())
+                .build();
+        activityFeedService.publishEvent(activityEvent);
 
         RoleRead roleRead = roleMapper.toRead(r);
         return ResponseEntity.ok(roleRead);
@@ -84,6 +96,13 @@ public class RoleController {
         roleToUpdate.getGrants().add(grantToAdd);
         roleToUpdate.getAudit().setUpdatedAt(Instant.now());
         Role updatedRole = roleService.updateRole(roleToUpdate);
+
+        ActivityEvent activityEvent = ActivityEvent.builder()
+                .id(UUID.randomUUID().toString())
+                .timestamp(Instant.now())
+                .type(ActivityEventType.GRANT_ADDED_TO_ROLE.name())
+                .build();
+        activityFeedService.publishEvent(activityEvent);
 
         RoleRead roleRead = roleMapper.toRead(updatedRole);
         List<GrantRead> grants = new ArrayList<>();
@@ -124,6 +143,16 @@ public class RoleController {
         Role updatedRole = roleService.updateRole(roleToUpdate);
         Integer after = updatedRole.getGrants().size();
         Integer countAffected = before - after;
+
+        if (countAffected != 0) {
+            ActivityEvent activityEvent = ActivityEvent.builder()
+                    .id(UUID.randomUUID().toString())
+                    .timestamp(Instant.now())
+                    .type(ActivityEventType.GRANT_REMOVED_FROM_ROLE.name())
+                    .build();
+            activityFeedService.publishEvent(activityEvent);
+        }
+
         return ResponseEntity.ok(countAffected);
     }
 }

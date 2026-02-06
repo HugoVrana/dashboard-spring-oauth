@@ -1,5 +1,6 @@
 package com.dashboard.oauth.controller;
 
+import com.dashboard.common.model.ActivityEvent;
 import com.dashboard.common.model.exception.ConflictException;
 import com.dashboard.common.model.exception.InvalidRequestException;
 import com.dashboard.common.model.exception.ResourceNotFoundException;
@@ -15,6 +16,7 @@ import com.dashboard.oauth.mapper.interfaces.IUserInfoMapper;
 import com.dashboard.oauth.model.UserInfo;
 import com.dashboard.oauth.model.entities.Role;
 import com.dashboard.oauth.model.entities.User;
+import com.dashboard.oauth.model.enums.ActivityEventType;
 import com.dashboard.oauth.service.UserDetailsImpl;
 import com.dashboard.oauth.service.interfaces.*;
 import jakarta.validation.Valid;
@@ -26,7 +28,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import java.net.URI;
+import java.time.Instant;
 import java.util.Optional;
+import java.util.UUID;
 
 @RestController
 @CrossOrigin
@@ -38,12 +42,21 @@ public class AuthenticationController {
     private final IUserService userService;
     private final IRoleService roleService;
     private final IJwtService jwtService;
-
+    private final IActivityFeedService activityFeedService;
     private final IUserInfoMapper userInfoMapper;
 
     @PostMapping("/register")
     public ResponseEntity<UserInfoRead> register(@Valid @RequestBody RegisterRequest request) {
         UserInfoRead response = authService.register(request);
+
+        ActivityEvent activityEvent = ActivityEvent.builder()
+                .id(UUID.randomUUID().toString())
+                .timestamp(Instant.now())
+                .type(ActivityEventType.USER_REGISTERED.name())
+                .actorId(response.getEmail())
+                .build();
+        activityFeedService.publishEvent(activityEvent);
+
         URI location = URI.create("/api/auth/register");
         return ResponseEntity.created(location).body(response);
     }
@@ -51,6 +64,19 @@ public class AuthenticationController {
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
         AuthResponse response = authService.login(request);
+
+        if (response.getUser().getId().isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        ActivityEvent activityEvent = ActivityEvent.builder()
+                .id(UUID.randomUUID().toString())
+                .timestamp(Instant.now())
+                .type(ActivityEventType.USER_LOGGED_IN.name())
+                .actorId(response.getUser().getEmail())
+                .build();
+        activityFeedService.publishEvent(activityEvent);
+
         return ResponseEntity.ok(response);
     }
 
@@ -71,6 +97,15 @@ public class AuthenticationController {
         }
         User user = optionalUser.get();
         authService.logout(user.get_id().toHexString());
+
+        ActivityEvent activityEvent = ActivityEvent.builder()
+                .id(UUID.randomUUID().toString())
+                .timestamp(Instant.now())
+                .type(ActivityEventType.USER_LOGGED_OUT.name())
+                .actorId(user.getEmail())
+                .build();
+        activityFeedService.publishEvent(activityEvent);
+
         return ResponseEntity.ok().build();
     }
 
