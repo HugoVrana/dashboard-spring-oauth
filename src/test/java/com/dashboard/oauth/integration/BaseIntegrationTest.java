@@ -20,7 +20,7 @@ public abstract class BaseIntegrationTest {
 
     @Container
     @ServiceConnection
-    static MongoDBContainer mongoDBContainer = new MongoDBContainer("mongo");
+    static MongoDBContainer mongoDBContainer = new MongoDBContainer("mongo:7.0");
 
     @Autowired
     protected MockMvc mockMvc;
