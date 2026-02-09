@@ -9,6 +9,7 @@ import com.dashboard.oauth.model.entities.Grant;
 import com.dashboard.oauth.model.entities.User;
 import com.dashboard.oauth.service.GrantService;
 import com.dashboard.oauth.service.JwtService;
+import com.dashboard.oauth.service.interfaces.IActivityFeedService;
 import com.dashboard.oauth.service.interfaces.IUserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.qameta.allure.Epic;
@@ -22,9 +23,11 @@ import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.junit.jupiter.api.parallel.ResourceLock;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import com.dashboard.oauth.controller.config.TestConfig;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -46,6 +49,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Tag("controller-tokens")
 @WebMvcTest(OAuth2Controller.class)
 @AutoConfigureMockMvc(addFilters = false)
+@Import(TestConfig.class)
 @Execution(ExecutionMode.SAME_THREAD)
 @ResourceLock("spring-context")
 class TokenControllerTest {
@@ -76,6 +80,9 @@ class TokenControllerTest {
 
     @MockitoBean
     private GrafanaHttpClient grafanaHttpClient;
+
+    @MockitoBean
+    private IActivityFeedService activityFeedService;
 
     private static final String SERVICE_SECRET = "test-service-secret";
     private ObjectId testUserId;

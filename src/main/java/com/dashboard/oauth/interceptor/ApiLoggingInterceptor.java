@@ -1,4 +1,5 @@
 package com.dashboard.oauth.interceptor;
+
 import com.dashboard.common.logging.GrafanaHttpClient;
 import com.dashboard.common.logging.LogBuilderHelper;
 import com.dashboard.common.model.log.ApiCallLog;

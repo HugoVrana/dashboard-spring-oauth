@@ -8,6 +8,7 @@ import com.dashboard.oauth.mapper.interfaces.IGrantMapper;
 import com.dashboard.oauth.mapper.interfaces.IRoleMapper;
 import com.dashboard.oauth.model.entities.Grant;
 import com.dashboard.oauth.model.entities.Role;
+import com.dashboard.oauth.service.interfaces.IActivityFeedService;
 import com.dashboard.oauth.service.interfaces.IGrantService;
 import com.dashboard.oauth.service.interfaces.IRoleService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -21,10 +22,12 @@ import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.junit.jupiter.api.parallel.ResourceLock;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import com.dashboard.oauth.controller.config.TestConfig;
 import org.springframework.test.web.servlet.MockMvc;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -34,6 +37,7 @@ import java.util.ArrayList;
 @Tag("controller-roles")
 @WebMvcTest(RoleController.class)
 @AutoConfigureMockMvc(addFilters = false)
+@Import(TestConfig.class)
 @Execution(ExecutionMode.SAME_THREAD)
 @ResourceLock("spring-context")
 public abstract class BaseRoleControllerTest {
@@ -64,6 +68,9 @@ public abstract class BaseRoleControllerTest {
 
     @MockitoBean
     protected GrafanaHttpClient grafanaHttpClient;
+
+    @MockitoBean
+    protected IActivityFeedService activityFeedService;
 
     protected final Faker faker = new Faker();
 

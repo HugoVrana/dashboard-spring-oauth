@@ -42,8 +42,6 @@ public class EmailService implements IEmailService {
                 break;
             }
 
-
-
             String subject = "Verify your email";
             String verifyUrl = emailProperties.getBaseUrl() + "/verify-email?token=" + token.get_id().toHexString();
             long expirationHours = emailProperties.getVerificationTokenExpirationMs() / (1000 * 60 * 60);

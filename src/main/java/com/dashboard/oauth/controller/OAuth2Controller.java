@@ -7,6 +7,9 @@ import com.dashboard.oauth.model.entities.Grant;
 import com.dashboard.oauth.model.entities.User;
 import com.dashboard.oauth.service.GrantService;
 import com.dashboard.oauth.service.JwtService;
+import com.dashboard.oauth.service.interfaces.IActivityFeedService;
+import com.dashboard.oauth.service.interfaces.IGrantService;
+import com.dashboard.oauth.service.interfaces.IJwtService;
 import com.dashboard.oauth.service.interfaces.IUserService;
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
@@ -27,10 +30,10 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class OAuth2Controller {
 
-    private final IUserService userService;
     private final Oauth2Properties properties;
-    private final JwtService jwtService;
-    private final GrantService grantService;
+    private final IUserService userService;
+    private final IJwtService jwtService;
+    private final IGrantService grantService;
 
     @PostMapping("/introspect")
     public TokenIntrospectionResponse introspect(
