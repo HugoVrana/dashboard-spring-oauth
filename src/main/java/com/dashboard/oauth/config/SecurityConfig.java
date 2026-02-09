@@ -36,6 +36,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/public/**").permitAll()
                         .requestMatchers("/api/test/**").permitAll()
+                        .requestMatchers("/ws/**", "/ws-sockjs/**", "/api/activity/test").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session
