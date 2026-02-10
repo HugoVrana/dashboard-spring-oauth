@@ -21,6 +21,7 @@ public class UserInfoMapper implements IUserInfoMapper {
         userInfo.setId(user.get_id());
         userInfo.setEmail(user.getEmail());
         userInfo.setRole(user.getRoles());
+        userInfo.setProfileImageUrl(user.getProfileImageUrl());
         return userInfo;
     }
 
@@ -36,6 +37,7 @@ public class UserInfoMapper implements IUserInfoMapper {
             roleReadList[roleReadList.length - 1] = rr;
         }
         userInfoRead.setRoleReads(roleReadList);
+        userInfoRead.setProfileImageUrl(userInfo.getProfileImageUrl());
         return userInfoRead;
     }
 }

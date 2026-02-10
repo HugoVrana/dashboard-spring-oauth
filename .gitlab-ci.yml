@@ -126,6 +126,22 @@ deploy-job:
               {
                 \"key\": \"JWT_REFRESH_EXPIRATION\",
                 \"value\": \"${JWT_REFRESH_EXPIRATION}\"
+              },
+              {
+                \"key\": \"R2_ACCESS_KEY_ID\",
+                \"value\": \"${R2_ACCESS_KEY_ID}\"
+              },
+              {
+                \"key\": \"R2_SECRET_ACCESS_KEY\",
+                \"value\": \"${R2_SECRET_ACCESS_KEY}\"
+              },
+              {
+                \"key\": \"R2_ACCOUNT_ID\",
+                \"value\": \"${R2_ACCOUNT_ID}\"
+              },
+              {
+                \"key\": \"R2_BUCKET_NAME\",
+                \"value\": \"${R2_BUCKET_NAME}\"
               }
       ]"
     - echo "Application successfully deployed."

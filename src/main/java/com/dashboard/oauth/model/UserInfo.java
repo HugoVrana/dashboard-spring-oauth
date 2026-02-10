@@ -10,4 +10,5 @@ public class UserInfo {
     private ObjectId id;
     private String email;
     private List<Role> role;
+    private String profileImageUrl;
 }

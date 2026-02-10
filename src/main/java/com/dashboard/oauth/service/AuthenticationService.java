@@ -2,7 +2,6 @@ package com.dashboard.oauth.service;
 
 import com.dashboard.common.model.Audit;
 import com.dashboard.common.model.exception.ConflictException;
-import com.dashboard.common.model.exception.InvalidRequestException;
 import com.dashboard.common.model.exception.NotFoundException;
 import com.dashboard.common.model.exception.ResourceNotFoundException;
 import com.dashboard.oauth.dataTransferObject.auth.AuthResponse;
@@ -127,10 +126,7 @@ public class AuthenticationService implements IAuthenticationService {
 
         User user = optionalUser.get();
 
-        UserInfo info = new UserInfo();
-        info.setId(user.get_id());
-        info.setEmail(user.getEmail());
-        info.setRole(user.getRoles());
+        UserInfo info = userInfoMapper.toUserInfo(user);
 
         UserInfoRead userInfoRead = userInfoMapper.toRead(info);
 
@@ -182,10 +178,7 @@ public class AuthenticationService implements IAuthenticationService {
         User user = userRepository.findById(new ObjectId(refreshToken.getUserId()))
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        UserInfo info = new UserInfo();
-        info.setId(user.get_id());
-        info.setEmail(user.getEmail());
-        info.setRole(user.getRoles());
+        UserInfo info = userInfoMapper.toUserInfo(user);
         String accessToken = jwtService.generateToken(info);
 
         UserInfoRead userInfoRead = userInfoMapper.toRead(info);
