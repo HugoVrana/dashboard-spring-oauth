@@ -84,7 +84,7 @@ unit-test-job:
     DOCKER_TLS_CERTDIR: ""
     TESTCONTAINERS_RYUK_DISABLED: "true"
   script:
-    - mvn $MAVEN_CLI_OPTS test
+    - mvn $MAVEN_CLI_OPTS test -Dtest="!**.integration.**"
     - mvn $MAVEN_CLI_OPTS allure:report
   artifacts:
     when: always
@@ -94,6 +94,26 @@ unit-test-job:
       junit:
        - target/surefire-reports/TEST-*.xml
     expire_in: 7 days
+
+integration-test-job:
+  stage: test
+  image: maven:3.9-eclipse-temurin-21
+  services:
+    - docker:24-dind
+  variables:
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_TLS_CERTDIR: ""
+    TESTCONTAINERS_RYUK_DISABLED: "true"
+  script:
+    # Option A: Using Surefire to run only the integration package
+    - mvn $MAVEN_CLI_OPTS test -Dtest="**.integration.**"
+    - mvn $MAVEN_CLI_OPTS allure:report
+  artifacts:
+    when: always
+    paths:
+      - target/site/allure-maven-plugin/
+    reports:
+      junit: target/surefire-reports/TEST-*.xml
 
 lint-test-job:
   stage: test

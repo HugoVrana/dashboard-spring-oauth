@@ -48,6 +48,8 @@ class RoleGrantIntegrationTest extends BaseIntegrationTest {
     private String testGrantId;
     private String testRoleName;
     private String testGrantName;
+    private String adminRoleId;
+    private String testUserId;
 
     @BeforeAll
     void setUpAuth() throws Exception {
@@ -58,12 +60,13 @@ class RoleGrantIntegrationTest extends BaseIntegrationTest {
 
         // Create a role for the test user
         Role userRole = new Role();
-        userRole.setName("ROLE_ADMIN");
+        userRole.setName("ROLE_ADMIN_" + System.currentTimeMillis());
         userRole.setGrants(new ArrayList<>());
         Audit roleAudit = new Audit();
         roleAudit.setCreatedAt(Instant.now());
         userRole.setAudit(roleAudit);
         userRole = roleRepository.save(userRole);
+        adminRoleId = userRole.get_id().toHexString();
 
         // Create test user directly in database with encoded password
         User user = new User();
@@ -74,7 +77,8 @@ class RoleGrantIntegrationTest extends BaseIntegrationTest {
         Audit userAudit = new Audit();
         userAudit.setCreatedAt(Instant.now());
         user.setAudit(userAudit);
-        userRepository.save(user);
+        user = userRepository.save(user);
+        testUserId = user.get_id().toHexString();
 
         // Login to get access token
         LoginRequest loginRequest = new LoginRequest();
@@ -94,9 +98,19 @@ class RoleGrantIntegrationTest extends BaseIntegrationTest {
 
     @AfterAll
     void cleanUp() {
-        grantRepository.deleteAll();
-        userRepository.deleteAll();
-        roleRepository.deleteAll();
+        // Only delete what this test created - avoid affecting other tests
+        if (testGrantId != null) {
+            grantRepository.deleteById(new org.bson.types.ObjectId(testGrantId));
+        }
+        if (testUserId != null) {
+            userRepository.deleteById(new org.bson.types.ObjectId(testUserId));
+        }
+        if (testRoleId != null) {
+            roleRepository.deleteById(new org.bson.types.ObjectId(testRoleId));
+        }
+        if (adminRoleId != null) {
+            roleRepository.deleteById(new org.bson.types.ObjectId(adminRoleId));
+        }
     }
 
     @Test

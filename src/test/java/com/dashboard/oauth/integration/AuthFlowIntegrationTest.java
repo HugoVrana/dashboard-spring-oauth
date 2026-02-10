@@ -41,6 +41,7 @@ class AuthFlowIntegrationTest extends BaseIntegrationTest {
     private String testRoleId;
     private String accessToken;
     private String refreshToken;
+    private String testUserId;
 
     @BeforeAll
     void setUpTestData() {
@@ -48,8 +49,9 @@ class AuthFlowIntegrationTest extends BaseIntegrationTest {
         testPassword = faker.internet().password(8, 16, true, true);
 
         // Create role directly in database (role creation endpoint now requires auth)
+        // Use unique name to avoid conflicts with other tests
         Role role = new Role();
-        role.setName("ROLE_USER");
+        role.setName("ROLE_USER_" + System.currentTimeMillis());
         role.setGrants(new ArrayList<>());
         Audit audit = new Audit();
         audit.setCreatedAt(Instant.now());
@@ -60,9 +62,14 @@ class AuthFlowIntegrationTest extends BaseIntegrationTest {
 
     @AfterAll
     void cleanUp() {
-        refreshTokenRepository.deleteAll();
-        userRepository.deleteAll();
-        roleRepository.deleteAll();
+        // Only delete what this test created - avoid affecting other tests
+        if (testUserId != null) {
+            refreshTokenRepository.deleteByUserId(testUserId);
+            userRepository.deleteById(new org.bson.types.ObjectId(testUserId));
+        }
+        if (testRoleId != null) {
+            roleRepository.deleteById(new org.bson.types.ObjectId(testRoleId));
+        }
     }
 
     @Test
@@ -80,8 +87,10 @@ class AuthFlowIntegrationTest extends BaseIntegrationTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.email").value(testEmail));
 
-        // Verify user was created in database
-        assertThat(userRepository.findByEmailAndAudit_DeletedAtIsNull(testEmail)).isPresent();
+        // Verify user was created in database and capture the ID for cleanup
+        var user = userRepository.findByEmailAndAudit_DeletedAtIsNull(testEmail);
+        assertThat(user).isPresent();
+        testUserId = user.get().get_id().toHexString();
     }
 
     @Test
