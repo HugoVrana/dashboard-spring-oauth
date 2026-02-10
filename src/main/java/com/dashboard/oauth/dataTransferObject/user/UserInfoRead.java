@@ -8,4 +8,5 @@ public class UserInfoRead {
     private String id;
     private String email;
     private RoleRead[] roleReads;
+    private String profileImageUrl;
 }
