@@ -98,8 +98,12 @@ class AuthenticationServiceTest extends BaseAuthenticationServiceTest {
         UserInfoRead userInfoRead = new UserInfoRead();
         userInfoRead.setEmail("test@example.com");
 
+        UserInfo userInfo = new UserInfo();
+        userInfo.setRole(new ArrayList<>());
+
         when(userRepository.findByEmailAndAudit_DeletedAtIsNull("test@example.com"))
                 .thenReturn(Optional.of(user));
+        when(userInfoMapper.toUserInfo(any(User.class))).thenReturn(userInfo);
         when(jwtService.generateToken(any(UserInfo.class))).thenReturn("access-token");
         when(userInfoMapper.toRead(any(UserInfo.class))).thenReturn(userInfoRead);
 
@@ -163,8 +167,12 @@ class AuthenticationServiceTest extends BaseAuthenticationServiceTest {
         User user = createTestUser();
         UserInfoRead userInfoRead = new UserInfoRead();
 
+        UserInfo userInfo = new UserInfo();
+        userInfo.setRole(new ArrayList<>());
+
         when(userRepository.findByEmailAndAudit_DeletedAtIsNull("test@example.com"))
                 .thenReturn(Optional.of(user));
+        when(userInfoMapper.toUserInfo(any(User.class))).thenReturn(userInfo);
         when(jwtService.generateToken(any(UserInfo.class))).thenReturn("access-token");
         when(userInfoMapper.toRead(any(UserInfo.class))).thenReturn(userInfoRead);
 
@@ -193,6 +201,7 @@ class AuthenticationServiceTest extends BaseAuthenticationServiceTest {
 
         when(refreshTokenRepository.findByToken(refreshTokenId)).thenReturn(Optional.of(refreshToken));
         when(userRepository.findById(user.get_id())).thenReturn(Optional.of(user));
+        when(userInfoMapper.toUserInfo(any(User.class))).thenReturn(new UserInfo());
         when(jwtService.generateToken(any(UserInfo.class))).thenReturn("new-access-token");
         when(userInfoMapper.toRead(any(UserInfo.class))).thenReturn(userInfoRead);
 
@@ -331,8 +340,12 @@ class AuthenticationServiceTest extends BaseAuthenticationServiceTest {
         User user = createTestUser();
         UserInfoRead userInfoRead = new UserInfoRead();
 
+        UserInfo userInfo = new UserInfo();
+        userInfo.setRole(new ArrayList<>());
+
         when(userRepository.findByEmailAndAudit_DeletedAtIsNull("test@example.com"))
                 .thenReturn(Optional.of(user));
+        when(userInfoMapper.toUserInfo(any(User.class))).thenReturn(userInfo);
         when(jwtService.generateToken(any(UserInfo.class))).thenReturn("access-token");
         when(userInfoMapper.toRead(any(UserInfo.class))).thenReturn(userInfoRead);
 
