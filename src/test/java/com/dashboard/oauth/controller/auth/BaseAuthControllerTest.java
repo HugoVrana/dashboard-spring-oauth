@@ -110,7 +110,8 @@ public abstract class BaseAuthControllerTest {
         testGrantId = new ObjectId();
 
         testEmail = faker.internet().emailAddress();
-        testPassword = faker.internet().password(8, 16, true, true);
+        // Password must have: uppercase, lowercase, digit, special char
+        testPassword = "Test" + faker.number().digits(4) + "!a";
         testRoleName = faker.expression("#{letterify 'ROLE_????'}").toUpperCase();
         testGrantName = faker.expression("#{letterify 'GRANT_????'}").toUpperCase();
         testGrantDescription = faker.lorem().sentence();

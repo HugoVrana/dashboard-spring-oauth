@@ -46,7 +46,8 @@ class AuthFlowIntegrationTest extends BaseIntegrationTest {
     @BeforeAll
     void setUpTestData() {
         testEmail = faker.internet().emailAddress();
-        testPassword = faker.internet().password(8, 16, true, true);
+        // Password must have: uppercase, lowercase, digit, special char
+        testPassword = "Test" + faker.number().digits(4) + "!a";
 
         // Create role directly in database (role creation endpoint now requires auth)
         // Use unique name to avoid conflicts with other tests
