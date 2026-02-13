@@ -3,6 +3,7 @@ package com.dashboard.oauth.integration;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.qameta.allure.Epic;
 import net.datafaker.Faker;
+import org.junit.jupiter.api.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
@@ -12,6 +13,7 @@ import org.testcontainers.containers.MongoDBContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
 import java.time.Duration;
 
+@Tag("integration")
 @Epic("Integration Tests")
 @SpringBootTest
 @AutoConfigureMockMvc

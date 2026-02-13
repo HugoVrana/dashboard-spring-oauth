@@ -54,7 +54,8 @@ class RoleGrantIntegrationTest extends BaseIntegrationTest {
     @BeforeAll
     void setUpAuth() throws Exception {
         String testEmail = faker.internet().emailAddress();
-        String testPassword = faker.internet().password(8, 16, true, true);
+        // Password must have: uppercase, lowercase, digit, special char
+        String testPassword = "Test" + faker.number().digits(4) + "!a";
         testRoleName = faker.expression("#{letterify 'ROLE_????'}").toUpperCase();
         testGrantName = faker.expression("#{letterify 'GRANT_????'}").toUpperCase();
 

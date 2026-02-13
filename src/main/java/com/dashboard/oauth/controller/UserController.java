@@ -1,17 +1,15 @@
 package com.dashboard.oauth.controller;
 
-import com.dashboard.common.model.exception.ResourceNotFoundException;
 import com.dashboard.oauth.model.entities.User;
+import com.dashboard.oauth.service.UserDetailsImpl;
 import com.dashboard.oauth.service.interfaces.IR2Service;
 import com.dashboard.oauth.service.interfaces.IUserService;
 import lombok.RequiredArgsConstructor;
-import org.bson.types.ObjectId;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.util.Optional;
 
 @RestController
 @CrossOrigin
@@ -22,20 +20,11 @@ public class UserController {
     private final IUserService userService;
     private final IR2Service r2Service;
 
-    @PostMapping("{userId}/profilePicture")
-    public ResponseEntity<String> setUserProfilePicture(@PathVariable("userId") String userId,
+    @PostMapping("profilePicture")
+    public ResponseEntity<String> setUserProfilePicture(Authentication authentication,
                                                         @RequestParam("file") MultipartFile file) {
-        if (!ObjectId.isValid(userId)) {
-            throw new ResourceNotFoundException("This id is invalid");
-        }
-
-        ObjectId objectId = new ObjectId(userId);
-        Optional<User> optionalUser = userService.getUserById(objectId);
-        if (optionalUser.isEmpty()) {
-            throw new ResourceNotFoundException("This id is invalid");
-        }
-
-        User user = optionalUser.get();
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        User user = userDetails.getUser();
 
         // Delete old profile picture from R2 if exists
         if (user.getProfileImageR2Key() != null) {
