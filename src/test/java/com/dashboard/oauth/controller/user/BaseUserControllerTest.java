@@ -6,6 +6,7 @@ import com.dashboard.oauth.controller.UserController;
 import com.dashboard.oauth.controller.config.TestConfig;
 import com.dashboard.oauth.filter.JwtAuthFilter;
 import com.dashboard.oauth.model.entities.User;
+import com.dashboard.oauth.service.UserDetailsImpl;
 import com.dashboard.oauth.service.interfaces.IR2Service;
 import com.dashboard.oauth.service.interfaces.IUserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -22,6 +23,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -65,12 +68,19 @@ public abstract class BaseUserControllerTest {
     protected ObjectId testUserId;
     protected String testEmail;
     protected User testUser;
+    protected Authentication testAuthentication;
 
     @BeforeEach
     void setUpBase() {
         testUserId = new ObjectId();
         testEmail = faker.internet().emailAddress();
         testUser = createTestUser();
+        testAuthentication = createTestAuthentication(testUser);
+    }
+
+    protected Authentication createTestAuthentication(User user) {
+        UserDetailsImpl userDetails = new UserDetailsImpl(user);
+        return new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
     }
 
     protected User createTestUser() {

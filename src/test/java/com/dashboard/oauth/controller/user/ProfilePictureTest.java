@@ -4,13 +4,10 @@ import io.qameta.allure.Description;
 import io.qameta.allure.Severity;
 import io.qameta.allure.SeverityLevel;
 import io.qameta.allure.Story;
-import org.bson.types.ObjectId;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
-
-import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -36,16 +33,18 @@ class ProfilePictureTest extends BaseUserControllerTest {
         String expectedUrl = "https://test-account.r2.cloudflarestorage.com/test-bucket/" + testUserId.toHexString() + "/uuid_profile.png";
         String expectedKey = testUserId.toHexString() + "/uuid_profile.png";
 
-        when(userService.getUserById(testUserId)).thenReturn(Optional.of(testUser));
         when(r2Service.uploadFile(any(), any())).thenReturn(new String[]{expectedUrl, expectedKey});
         when(userService.saveUser(any())).thenReturn(testUser);
 
-        mockMvc.perform(multipart("/api/user/{userId}/profilePicture", testUserId.toHexString())
-                        .file(file))
+        mockMvc.perform(multipart("/api/user/profilePicture")
+                        .file(file)
+                        .with(request -> {
+                            request.setUserPrincipal(testAuthentication);
+                            return request;
+                        }))
                 .andExpect(status().isCreated())
                 .andExpect(content().string(expectedUrl));
 
-        verify(userService).getUserById(testUserId);
         verify(r2Service).uploadFile(any(), eq(testUserId));
         verify(userService).saveUser(any());
     }
@@ -69,58 +68,19 @@ class ProfilePictureTest extends BaseUserControllerTest {
         String newUrl = "https://test-account.r2.cloudflarestorage.com/test-bucket/new_image.png";
         String newKey = testUserId.toHexString() + "/new_image.png";
 
-        when(userService.getUserById(testUserId)).thenReturn(Optional.of(testUser));
         when(r2Service.uploadFile(any(), any())).thenReturn(new String[]{newUrl, newKey});
         when(userService.saveUser(any())).thenReturn(testUser);
 
-        mockMvc.perform(multipart("/api/user/{userId}/profilePicture", testUserId.toHexString())
-                        .file(file))
+        mockMvc.perform(multipart("/api/user/profilePicture")
+                        .file(file)
+                        .with(request -> {
+                            request.setUserPrincipal(testAuthentication);
+                            return request;
+                        }))
                 .andExpect(status().isCreated());
 
         verify(r2Service).deleteFile(oldR2Key);
         verify(r2Service).uploadFile(any(), eq(testUserId));
-    }
-
-    @Test
-    @DisplayName("Set profile picture with invalid user ID")
-    @Description("Should return 404 when user ID is invalid")
-    @Severity(SeverityLevel.NORMAL)
-    void setProfilePicture_shouldReturn404ForInvalidUserId() throws Exception {
-        MockMultipartFile file = new MockMultipartFile(
-                "file",
-                "profile.png",
-                MediaType.IMAGE_PNG_VALUE,
-                "test content".getBytes()
-        );
-
-        mockMvc.perform(multipart("/api/user/{userId}/profilePicture", "invalid-id")
-                        .file(file))
-                .andExpect(status().isNotFound());
-
-        verify(r2Service, never()).uploadFile(any(), any());
-    }
-
-    @Test
-    @DisplayName("Set profile picture for nonexistent user")
-    @Description("Should return 404 when user does not exist")
-    @Severity(SeverityLevel.NORMAL)
-    void setProfilePicture_shouldReturn404ForNonexistentUser() throws Exception {
-        ObjectId nonexistentUserId = new ObjectId();
-
-        MockMultipartFile file = new MockMultipartFile(
-                "file",
-                "profile.png",
-                MediaType.IMAGE_PNG_VALUE,
-                "test content".getBytes()
-        );
-
-        when(userService.getUserById(nonexistentUserId)).thenReturn(Optional.empty());
-
-        mockMvc.perform(multipart("/api/user/{userId}/profilePicture", nonexistentUserId.toHexString())
-                        .file(file))
-                .andExpect(status().isNotFound());
-
-        verify(r2Service, never()).uploadFile(any(), any());
     }
 
     @Test
@@ -141,12 +101,15 @@ class ProfilePictureTest extends BaseUserControllerTest {
         String expectedUrl = "https://test.r2.cloudflarestorage.com/bucket/image.png";
         String expectedKey = "userId/image.png";
 
-        when(userService.getUserById(testUserId)).thenReturn(Optional.of(testUser));
         when(r2Service.uploadFile(any(), any())).thenReturn(new String[]{expectedUrl, expectedKey});
         when(userService.saveUser(any())).thenReturn(testUser);
 
-        mockMvc.perform(multipart("/api/user/{userId}/profilePicture", testUserId.toHexString())
-                        .file(file))
+        mockMvc.perform(multipart("/api/user/profilePicture")
+                        .file(file)
+                        .with(request -> {
+                            request.setUserPrincipal(testAuthentication);
+                            return request;
+                        }))
                 .andExpect(status().isCreated());
 
         verify(r2Service, never()).deleteFile(any());
