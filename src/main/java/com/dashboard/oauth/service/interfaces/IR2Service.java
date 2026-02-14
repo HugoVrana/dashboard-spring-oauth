@@ -5,8 +5,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 public interface IR2Service {
     /**
-     * Uploads a file to R2 and returns the public URL and R2 key.
-     * @return String array: [0] = publicUrl, [1] = r2Key
+     * Uploads a file to R2 and returns the public URL, R2 key, and image ID.
+     * @return String array: [0] = publicUrl, [1] = r2Key, [2] = imageObjectId
      */
     String[] uploadFile(MultipartFile file, ObjectId userId);
 

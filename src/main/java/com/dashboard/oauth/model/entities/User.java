@@ -29,9 +29,7 @@ public class User {
 
     private VerificationToken passwordResetToken;
 
-    private String profileImageUrl;
-
-    private String profileImageR2Key;
+    private ObjectId profileImageId;
 
     @DBRef
     private List<Role> roles;
