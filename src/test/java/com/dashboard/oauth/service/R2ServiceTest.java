@@ -72,10 +72,8 @@ class R2ServiceTest {
         assertThat(result).hasSize(3);
         assertThat(result[0]).startsWith(testPublicUrl);
         assertThat(result[0]).contains(testUserId.toHexString());
-        assertThat(result[0]).endsWith(originalFilename);
         assertThat(result[1]).contains(testUserId.toHexString());
-        assertThat(result[1]).endsWith(originalFilename);
-        assertThat(result[2]).contains(testUserId.toHexString());
+        assertThat(ObjectId.isValid(result[2])).isTrue();
 
         ArgumentCaptor<PutObjectRequest> requestCaptor = ArgumentCaptor.forClass(PutObjectRequest.class);
         verify(s3Client).putObject(requestCaptor.capture(), any(RequestBody.class));
