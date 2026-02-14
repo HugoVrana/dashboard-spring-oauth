@@ -1,9 +1,11 @@
 package com.dashboard.oauth.controller.user;
 
+import com.dashboard.oauth.environment.R2Properties;
 import io.qameta.allure.Description;
 import io.qameta.allure.Severity;
 import io.qameta.allure.SeverityLevel;
 import io.qameta.allure.Story;
+import org.bson.types.ObjectId;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
@@ -32,8 +34,9 @@ class ProfilePictureTest extends BaseUserControllerTest {
 
         String expectedUrl = "https://test-account.r2.cloudflarestorage.com/test-bucket/" + testUserId.toHexString() + "/uuid_profile.png";
         String expectedKey = testUserId.toHexString() + "/uuid_profile.png";
+        String expectedImageId = new ObjectId().toHexString();
 
-        when(r2Service.uploadFile(any(), any())).thenReturn(new String[]{expectedUrl, expectedKey});
+        when(r2Service.uploadFile(any(), any())).thenReturn(new String[]{expectedUrl, expectedKey, expectedImageId});
         when(userService.saveUser(any())).thenReturn(testUser);
 
         mockMvc.perform(multipart("/api/user/profilePicture")
@@ -54,9 +57,9 @@ class ProfilePictureTest extends BaseUserControllerTest {
     @Description("Should delete old profile picture from R2 before uploading new one")
     @Severity(SeverityLevel.NORMAL)
     void setProfilePicture_shouldDeleteOldImage() throws Exception {
-        String oldR2Key = testUserId.toHexString() + "/old_image.png";
-        testUser.setProfileImageR2Key(oldR2Key);
-        testUser.setProfileImageUrl("https://old-url.com/old_image.png");
+        ObjectId oldImageId = new ObjectId();
+        testUser.setProfileImageId(oldImageId);
+        String oldR2Key = R2Properties.buildR2Key(testUserId, oldImageId);
 
         MockMultipartFile file = new MockMultipartFile(
                 "file",
@@ -67,8 +70,9 @@ class ProfilePictureTest extends BaseUserControllerTest {
 
         String newUrl = "https://test-account.r2.cloudflarestorage.com/test-bucket/new_image.png";
         String newKey = testUserId.toHexString() + "/new_image.png";
+        String newImageId = new ObjectId().toHexString();
 
-        when(r2Service.uploadFile(any(), any())).thenReturn(new String[]{newUrl, newKey});
+        when(r2Service.uploadFile(any(), any())).thenReturn(new String[]{newUrl, newKey, newImageId});
         when(userService.saveUser(any())).thenReturn(testUser);
 
         mockMvc.perform(multipart("/api/user/profilePicture")
@@ -88,8 +92,7 @@ class ProfilePictureTest extends BaseUserControllerTest {
     @Description("Should not attempt to delete when user has no existing profile picture")
     @Severity(SeverityLevel.MINOR)
     void setProfilePicture_shouldNotDeleteWhenNoExistingImage() throws Exception {
-        testUser.setProfileImageR2Key(null);
-        testUser.setProfileImageUrl(null);
+        testUser.setProfileImageId(null);
 
         MockMultipartFile file = new MockMultipartFile(
                 "file",
@@ -100,8 +103,9 @@ class ProfilePictureTest extends BaseUserControllerTest {
 
         String expectedUrl = "https://test.r2.cloudflarestorage.com/bucket/image.png";
         String expectedKey = "userId/image.png";
+        String expectedImageId = new ObjectId().toHexString();
 
-        when(r2Service.uploadFile(any(), any())).thenReturn(new String[]{expectedUrl, expectedKey});
+        when(r2Service.uploadFile(any(), any())).thenReturn(new String[]{expectedUrl, expectedKey, expectedImageId});
         when(userService.saveUser(any())).thenReturn(testUser);
 
         mockMvc.perform(multipart("/api/user/profilePicture")

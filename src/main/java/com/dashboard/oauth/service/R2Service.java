@@ -23,9 +23,8 @@ public class R2Service implements IR2Service {
 
     @Override
     public String[] uploadFile(MultipartFile file, ObjectId userId) {
-        String originalFilename = file.getOriginalFilename() != null ? file.getOriginalFilename() : "unnamed";
-        String r2Key = String.format("%s/%s_%s", userId.toHexString(), UUID.randomUUID(), originalFilename);
-
+        ObjectId imageObjectId = ObjectId.get();
+        String r2Key = String.format("%s_%s", userId, imageObjectId);
         try {
             PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                     .bucket(r2Properties.getBucketName())
@@ -39,7 +38,7 @@ public class R2Service implements IR2Service {
         }
 
         String publicUrl = String.format("%s/%s", r2Properties.getPublicUrl(), r2Key);
-        return new String[]{publicUrl, r2Key};
+        return new String[]{publicUrl, r2Key, imageObjectId.toString()};
     }
 
     @Override

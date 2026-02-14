@@ -69,12 +69,11 @@ class R2ServiceTest {
 
         String[] result = r2Service.uploadFile(file, testUserId);
 
-        assertThat(result).hasSize(2);
+        assertThat(result).hasSize(3);
         assertThat(result[0]).startsWith(testPublicUrl);
         assertThat(result[0]).contains(testUserId.toHexString());
-        assertThat(result[0]).endsWith(originalFilename);
         assertThat(result[1]).contains(testUserId.toHexString());
-        assertThat(result[1]).endsWith(originalFilename);
+        assertThat(ObjectId.isValid(result[2])).isTrue();
 
         ArgumentCaptor<PutObjectRequest> requestCaptor = ArgumentCaptor.forClass(PutObjectRequest.class);
         verify(s3Client).putObject(requestCaptor.capture(), any(RequestBody.class));
@@ -82,32 +81,6 @@ class R2ServiceTest {
         PutObjectRequest capturedRequest = requestCaptor.getValue();
         assertThat(capturedRequest.bucket()).isEqualTo(testBucketName);
         assertThat(capturedRequest.contentType()).isEqualTo("image/png");
-    }
-
-    @Test
-    @DisplayName("Upload file with null filename uses 'unnamed'")
-    void uploadFile_shouldUseUnnamedWhenFilenameIsNull() {
-        byte[] content = "test content".getBytes();
-
-        // Create a mock that returns null for getOriginalFilename
-        MultipartFile file = mock(MultipartFile.class);
-        when(file.getOriginalFilename()).thenReturn(null);
-        when(file.getContentType()).thenReturn("image/jpeg");
-        try {
-            when(file.getBytes()).thenReturn(content);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-
-        when(r2Properties.getBucketName()).thenReturn(testBucketName);
-        when(r2Properties.getPublicUrl()).thenReturn(testPublicUrl);
-        when(s3Client.putObject(any(PutObjectRequest.class), any(RequestBody.class)))
-                .thenReturn(PutObjectResponse.builder().build());
-
-        String[] result = r2Service.uploadFile(file, testUserId);
-
-        assertThat(result[0]).endsWith("unnamed");
-        assertThat(result[1]).endsWith("unnamed");
     }
 
     @Test
