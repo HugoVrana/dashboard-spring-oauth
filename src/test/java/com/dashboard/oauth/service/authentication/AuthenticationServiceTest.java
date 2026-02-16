@@ -6,7 +6,6 @@ import com.dashboard.common.model.exception.NotFoundException;
 import com.dashboard.oauth.dataTransferObject.auth.AuthResponse;
 import com.dashboard.oauth.dataTransferObject.auth.LoginRequest;
 import com.dashboard.oauth.dataTransferObject.auth.RegisterRequest;
-import com.dashboard.oauth.dataTransferObject.role.RoleRead;
 import com.dashboard.oauth.dataTransferObject.user.UserInfoRead;
 import com.dashboard.oauth.model.UserInfo;
 import com.dashboard.oauth.model.entities.RefreshToken;
@@ -60,7 +59,6 @@ class AuthenticationServiceTest extends BaseAuthenticationServiceTest {
         userInfoRead.setEmail("newuser@example.com");
         when(userInfoMapper.toUserInfo(any(User.class))).thenReturn(new UserInfo());
         when(userInfoMapper.toRead(any(UserInfo.class))).thenReturn(userInfoRead);
-        when(roleMapper.toRead(any(Role.class))).thenReturn(new RoleRead());
 
         UserInfoRead result = authenticationService.register(request);
 
@@ -318,7 +316,6 @@ class AuthenticationServiceTest extends BaseAuthenticationServiceTest {
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
         when(userInfoMapper.toUserInfo(any(User.class))).thenReturn(new UserInfo());
         when(userInfoMapper.toRead(any(UserInfo.class))).thenReturn(new UserInfoRead());
-        when(roleMapper.toRead(any(Role.class))).thenReturn(new RoleRead());
 
         authenticationService.register(request);
 
