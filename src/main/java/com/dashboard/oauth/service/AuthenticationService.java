@@ -7,15 +7,10 @@ import com.dashboard.common.model.exception.ResourceNotFoundException;
 import com.dashboard.oauth.dataTransferObject.auth.AuthResponse;
 import com.dashboard.oauth.dataTransferObject.auth.LoginRequest;
 import com.dashboard.oauth.dataTransferObject.auth.RegisterRequest;
-import com.dashboard.oauth.dataTransferObject.grant.GrantRead;
-import com.dashboard.oauth.dataTransferObject.role.RoleRead;
 import com.dashboard.oauth.dataTransferObject.user.UserInfoRead;
 import com.dashboard.oauth.environment.EmailProperties;
-import com.dashboard.oauth.mapper.interfaces.IGrantMapper;
-import com.dashboard.oauth.mapper.interfaces.IRoleMapper;
 import com.dashboard.oauth.mapper.interfaces.IUserInfoMapper;
 import com.dashboard.oauth.model.UserInfo;
-import com.dashboard.oauth.model.entities.Grant;
 import com.dashboard.oauth.model.entities.RefreshToken;
 import com.dashboard.oauth.model.entities.Role;
 import com.dashboard.oauth.model.entities.User;
@@ -35,7 +30,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -47,8 +41,6 @@ public class AuthenticationService implements IAuthenticationService {
     private final IJwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private final IUserInfoMapper userInfoMapper;
-    private final IRoleMapper roleMapper;
-    private final IGrantMapper grantMapper;
     private final EmailProperties emailProperties;
     private final IRoleService roleService;
 
@@ -91,22 +83,7 @@ public class AuthenticationService implements IAuthenticationService {
         user = userRepository.save(user);
 
         UserInfo userInfo = userInfoMapper.toUserInfo(user);
-        UserInfoRead infoRead = userInfoMapper.toRead(userInfo);
-
-        List<RoleRead> roleReadList = new ArrayList<>();
-        for (Role r : user.getRoles()) {
-            RoleRead rr = roleMapper.toRead(r);
-            List<GrantRead> grants = new ArrayList<>();
-            for (Grant g : r.getGrants()) {
-                GrantRead gr = grantMapper.toRead(g);
-                grants.add(gr);
-            }
-            rr.setGrants(grants);
-            roleReadList.add(rr);
-        }
-        infoRead.setRoleReads(roleReadList.toArray(new RoleRead[0]));
-
-        return infoRead;
+        return userInfoMapper.toRead(userInfo);
     }
 
     public AuthResponse login(@NotNull LoginRequest request) {
@@ -126,24 +103,9 @@ public class AuthenticationService implements IAuthenticationService {
 
         User user = optionalUser.get();
 
-        UserInfo info = userInfoMapper.toUserInfo(user);
-
-        UserInfoRead userInfoRead = userInfoMapper.toRead(info);
-
-        List<RoleRead> roleReads = new ArrayList<>();
-        for (Role role : info.getRole()) {
-            RoleRead rr = roleMapper.toRead(role);
-            ArrayList<GrantRead> grants = new ArrayList<>();
-            for (Grant grant : role.getGrants()){
-                GrantRead gr = grantMapper.toRead(grant);
-                grants.add(gr);
-            }
-            rr.setGrants(grants);
-            roleReads.add(rr);
-        }
-        userInfoRead.setRoleReads(roleReads.toArray(new RoleRead[0]));
-
-        String accessToken = jwtService.generateToken(info);
+        UserInfo userInfo = userInfoMapper.toUserInfo(user);
+        UserInfoRead userInfoRead = userInfoMapper.toRead(userInfo);
+        String accessToken = jwtService.generateToken(userInfo);
 
         refreshTokenRepository.deleteByUserId(user.get_id().toHexString());
 

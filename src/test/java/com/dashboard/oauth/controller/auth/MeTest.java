@@ -24,9 +24,13 @@ class MeTest extends BaseAuthControllerTest {
         User user = createTestUser();
         UserDetailsImpl userDetails = new UserDetailsImpl(user);
 
+        UserInfo userInfo = new UserInfo();
+        userInfo.setEmail(testEmail);
+
         UserInfoRead userInfoRead = new UserInfoRead();
         userInfoRead.setEmail(testEmail);
 
+        when(userInfoMapper.toUserInfo(any(User.class))).thenReturn(userInfo);
         when(userInfoMapper.toRead(any(UserInfo.class))).thenReturn(userInfoRead);
 
         mockMvc.perform(get("/api/auth/me")

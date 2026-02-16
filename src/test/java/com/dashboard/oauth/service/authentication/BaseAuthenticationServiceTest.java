@@ -1,8 +1,6 @@
 package com.dashboard.oauth.service.authentication;
 
 import com.dashboard.oauth.environment.EmailProperties;
-import com.dashboard.oauth.mapper.interfaces.IGrantMapper;
-import com.dashboard.oauth.mapper.interfaces.IRoleMapper;
 import com.dashboard.oauth.mapper.interfaces.IUserInfoMapper;
 import com.dashboard.oauth.repository.IRefreshTokenRepository;
 import com.dashboard.oauth.repository.IUserRepository;
@@ -45,12 +43,6 @@ public abstract class BaseAuthenticationServiceTest {
     protected IUserInfoMapper userInfoMapper;
 
     @Mock
-    protected IRoleMapper roleMapper;
-
-    @Mock
-    protected IGrantMapper grantMapper;
-
-    @Mock
     protected IRoleService roleService;
 
     protected AuthenticationService authenticationService;
@@ -70,8 +62,6 @@ public abstract class BaseAuthenticationServiceTest {
                 jwtService,
                 authenticationManager,
                 userInfoMapper,
-                roleMapper,
-                grantMapper,
                 emailProperties,
                 roleService
         );
