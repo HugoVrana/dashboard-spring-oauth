@@ -18,9 +18,7 @@ public class R2Properties {
 
     private String bucketName;
 
-    public String getPublicUrl() {
-        return String.format("https://%s.r2.cloudflarestorage.com/%s", accountId, bucketName);
-    }
+    private String publicUrl;
 
     public static String buildR2Key(ObjectId userId, ObjectId imageId) {
         return String.format("%s_%s", userId, imageId);
