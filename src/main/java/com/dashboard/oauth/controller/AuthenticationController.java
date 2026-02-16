@@ -165,11 +165,7 @@ public class AuthenticationController {
             );
         }
 
-        UserInfo userInfo = new UserInfo();
-        userInfo.setId(user.get_id());
-        userInfo.setEmail(user.getEmail());
-        userInfo.setRole(user.getRoles());
-
+        UserInfo userInfo = userInfoMapper.toUserInfo(user);
         UserInfoRead userInfoRead = userInfoMapper.toRead(userInfo);
 
         AuthResponse response = new AuthResponse();
@@ -182,13 +178,8 @@ public class AuthenticationController {
     public ResponseEntity<UserInfoRead> getCurrentUser(Authentication authentication) {
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
         User user = userDetails.getUser();
-        UserInfo userInfo = new UserInfo();
-        userInfo.setId(user.get_id());
-        userInfo.setEmail(user.getEmail());
-        userInfo.setRole(user.getRoles());
-
+        UserInfo userInfo = userInfoMapper.toUserInfo(user);
         UserInfoRead userInfoRead = userInfoMapper.toRead(userInfo);
-
         return ResponseEntity.ok(userInfoRead);
     }
 }
