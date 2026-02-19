@@ -14,6 +14,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
+import java.util.Optional;
 
 @RestController
 @CrossOrigin
@@ -23,6 +24,32 @@ public class UserController {
 
     private final IUserService userService;
     private final IR2Service r2Service;
+    private final R2Properties r2Properties;
+
+    @GetMapping("/{id}/profilePicture")
+    public ResponseEntity<String> getProfilePicture(@PathVariable("id") String userId) {
+        if (!ObjectId.isValid(userId)) {
+            throw new ResourceNotFoundException("Image for user " + userId + " not found");
+        }
+
+        ObjectId userIdObject = new ObjectId(userId);
+        Optional<User> optionalUser = userService.getUserById(userIdObject);
+        if (optionalUser.isEmpty()) {
+            throw new ResourceNotFoundException("Image for user " + userId + " not found");
+        }
+
+        User user = optionalUser.get();
+        if (user.getAudit().getDeletedAt() != null) {
+            throw new ResourceNotFoundException("Image for user " + userId + " not found");
+        }
+
+        if (user.getProfileImageId() == null) {
+            throw new ResourceNotFoundException("Image for user " + userId + " not found");
+        }
+
+        String url = r2Properties.buildPublicUrl(user.get_id(), user.getProfileImageId());
+        return ResponseEntity.ok(url);
+    }
 
     @PostMapping("profilePicture")
     public ResponseEntity<String> setUserProfilePicture(Authentication authentication,
@@ -43,7 +70,6 @@ public class UserController {
         }
 
         String publicUrl = result[0];
-        String r2Key = result[1];
         String imageObjectId = result[2];
 
         if (imageObjectId == null || imageObjectId.isEmpty() || !ObjectId.isValid(imageObjectId)) {
