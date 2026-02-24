@@ -4,6 +4,7 @@ import com.dashboard.common.logging.GrafanaHttpClient;
 import com.dashboard.common.model.Audit;
 import com.dashboard.oauth.controller.UserController;
 import com.dashboard.oauth.controller.config.TestConfig;
+import com.dashboard.oauth.environment.R2Properties;
 import com.dashboard.oauth.filter.JwtAuthFilter;
 import com.dashboard.oauth.model.entities.User;
 import com.dashboard.oauth.service.UserDetailsImpl;
@@ -53,6 +54,9 @@ public abstract class BaseUserControllerTest {
 
     @MockitoBean
     protected IR2Service r2Service;
+
+    @MockitoBean
+    protected R2Properties r2Properties;
 
     @MockitoBean
     protected JwtAuthFilter jwtAuthFilter;
