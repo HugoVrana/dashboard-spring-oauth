@@ -3,8 +3,24 @@ services:
     name: spring-boot-app
     env: java
     plan: free
-    buildCommand: ./mvnw clean package -DskipTests
+    buildCommand: |
+      mkdir -p ~/.m2 && cat > ~/.m2/settings.xml <<EOF
+      <settings>
+        <servers>
+          <server>
+            <id>github</id>
+            <username>${GITHUB_USERNAME}</username>
+            <password>${GITHUB_TOKEN}</password>
+          </server>
+        </servers>
+      </settings>
+      EOF
+      ./mvnw clean package -DskipTests
     startCommand: java -jar target/*.jar
     envVars:
       - key: JAVA_TOOL_OPTIONS
         value: -XX:+UseContainerSupport -Dserver.port=$PORT
+      - key: GITHUB_USERNAME
+        sync: false
+      - key: GITHUB_TOKEN
+        sync: false
