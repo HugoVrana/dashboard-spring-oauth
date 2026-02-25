@@ -159,12 +159,34 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Lint code
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Configure Maven settings
         run: |
-          echo "Linting code..."
-          echo "No lint issues found."
+          mkdir -p ~/.m2
+          cat > ~/.m2/settings.xml <<XML
+          <settings>
+            <servers>
+              <server>
+                <id>github</id>
+                <username>${{ github.actor }}</username>
+                <password>${{ secrets.GITHUB_TOKEN }}</password>
+              </server>
+            </servers>
+          </settings>
+          XML
 
+      - name: Run Checkstyle
+        run: mvn $MAVEN_CLI_OPTS checkstyle:check
 
+      - name: Run SpotBugs
+        run: mvn $MAVEN_CLI_OPTS spotbugs:check
+        continue-on-error: true
 
   dependency-scan:
     runs-on: ubuntu-latest
@@ -174,8 +196,6 @@ jobs:
 
       - name: OWASP Dependency Check
         uses: dependency-check/Dependency-Check_Action@main
-        env:
-          JAVA_HOME: ''
         with:
           project: 'dashboard-spring-oauth'
           path: '.'
