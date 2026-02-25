@@ -34,29 +34,11 @@ before_script:
   - |
     cat > ~/.m2/settings.xml <<XML
     <settings>
-      <profiles>
-        <profile>
-          <id>gitlab-registry</id>
-          <repositories>
-            <repository>
-              <id>common-lib</id>
-              <url>https://gitlab.com/api/v4/groups/${GROUP_ID}/-/packages/maven</url>
-            </repository>
-            <repository>
-              <id>central</id>
-              <url>https://repo.maven.apache.org/maven2</url>
-            </repository>
-          </repositories>
-        </profile>
-      </profiles>
-      <activeProfiles>
-        <activeProfile>gitlab-registry</activeProfile>
-      </activeProfiles>
       <servers>
         <server>
-          <id>common-lib</id>
-          <username>gitlab-ci-token</username>
-          <password>${CI_JOB_TOKEN}</password>
+          <id>github</id>
+          <username>${GITHUB_USERNAME}</username>
+          <password>${GITHUB_TOKEN}</password>
         </server>
       </servers>
     </settings>

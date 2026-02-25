@@ -28,22 +28,10 @@
 
     <repositories>
         <repository>
-            <id>gitlab-maven</id>
-            <url>https://gitlab.com/api/v4/projects/75798248/packages/maven</url>
+            <id>github</id>
+            <url>https://maven.pkg.github.com/HugoVrana/dashboard-spring-common</url>
         </repository>
     </repositories>
-
-    <distributionManagement>
-        <repository>
-            <id>gitlab-maven</id>
-            <url>https://gitlab.com/api/v4/projects/75798248/packages/maven</url>
-        </repository>
-
-        <snapshotRepository>
-            <id>gitlab-maven</id>
-            <url>https://gitlab.com/api/v4/projects/75798248/packages/maven</url>
-        </snapshotRepository>
-    </distributionManagement>
 
     <dependencyManagement>
         <dependencies>
