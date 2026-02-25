@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
-public class UserInfoMapper implements IUserInfoMapper {
+public final class UserInfoMapper implements IUserInfoMapper {
     private final RoleMapper roleMapper;
     private final GrantMapper grantMapper;
     private final R2Properties r2Properties;
@@ -26,7 +26,7 @@ public class UserInfoMapper implements IUserInfoMapper {
         this.r2Properties = r2Properties;
     }
 
-    public UserInfo toUserInfo(User user) {
+    public UserInfo toUserInfo(final User user) {
         UserInfo userInfo = new UserInfo();
         userInfo.setId(user.get_id());
         userInfo.setEmail(user.getEmail());
@@ -38,7 +38,7 @@ public class UserInfoMapper implements IUserInfoMapper {
     }
 
     @Override
-    public UserInfoRead toRead(UserInfo userInfo) {
+    public UserInfoRead toRead(final UserInfo userInfo) {
         UserInfoRead userInfoRead = new UserInfoRead();
         userInfoRead.setId(userInfo.getId().toHexString());
         userInfoRead.setEmail(userInfo.getEmail());

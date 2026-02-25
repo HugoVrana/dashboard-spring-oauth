@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 @Data
 @Component
 @ConfigurationProperties(prefix = "email")
-public class EmailProperties {
+public final class EmailProperties {
     private String baseUrl;
     private String fromAddress;
     private Long verificationTokenExpirationMs; // 24 hours

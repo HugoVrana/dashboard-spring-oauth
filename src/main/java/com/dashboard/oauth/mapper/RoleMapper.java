@@ -6,9 +6,9 @@ import com.dashboard.oauth.model.entities.Role;
 import org.springframework.stereotype.Service;
 
 @Service
-public class RoleMapper implements IRoleMapper {
+public final class RoleMapper implements IRoleMapper {
     @Override
-    public RoleRead toRead(Role role) {
+    public RoleRead toRead(final Role role) {
         RoleRead roleRead = new RoleRead();
         roleRead.setId(role.get_id().toHexString());
         roleRead.setName(role.getName());

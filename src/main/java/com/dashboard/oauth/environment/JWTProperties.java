@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 @Data
 @Component
 @ConfigurationProperties(prefix = "jwt")
-public class JWTProperties {
+public final class JWTProperties {
 
     private String secret;
 

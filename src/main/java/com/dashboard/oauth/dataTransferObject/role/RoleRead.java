@@ -2,7 +2,6 @@ package com.dashboard.oauth.dataTransferObject.role;
 
 import com.dashboard.oauth.dataTransferObject.grant.GrantRead;
 import lombok.Data;
-
 import java.util.List;
 
 @Data

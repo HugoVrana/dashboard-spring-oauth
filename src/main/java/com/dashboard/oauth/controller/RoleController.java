@@ -21,7 +21,12 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -85,11 +90,11 @@ public class RoleController {
         }
         Grant grantToAdd = grant.get();
 
-        if (roleToUpdate.getGrants() != null && roleToUpdate.getGrants().contains(grantToAdd)){
+        if (roleToUpdate.getGrants() != null && roleToUpdate.getGrants().contains(grantToAdd)) {
             throw new ConflictException("Role already has this grant");
         }
 
-        if (roleToUpdate.getGrants() == null){
+        if (roleToUpdate.getGrants() == null) {
             roleToUpdate.setGrants(new ArrayList<>());
         }
 
@@ -124,7 +129,7 @@ public class RoleController {
             throw new ResourceNotFoundException("Role not found");
         }
         Role roleToUpdate = role.get();
-        if (roleToUpdate.getGrants() == null){
+        if (roleToUpdate.getGrants() == null) {
             return ResponseEntity.ok(0);
         }
         if (!ObjectId.isValid(request.getGrantId())) {

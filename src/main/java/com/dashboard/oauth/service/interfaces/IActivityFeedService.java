@@ -1,7 +1,6 @@
 package com.dashboard.oauth.service.interfaces;
 
 import com.dashboard.common.model.ActivityEvent;
-
 import java.util.List;
 
 public interface IActivityFeedService {

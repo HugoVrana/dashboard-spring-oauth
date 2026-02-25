@@ -4,7 +4,10 @@ import com.dashboard.oauth.model.entities.User;
 
 public interface ITokenService {
     String createEmailVerificationToken(User user);
+
     String createPasswordResetToken(User user);
+
     void verifyEmail(String tokenValue);
+
     void resetPassword(String tokenValue, String newPassword);
 }

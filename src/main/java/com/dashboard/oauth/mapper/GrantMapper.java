@@ -6,9 +6,9 @@ import com.dashboard.oauth.model.entities.Grant;
 import org.springframework.stereotype.Service;
 
 @Service
-public class GrantMapper implements IGrantMapper {
+public final class GrantMapper implements IGrantMapper {
     @Override
-    public GrantRead toRead(Grant grant) {
+    public GrantRead toRead(final Grant grant) {
         GrantRead grantRead = new GrantRead();
         grantRead.setId(grant.get_id().toHexString());
         grantRead.setName(grant.getName());

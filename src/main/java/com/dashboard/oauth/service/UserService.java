@@ -6,7 +6,6 @@ import com.dashboard.oauth.service.interfaces.IUserService;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
 import org.springframework.stereotype.Service;
-
 import java.util.Optional;
 
 @Service
@@ -26,9 +25,7 @@ public class UserService implements IUserService {
     }
 
     @Override
-    public Optional<User> getUserByEmail(String email){
+    public Optional<User> getUserByEmail(String email) {
         return userRepository.findByEmailAndAudit_DeletedAtIsNull(email);
     }
-
-
 }
