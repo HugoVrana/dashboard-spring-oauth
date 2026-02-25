@@ -7,6 +7,6 @@ import org.springframework.stereotype.Component;
 @Data
 @Component
 @ConfigurationProperties(prefix = "resend")
-public class ResendProperties {
+public final class ResendProperties {
     private String apiKey;
 }

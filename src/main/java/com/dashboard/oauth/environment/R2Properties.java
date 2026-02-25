@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 @Data
 @Component
 @ConfigurationProperties(prefix = "r2")
-public class R2Properties {
+public final class R2Properties {
 
     private String accessKeyId;
 

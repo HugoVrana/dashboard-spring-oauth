@@ -7,6 +7,6 @@ import org.springframework.stereotype.Component;
 @Data
 @Component
 @ConfigurationProperties(prefix = "spring.security.oauth2")
-public class Oauth2Properties {
+public final class Oauth2Properties {
     private String secret;
 }

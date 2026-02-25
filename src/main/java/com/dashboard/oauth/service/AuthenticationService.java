@@ -96,8 +96,7 @@ public class AuthenticationService implements IAuthenticationService {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
             );
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new RuntimeException("Invalid email or password");
         }
 
