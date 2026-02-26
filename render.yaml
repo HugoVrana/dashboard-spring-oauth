@@ -1,17 +1,10 @@
 services:
   - type: web
     name: spring-boot-app
-    runtime: java
+    runtime: docker
     plan: free
-    buildCommand: |
-      mkdir -p ~/.m2
-      echo "<settings><servers><server><id>github</id><username>${GITHUB_USERNAME}</username><password>${GITHUB_TOKEN}</password></server></servers></settings>" > ~/.m2/settings.xml
-      cat ~/.m2/settings.xml
-      ./mvnw clean package -DskipTests
-    startCommand: java -jar target/*.jar
+    dockerfilePath: ./Dockerfile
     envVars:
-      - key: JAVA_TOOL_OPTIONS
-        value: -XX:+UseContainerSupport -Dserver.port=$PORT
       - key: GITHUB_USERNAME
         sync: false
       - key: GITHUB_TOKEN
