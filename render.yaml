@@ -9,3 +9,6 @@ services:
         sync: false
       - key: GITHUB_TOKEN
         sync: false
+    buildArgs:
+        GITHUB_USERNAME: ${GITHUB_USERNAME}
+        GITHUB_TOKEN: ${GITHUB_TOKEN}
