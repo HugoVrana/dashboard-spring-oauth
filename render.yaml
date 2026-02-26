@@ -4,17 +4,9 @@ services:
     runtime: java
     plan: free
     buildCommand: |
-      mkdir -p ~/.m2 && cat > ~/.m2/settings.xml << 'EOF'
-      <settings>
-        <servers>
-          <server>
-            <id>github</id>
-            <username>${GITHUB_USERNAME}</username>
-            <password>${GITHUB_TOKEN}</password>
-          </server>
-        </servers>
-      </settings>
-      EOF
+      mkdir -p ~/.m2
+      echo "<settings><servers><server><id>github</id><username>${GITHUB_USERNAME}</username><password>${GITHUB_TOKEN}</password></server></servers></settings>" > ~/.m2/settings.xml
+      cat ~/.m2/settings.xml
       ./mvnw clean package -DskipTests
     startCommand: java -jar target/*.jar
     envVars:
