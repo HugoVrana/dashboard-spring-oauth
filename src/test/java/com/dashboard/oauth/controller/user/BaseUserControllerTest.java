@@ -66,6 +66,7 @@ public abstract class BaseUserControllerTest {
     @MockitoBean
     protected GrafanaHttpClient grafanaHttpClient;
 
+
     protected final Faker faker = new Faker();
 
     protected ObjectId testUserId;

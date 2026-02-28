@@ -23,7 +23,6 @@ class ProfilePictureTest extends BaseUserControllerTest {
     @Test
     @DisplayName("Set profile picture successfully")
     @Description("Should upload profile picture and return the public URL")
-    @Severity(SeverityLevel.CRITICAL)
     void setProfilePicture_shouldReturnPublicUrl() throws Exception {
         MockMultipartFile file = new MockMultipartFile(
                 "file",
@@ -55,7 +54,6 @@ class ProfilePictureTest extends BaseUserControllerTest {
     @Test
     @DisplayName("Set profile picture deletes old image")
     @Description("Should delete old profile picture from R2 before uploading new one")
-    @Severity(SeverityLevel.NORMAL)
     void setProfilePicture_shouldDeleteOldImage() throws Exception {
         ObjectId oldImageId = new ObjectId();
         testUser.setProfileImageId(oldImageId);
@@ -90,7 +88,6 @@ class ProfilePictureTest extends BaseUserControllerTest {
     @Test
     @DisplayName("Set profile picture without existing image")
     @Description("Should not attempt to delete when user has no existing profile picture")
-    @Severity(SeverityLevel.MINOR)
     void setProfilePicture_shouldNotDeleteWhenNoExistingImage() throws Exception {
         testUser.setProfileImageId(null);
 

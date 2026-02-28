@@ -1,11 +1,14 @@
 package com.dashboard.oauth.controller;
 
 import com.dashboard.common.model.exception.ResourceNotFoundException;
+import com.dashboard.oauth.dataTransferObject.user.UserSelfRead;
+import com.dashboard.oauth.dataTransferObject.user.UserSelfUpdate;
 import com.dashboard.oauth.environment.R2Properties;
 import com.dashboard.oauth.model.entities.User;
 import com.dashboard.oauth.service.UserDetailsImpl;
 import com.dashboard.oauth.service.interfaces.IR2Service;
 import com.dashboard.oauth.service.interfaces.IUserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
 import org.springframework.http.HttpStatus;
@@ -15,11 +18,14 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
+
 import java.util.Optional;
 
 @RestController
@@ -31,6 +37,24 @@ public class UserController {
     private final IUserService userService;
     private final IR2Service r2Service;
     private final R2Properties r2Properties;
+
+    @GetMapping("me")
+    public ResponseEntity<UserSelfRead> getMe(Authentication authentication) {
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        assert userDetails != null;
+        User user = userDetails.getUser();
+        return ResponseEntity.ok(userService.getSelf(user));
+    }
+
+    @PutMapping("me")
+    public ResponseEntity<UserSelfRead> updateMe(
+            Authentication authentication,
+            @Valid @RequestBody UserSelfUpdate userSelfUpdate) {
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        assert userDetails != null;
+        User user = userDetails.getUser();
+        return ResponseEntity.ok(userService.updateSelf(user, userSelfUpdate));
+    }
 
     @GetMapping("/{id}/profilePicture")
     public ResponseEntity<String> getProfilePicture(@PathVariable("id") String userId) {
@@ -58,9 +82,10 @@ public class UserController {
     }
 
     @PostMapping("profilePicture")
-    public ResponseEntity<String> setUserProfilePicture(Authentication authentication,
+    public ResponseEntity<String> setProfilePicture(Authentication authentication,
                                                         @RequestParam("file") MultipartFile file) {
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        assert userDetails != null;
         User user = userDetails.getUser();
 
         // Delete old profile picture from R2 if exists
