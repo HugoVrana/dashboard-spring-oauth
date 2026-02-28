@@ -94,7 +94,7 @@ public class GlobalExceptionHandler {
             Instant timestamp = Instant.now();
             LogBuilderHelper logBuilderHelper = new LogBuilderHelper(objectMapper);
             ApiCallLog.ApiCallLogBuilder builder = logBuilderHelper.buildBaseLog(
-                    "spring-dashboard",
+                    "spring-dashboard-oauth",
                     request,
                     null,
                     timestamp,

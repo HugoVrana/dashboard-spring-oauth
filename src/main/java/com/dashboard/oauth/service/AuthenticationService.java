@@ -9,6 +9,7 @@ import com.dashboard.oauth.dataTransferObject.auth.LoginRequest;
 import com.dashboard.oauth.dataTransferObject.auth.RegisterRequest;
 import com.dashboard.oauth.dataTransferObject.user.UserInfoRead;
 import com.dashboard.oauth.environment.EmailProperties;
+import com.dashboard.oauth.environment.JWTProperties;
 import com.dashboard.oauth.mapper.interfaces.IUserInfoMapper;
 import com.dashboard.oauth.model.UserInfo;
 import com.dashboard.oauth.model.entities.RefreshToken;
@@ -19,12 +20,13 @@ import com.dashboard.oauth.repository.IRefreshTokenRepository;
 import com.dashboard.oauth.repository.IUserRepository;
 import com.dashboard.oauth.service.interfaces.IAuthenticationService;
 import com.dashboard.oauth.service.interfaces.IJwtService;
+import com.dashboard.oauth.service.interfaces.ILoginAttemptService;
 import com.dashboard.oauth.service.interfaces.IRoleService;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -35,17 +37,17 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class AuthenticationService implements IAuthenticationService {
+
     private final IUserRepository userRepository;
     private final IRefreshTokenRepository refreshTokenRepository;
-    private final PasswordEncoder passwordEncoder;
+    private final IRoleService roleService;
+    private final ILoginAttemptService loginAttemptService;
     private final IJwtService jwtService;
+    private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final IUserInfoMapper userInfoMapper;
     private final EmailProperties emailProperties;
-    private final IRoleService roleService;
-
-    @Value("${jwt.expiration}")
-    private Long jwtExpiration;
+    private final JWTProperties jwtProperties;
 
     public UserInfoRead register(@NotNull RegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
@@ -87,20 +89,21 @@ public class AuthenticationService implements IAuthenticationService {
     }
 
     public AuthResponse login(@NotNull LoginRequest request) {
-        Optional<User> optionalUser = userRepository.findByEmailAndAudit_DeletedAtIsNull(request.getEmail());
-        if (optionalUser.isEmpty()) {
-            throw new RuntimeException("Invalid email or password");
-        }
+        User user = userRepository.findByEmailAndAudit_DeletedAtIsNull(request.getEmail())
+                .orElseThrow(() -> new BadCredentialsException("Invalid email or password"));
+
+        loginAttemptService.checkLocked(user);
 
         try {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
             );
-        } catch (Exception e) {
-            throw new RuntimeException("Invalid email or password");
+        } catch (BadCredentialsException e) {
+            loginAttemptService.recordFailedAttempt(user);
+            throw new BadCredentialsException("Invalid email or password");
         }
 
-        User user = optionalUser.get();
+        loginAttemptService.recordSuccessfulLogin(user);
 
         UserInfo userInfo = userInfoMapper.toUserInfo(user);
         UserInfoRead userInfoRead = userInfoMapper.toRead(userInfo);
@@ -112,7 +115,7 @@ public class AuthenticationService implements IAuthenticationService {
         RefreshToken refreshToken = RefreshToken.builder()
                 .token(refreshTokenId)
                 .userId(user.get_id().toHexString())
-                .expiryDate(Instant.now().plusMillis(jwtExpiration))
+                .expiryDate(Instant.now().plusMillis(jwtProperties.getExpiration()))
                 .build();
         refreshTokenRepository.save(refreshToken);
 
@@ -120,7 +123,7 @@ public class AuthenticationService implements IAuthenticationService {
         response.setUser(userInfoRead);
         response.setAccessToken(accessToken);
         response.setRefreshToken(refreshTokenId.toHexString());
-        response.setExpiresIn(jwtExpiration);
+        response.setExpiresIn(jwtProperties.getExpiration());
         return response;
     }
 
@@ -147,7 +150,7 @@ public class AuthenticationService implements IAuthenticationService {
         AuthResponse response = new AuthResponse();
         response.setAccessToken(accessToken);
         response.setRefreshToken(refreshTokenStr);
-        response.setExpiresIn(jwtExpiration);
+        response.setExpiresIn(jwtProperties.getExpiration());
         response.setUser(userInfoRead);
 
         return response;

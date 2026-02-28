@@ -1,6 +1,7 @@
 package com.dashboard.oauth.model.entities;
 
 import com.dashboard.common.model.Audit;
+import jakarta.validation.constraints.Min;
 import lombok.Data;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
@@ -30,6 +31,11 @@ public class User {
     private VerificationToken passwordResetToken;
 
     private ObjectId profileImageId;
+
+    @Min(0)
+    private Integer failedLoginAttempts;
+
+    private Boolean locked = false;
 
     @DBRef
     private List<Role> roles;
