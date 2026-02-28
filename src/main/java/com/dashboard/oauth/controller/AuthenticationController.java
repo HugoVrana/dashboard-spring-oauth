@@ -10,6 +10,7 @@ import com.dashboard.oauth.dataTransferObject.auth.LoginRequest;
 import com.dashboard.oauth.dataTransferObject.auth.RefreshTokenRequest;
 import com.dashboard.oauth.dataTransferObject.auth.RegisterRequest;
 import com.dashboard.oauth.dataTransferObject.auth.ResetPasswordRequest;
+import com.dashboard.oauth.dataTransferObject.auth.TokenValidationResponse;
 import com.dashboard.oauth.dataTransferObject.role.AddRoleRequest;
 import com.dashboard.oauth.dataTransferObject.user.UserInfoRead;
 import com.dashboard.oauth.mapper.interfaces.IUserInfoMapper;
@@ -136,6 +137,15 @@ public class AuthenticationController {
     public ResponseEntity<Void> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
         authService.resetPassword(request.getToken(), request.getNewPassword());
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/validate-reset-token")
+    public ResponseEntity<TokenValidationResponse> validateResetToken(@RequestParam String token) {
+        boolean isValid = authService.validatePasswordResetToken(token);
+        if (isValid) {
+            return ResponseEntity.ok(TokenValidationResponse.valid());
+        }
+        return ResponseEntity.badRequest().body(TokenValidationResponse.invalid("Token is invalid or expired"));
     }
 
     @PostMapping("/user/role")

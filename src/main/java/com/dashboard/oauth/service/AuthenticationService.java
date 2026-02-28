@@ -228,6 +228,30 @@ public class AuthenticationService implements IAuthenticationService {
         user.setPassword(passwordEncoder.encode(newPassword));
         user.setPasswordResetToken(null);
 
+        // Unlock the user account and reset failed login attempts
+        user.setFailedLoginAttempts(0);
+        user.setLocked(false);
+
         userRepository.save(user);
+    }
+
+    @Override
+    public boolean validatePasswordResetToken(String token) {
+        if (!ObjectId.isValid(token)) {
+            return false;
+        }
+
+        Optional<User> optionalUser = userRepository.getUserByPasswordResetToken__idAndAudit_DeletedAtIsNull(new ObjectId(token));
+        if (optionalUser.isEmpty()) {
+            return false;
+        }
+
+        User user = optionalUser.get();
+        VerificationToken resetToken = user.getPasswordResetToken();
+        if (resetToken == null) {
+            return false;
+        }
+
+        return resetToken.isValid();
     }
 }
