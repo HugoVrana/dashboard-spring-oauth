@@ -108,7 +108,7 @@ class AuthenticationServiceTest extends BaseAuthenticationServiceTest {
         assertNotNull(response);
         assertEquals("access-token", response.getAccessToken());
         assertNotNull(response.getRefreshToken());
-        assertEquals(JWT_EXPIRATION, response.getExpiresIn());
+        assertEquals(jwtProperties.getExpiration(), response.getExpiresIn());
         verify(refreshTokenRepository).deleteByUserId(anyString());
         verify(refreshTokenRepository).save(any(RefreshToken.class));
     }
@@ -189,7 +189,7 @@ class AuthenticationServiceTest extends BaseAuthenticationServiceTest {
         RefreshToken refreshToken = RefreshToken.builder()
                 .token(refreshTokenId)
                 .userId(user.get_id().toHexString())
-                .expiryDate(Instant.now().plusMillis(JWT_EXPIRATION))
+                .expiryDate(Instant.now().plusMillis(jwtProperties.getExpiration()))
                 .build();
 
         UserInfoRead userInfoRead = new UserInfoRead();
@@ -206,7 +206,7 @@ class AuthenticationServiceTest extends BaseAuthenticationServiceTest {
         assertNotNull(response);
         assertEquals("new-access-token", response.getAccessToken());
         assertEquals(refreshTokenStr, response.getRefreshToken());
-        assertEquals(JWT_EXPIRATION, response.getExpiresIn());
+        assertEquals(jwtProperties.getExpiration(), response.getExpiresIn());
     }
 
     @Test
@@ -270,7 +270,7 @@ class AuthenticationServiceTest extends BaseAuthenticationServiceTest {
         RefreshToken refreshToken = RefreshToken.builder()
                 .token(refreshTokenId)
                 .userId(userId.toHexString())
-                .expiryDate(Instant.now().plusMillis(JWT_EXPIRATION))
+                .expiryDate(Instant.now().plusMillis(jwtProperties.getExpiration()))
                 .build();
 
         when(refreshTokenRepository.findByToken(refreshTokenId)).thenReturn(Optional.of(refreshToken));
@@ -356,8 +356,8 @@ class AuthenticationServiceTest extends BaseAuthenticationServiceTest {
         assertEquals(user.get_id().toHexString(), savedToken.getUserId());
 
         // Check expiry is roughly JWT_EXPIRATION in the future
-        assertTrue(savedToken.getExpiryDate().isAfter(beforeLogin.plusMillis(JWT_EXPIRATION - 1000)));
-        assertTrue(savedToken.getExpiryDate().isBefore(afterLogin.plusMillis(JWT_EXPIRATION + 1000)));
+        assertTrue(savedToken.getExpiryDate().isAfter(beforeLogin.plusMillis(jwtProperties.getExpiration() - 1000)));
+        assertTrue(savedToken.getExpiryDate().isBefore(afterLogin.plusMillis(jwtProperties.getExpiration() + 1000)));
     }
 
     private User createTestUser() {

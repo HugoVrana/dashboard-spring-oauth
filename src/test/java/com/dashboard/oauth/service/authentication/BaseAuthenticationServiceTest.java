@@ -50,14 +50,16 @@ public abstract class BaseAuthenticationServiceTest {
     protected ILoginAttemptService loginAttemptService;
 
     protected AuthenticationService authenticationService;
+    protected JWTProperties jwtProperties;
+    protected EmailProperties emailProperties;
 
     @BeforeEach
     void setUp() {
-        EmailProperties emailProperties = new EmailProperties();
+        emailProperties = new EmailProperties();
         emailProperties.setVerificationTokenExpirationMs(86400000L);
         emailProperties.setPasswordResetTokenExpirationMs(3600000L);
 
-        JWTProperties jwtProperties = new JWTProperties();
+        jwtProperties = new JWTProperties();
         jwtProperties.setExpiration(86400000L);
 
         authenticationService = new AuthenticationService(
