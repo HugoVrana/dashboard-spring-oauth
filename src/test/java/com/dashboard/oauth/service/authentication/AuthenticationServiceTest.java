@@ -10,6 +10,7 @@ import com.dashboard.oauth.model.UserInfo;
 import com.dashboard.oauth.model.entities.RefreshToken;
 import com.dashboard.oauth.model.entities.Role;
 import com.dashboard.oauth.model.entities.User;
+import com.dashboard.oauth.model.entities.VerificationToken;
 import org.bson.types.ObjectId;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -471,6 +472,141 @@ class AuthenticationServiceTest extends BaseAuthenticationServiceTest {
         var inOrder = inOrder(loginAttemptService, authenticationManager);
         inOrder.verify(loginAttemptService).checkLocked(user);
         inOrder.verify(authenticationManager).authenticate(any());
+    }
+
+    @Test
+    @DisplayName("Should reset failed login attempts and unlock user on password reset")
+    void resetPassword_shouldUnlockUserAndResetFailedAttempts() {
+        ObjectId tokenId = new ObjectId();
+        String token = tokenId.toHexString();
+
+        User user = createTestUser();
+        user.setLocked(true);
+        user.setFailedLoginAttempts(5);
+
+        VerificationToken resetToken = new VerificationToken();
+        resetToken.set_id(tokenId);
+        resetToken.setExpiryDate(Instant.now().plusMillis(3600000));
+        resetToken.setUsed(false);
+        user.setPasswordResetToken(resetToken);
+
+        when(userRepository.getUserByPasswordResetToken__idAndAudit_DeletedAtIsNull(tokenId))
+                .thenReturn(Optional.of(user));
+        when(passwordEncoder.encode("newPassword123")).thenReturn("encodedNewPassword");
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        authenticationService.resetPassword(token, "newPassword123");
+
+        ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
+        verify(userRepository).save(userCaptor.capture());
+
+        User savedUser = userCaptor.getValue();
+        assertEquals(0, savedUser.getFailedLoginAttempts());
+        assertFalse(savedUser.getLocked());
+        assertEquals("encodedNewPassword", savedUser.getPassword());
+    }
+
+    @Test
+    @DisplayName("Should return true when password reset token is valid")
+    void validatePasswordResetToken_shouldReturnTrueForValidToken() {
+        ObjectId tokenId = new ObjectId();
+        String token = tokenId.toHexString();
+
+        User user = createTestUser();
+        VerificationToken resetToken = new VerificationToken();
+        resetToken.set_id(tokenId);
+        resetToken.setExpiryDate(Instant.now().plusMillis(3600000));
+        resetToken.setUsed(false);
+        user.setPasswordResetToken(resetToken);
+
+        when(userRepository.getUserByPasswordResetToken__idAndAudit_DeletedAtIsNull(tokenId))
+                .thenReturn(Optional.of(user));
+
+        boolean result = authenticationService.validatePasswordResetToken(token);
+
+        assertTrue(result);
+    }
+
+    @Test
+    @DisplayName("Should return false when password reset token format is invalid")
+    void validatePasswordResetToken_shouldReturnFalseForInvalidFormat() {
+        boolean result = authenticationService.validatePasswordResetToken("invalid-token-format");
+
+        assertFalse(result);
+        verify(userRepository, never()).getUserByPasswordResetToken__idAndAudit_DeletedAtIsNull(any());
+    }
+
+    @Test
+    @DisplayName("Should return false when password reset token does not exist")
+    void validatePasswordResetToken_shouldReturnFalseForNonExistentToken() {
+        ObjectId tokenId = new ObjectId();
+        String token = tokenId.toHexString();
+
+        when(userRepository.getUserByPasswordResetToken__idAndAudit_DeletedAtIsNull(tokenId))
+                .thenReturn(Optional.empty());
+
+        boolean result = authenticationService.validatePasswordResetToken(token);
+
+        assertFalse(result);
+    }
+
+    @Test
+    @DisplayName("Should return false when password reset token is expired")
+    void validatePasswordResetToken_shouldReturnFalseForExpiredToken() {
+        ObjectId tokenId = new ObjectId();
+        String token = tokenId.toHexString();
+
+        User user = createTestUser();
+        VerificationToken resetToken = new VerificationToken();
+        resetToken.set_id(tokenId);
+        resetToken.setExpiryDate(Instant.now().minusMillis(1000)); // Expired
+        resetToken.setUsed(false);
+        user.setPasswordResetToken(resetToken);
+
+        when(userRepository.getUserByPasswordResetToken__idAndAudit_DeletedAtIsNull(tokenId))
+                .thenReturn(Optional.of(user));
+
+        boolean result = authenticationService.validatePasswordResetToken(token);
+
+        assertFalse(result);
+    }
+
+    @Test
+    @DisplayName("Should return false when password reset token is already used")
+    void validatePasswordResetToken_shouldReturnFalseForUsedToken() {
+        ObjectId tokenId = new ObjectId();
+        String token = tokenId.toHexString();
+
+        User user = createTestUser();
+        VerificationToken resetToken = new VerificationToken();
+        resetToken.set_id(tokenId);
+        resetToken.setExpiryDate(Instant.now().plusMillis(3600000));
+        resetToken.setUsed(true); // Already used
+        user.setPasswordResetToken(resetToken);
+
+        when(userRepository.getUserByPasswordResetToken__idAndAudit_DeletedAtIsNull(tokenId))
+                .thenReturn(Optional.of(user));
+
+        boolean result = authenticationService.validatePasswordResetToken(token);
+
+        assertFalse(result);
+    }
+
+    @Test
+    @DisplayName("Should return false when user has no password reset token")
+    void validatePasswordResetToken_shouldReturnFalseWhenUserHasNoToken() {
+        ObjectId tokenId = new ObjectId();
+        String token = tokenId.toHexString();
+
+        User user = createTestUser();
+        user.setPasswordResetToken(null);
+
+        when(userRepository.getUserByPasswordResetToken__idAndAudit_DeletedAtIsNull(tokenId))
+                .thenReturn(Optional.of(user));
+
+        boolean result = authenticationService.validatePasswordResetToken(token);
+
+        assertFalse(result);
     }
 
     private User createTestUser() {

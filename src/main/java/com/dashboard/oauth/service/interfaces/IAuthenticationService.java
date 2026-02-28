@@ -19,4 +19,6 @@ public interface IAuthenticationService {
     void forgotPassword(String email);
 
     void resetPassword(String token, String newPassword);
+
+    boolean validatePasswordResetToken(String token);
 }
