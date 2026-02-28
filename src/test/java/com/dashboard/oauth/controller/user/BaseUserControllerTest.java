@@ -6,12 +6,10 @@ import com.dashboard.oauth.controller.UserController;
 import com.dashboard.oauth.controller.config.TestConfig;
 import com.dashboard.oauth.environment.R2Properties;
 import com.dashboard.oauth.filter.JwtAuthFilter;
-import com.dashboard.oauth.mapper.interfaces.IUserInfoMapper;
 import com.dashboard.oauth.model.entities.User;
 import com.dashboard.oauth.service.UserDetailsImpl;
 import com.dashboard.oauth.service.interfaces.IR2Service;
 import com.dashboard.oauth.service.interfaces.IUserService;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.qameta.allure.Epic;
 import io.qameta.allure.Feature;
@@ -68,11 +66,6 @@ public abstract class BaseUserControllerTest {
     @MockitoBean
     protected GrafanaHttpClient grafanaHttpClient;
 
-    @MockitoBean
-    protected IUserInfoMapper userInfoMapper;
-
-    @MockitoBean
-    protected PasswordEncoder passwordEncoder;
 
     protected final Faker faker = new Faker();
 

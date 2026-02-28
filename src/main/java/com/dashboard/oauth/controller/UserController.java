@@ -4,7 +4,6 @@ import com.dashboard.common.model.exception.ResourceNotFoundException;
 import com.dashboard.oauth.dataTransferObject.user.UserSelfRead;
 import com.dashboard.oauth.dataTransferObject.user.UserSelfUpdate;
 import com.dashboard.oauth.environment.R2Properties;
-import com.dashboard.oauth.mapper.interfaces.IUserInfoMapper;
 import com.dashboard.oauth.model.entities.User;
 import com.dashboard.oauth.service.UserDetailsImpl;
 import com.dashboard.oauth.service.interfaces.IR2Service;
@@ -15,11 +14,10 @@ import org.bson.types.ObjectId;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
+
 import java.util.Optional;
 
 @RestController
@@ -31,15 +29,13 @@ public class UserController {
     private final IUserService userService;
     private final IR2Service r2Service;
     private final R2Properties r2Properties;
-    private final IUserInfoMapper userInfoMapper;
-    private final PasswordEncoder passwordEncoder;
 
     @GetMapping("me")
     public ResponseEntity<UserSelfRead> getMe(Authentication authentication) {
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        assert userDetails != null;
         User user = userDetails.getUser();
-        UserSelfRead userSelfRead = userInfoMapper.toSelfRead(user);
-        return ResponseEntity.ok(userSelfRead);
+        return ResponseEntity.ok(userService.getSelf(user));
     }
 
     @PutMapping("me")
@@ -47,20 +43,9 @@ public class UserController {
             Authentication authentication,
             @Valid @RequestBody UserSelfUpdate userSelfUpdate) {
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        assert userDetails != null;
         User user = userDetails.getUser();
-
-        if (userSelfUpdate.getEmail() != null && !userSelfUpdate.getEmail().isBlank()) {
-            Optional<User> existingUser = userService.getUserByEmail(userSelfUpdate.getEmail());
-            if (existingUser.isPresent() && !existingUser.get().get_id().equals(user.get_id())) {
-                throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already in use");
-            }
-            user.setEmail(userSelfUpdate.getEmail());
-            user.setPassword(passwordEncoder.encode(userSelfUpdate.getPassword()));
-        }
-
-        User savedUser = userService.saveUser(user);
-        UserSelfRead userSelfRead = userInfoMapper.toSelfRead(savedUser);
-        return ResponseEntity.ok(userSelfRead);
+        return ResponseEntity.ok(userService.updateSelf(user, userSelfUpdate));
     }
 
     @GetMapping("/{id}/profilePicture")
@@ -89,9 +74,10 @@ public class UserController {
     }
 
     @PostMapping("profilePicture")
-    public ResponseEntity<String> setUserProfilePicture(Authentication authentication,
+    public ResponseEntity<String> setProfilePicture(Authentication authentication,
                                                         @RequestParam("file") MultipartFile file) {
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        assert userDetails != null;
         User user = userDetails.getUser();
 
         // Delete old profile picture from R2 if exists
