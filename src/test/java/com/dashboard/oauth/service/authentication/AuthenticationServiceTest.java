@@ -17,6 +17,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -108,7 +109,7 @@ class AuthenticationServiceTest extends BaseAuthenticationServiceTest {
         assertNotNull(response);
         assertEquals("access-token", response.getAccessToken());
         assertNotNull(response.getRefreshToken());
-        assertEquals(JWT_EXPIRATION, response.getExpiresIn());
+        assertEquals(jwtProperties.getExpiration(), response.getExpiresIn());
         verify(refreshTokenRepository).deleteByUserId(anyString());
         verify(refreshTokenRepository).save(any(RefreshToken.class));
     }
@@ -189,7 +190,7 @@ class AuthenticationServiceTest extends BaseAuthenticationServiceTest {
         RefreshToken refreshToken = RefreshToken.builder()
                 .token(refreshTokenId)
                 .userId(user.get_id().toHexString())
-                .expiryDate(Instant.now().plusMillis(JWT_EXPIRATION))
+                .expiryDate(Instant.now().plusMillis(jwtProperties.getExpiration()))
                 .build();
 
         UserInfoRead userInfoRead = new UserInfoRead();
@@ -206,7 +207,7 @@ class AuthenticationServiceTest extends BaseAuthenticationServiceTest {
         assertNotNull(response);
         assertEquals("new-access-token", response.getAccessToken());
         assertEquals(refreshTokenStr, response.getRefreshToken());
-        assertEquals(JWT_EXPIRATION, response.getExpiresIn());
+        assertEquals(jwtProperties.getExpiration(), response.getExpiresIn());
     }
 
     @Test
@@ -270,7 +271,7 @@ class AuthenticationServiceTest extends BaseAuthenticationServiceTest {
         RefreshToken refreshToken = RefreshToken.builder()
                 .token(refreshTokenId)
                 .userId(userId.toHexString())
-                .expiryDate(Instant.now().plusMillis(JWT_EXPIRATION))
+                .expiryDate(Instant.now().plusMillis(jwtProperties.getExpiration()))
                 .build();
 
         when(refreshTokenRepository.findByToken(refreshTokenId)).thenReturn(Optional.of(refreshToken));
@@ -356,8 +357,120 @@ class AuthenticationServiceTest extends BaseAuthenticationServiceTest {
         assertEquals(user.get_id().toHexString(), savedToken.getUserId());
 
         // Check expiry is roughly JWT_EXPIRATION in the future
-        assertTrue(savedToken.getExpiryDate().isAfter(beforeLogin.plusMillis(JWT_EXPIRATION - 1000)));
-        assertTrue(savedToken.getExpiryDate().isBefore(afterLogin.plusMillis(JWT_EXPIRATION + 1000)));
+        assertTrue(savedToken.getExpiryDate().isAfter(beforeLogin.plusMillis(jwtProperties.getExpiration() - 1000)));
+        assertTrue(savedToken.getExpiryDate().isBefore(afterLogin.plusMillis(jwtProperties.getExpiration() + 1000)));
+    }
+
+    @Test
+    @DisplayName("Should check if user is locked before authentication")
+    void login_shouldCheckIfUserIsLocked() {
+        LoginRequest request = new LoginRequest();
+        request.setEmail("test@example.com");
+        request.setPassword("password123");
+
+        User user = createTestUser();
+        UserInfo userInfo = new UserInfo();
+        userInfo.setRole(new ArrayList<>());
+
+        when(userRepository.findByEmailAndAudit_DeletedAtIsNull("test@example.com"))
+                .thenReturn(Optional.of(user));
+        when(userInfoMapper.toUserInfo(any(User.class))).thenReturn(userInfo);
+        when(jwtService.generateToken(any(UserInfo.class))).thenReturn("access-token");
+        when(userInfoMapper.toRead(any(UserInfo.class))).thenReturn(new UserInfoRead());
+
+        authenticationService.login(request);
+
+        verify(loginAttemptService).checkLocked(user);
+    }
+
+    @Test
+    @DisplayName("Should throw LockedException when user account is locked")
+    void login_shouldThrowLockedExceptionWhenUserIsLocked() {
+        LoginRequest request = new LoginRequest();
+        request.setEmail("locked@example.com");
+        request.setPassword("password123");
+
+        User user = createTestUser();
+        user.setLocked(true);
+
+        when(userRepository.findByEmailAndAudit_DeletedAtIsNull("locked@example.com"))
+                .thenReturn(Optional.of(user));
+        doThrow(new LockedException("User account is locked"))
+                .when(loginAttemptService).checkLocked(user);
+
+        LockedException exception = assertThrows(
+                LockedException.class,
+                () -> authenticationService.login(request)
+        );
+
+        assertEquals("User account is locked", exception.getMessage());
+        verify(authenticationManager, never()).authenticate(any());
+    }
+
+    @Test
+    @DisplayName("Should record failed attempt when password is invalid")
+    void login_shouldRecordFailedAttemptOnBadCredentials() {
+        LoginRequest request = new LoginRequest();
+        request.setEmail("test@example.com");
+        request.setPassword("wrongpassword");
+
+        User user = createTestUser();
+
+        when(userRepository.findByEmailAndAudit_DeletedAtIsNull("test@example.com"))
+                .thenReturn(Optional.of(user));
+        when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
+                .thenThrow(new BadCredentialsException("Bad credentials"));
+
+        assertThrows(BadCredentialsException.class, () -> authenticationService.login(request));
+
+        verify(loginAttemptService).recordFailedAttempt(user);
+    }
+
+    @Test
+    @DisplayName("Should record successful login after authentication")
+    void login_shouldRecordSuccessfulLoginAfterAuthentication() {
+        LoginRequest request = new LoginRequest();
+        request.setEmail("test@example.com");
+        request.setPassword("password123");
+
+        User user = createTestUser();
+        user.setFailedLoginAttempts(3);
+        UserInfo userInfo = new UserInfo();
+        userInfo.setRole(new ArrayList<>());
+
+        when(userRepository.findByEmailAndAudit_DeletedAtIsNull("test@example.com"))
+                .thenReturn(Optional.of(user));
+        when(userInfoMapper.toUserInfo(any(User.class))).thenReturn(userInfo);
+        when(jwtService.generateToken(any(UserInfo.class))).thenReturn("access-token");
+        when(userInfoMapper.toRead(any(UserInfo.class))).thenReturn(new UserInfoRead());
+
+        authenticationService.login(request);
+
+        verify(loginAttemptService).recordSuccessfulLogin(user);
+    }
+
+    @Test
+    @DisplayName("Should call checkLocked before authentication attempt")
+    void login_shouldCheckLockedBeforeAuthentication() {
+        LoginRequest request = new LoginRequest();
+        request.setEmail("test@example.com");
+        request.setPassword("password123");
+
+        User user = createTestUser();
+        UserInfo userInfo = new UserInfo();
+        userInfo.setRole(new ArrayList<>());
+
+        when(userRepository.findByEmailAndAudit_DeletedAtIsNull("test@example.com"))
+                .thenReturn(Optional.of(user));
+        when(userInfoMapper.toUserInfo(any(User.class))).thenReturn(userInfo);
+        when(jwtService.generateToken(any(UserInfo.class))).thenReturn("access-token");
+        when(userInfoMapper.toRead(any(UserInfo.class))).thenReturn(new UserInfoRead());
+
+        authenticationService.login(request);
+
+        var inOrder = inOrder(loginAttemptService, authenticationManager);
+        inOrder.verify(loginAttemptService).checkLocked(user);
+        inOrder.verify(authenticationManager).authenticate(any());
     }
 
     private User createTestUser() {

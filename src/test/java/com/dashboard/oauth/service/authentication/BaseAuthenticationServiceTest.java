@@ -1,11 +1,13 @@
 package com.dashboard.oauth.service.authentication;
 
 import com.dashboard.oauth.environment.EmailProperties;
+import com.dashboard.oauth.environment.JWTProperties;
 import com.dashboard.oauth.mapper.interfaces.IUserInfoMapper;
 import com.dashboard.oauth.repository.IRefreshTokenRepository;
 import com.dashboard.oauth.repository.IUserRepository;
 import com.dashboard.oauth.service.AuthenticationService;
 import com.dashboard.oauth.service.interfaces.IJwtService;
+import com.dashboard.oauth.service.interfaces.ILoginAttemptService;
 import com.dashboard.oauth.service.interfaces.IRoleService;
 import io.qameta.allure.Epic;
 import io.qameta.allure.Feature;
@@ -16,7 +18,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.test.util.ReflectionTestUtils;
 
 @Epic("Authentication")
 @Feature("Authentication Service")
@@ -45,27 +46,33 @@ public abstract class BaseAuthenticationServiceTest {
     @Mock
     protected IRoleService roleService;
 
-    protected AuthenticationService authenticationService;
+    @Mock
+    protected ILoginAttemptService loginAttemptService;
 
-    protected static final Long JWT_EXPIRATION = 86400000L;
+    protected AuthenticationService authenticationService;
+    protected JWTProperties jwtProperties;
+    protected EmailProperties emailProperties;
 
     @BeforeEach
     void setUp() {
-        EmailProperties emailProperties = new EmailProperties();
+        emailProperties = new EmailProperties();
         emailProperties.setVerificationTokenExpirationMs(86400000L);
         emailProperties.setPasswordResetTokenExpirationMs(3600000L);
+
+        jwtProperties = new JWTProperties();
+        jwtProperties.setExpiration(86400000L);
 
         authenticationService = new AuthenticationService(
                 userRepository,
                 refreshTokenRepository,
-                passwordEncoder,
+                roleService,
+                loginAttemptService,
                 jwtService,
+                passwordEncoder,
                 authenticationManager,
                 userInfoMapper,
                 emailProperties,
-                roleService
+                jwtProperties
         );
-
-        ReflectionTestUtils.setField(authenticationService, "jwtExpiration", JWT_EXPIRATION);
     }
 }

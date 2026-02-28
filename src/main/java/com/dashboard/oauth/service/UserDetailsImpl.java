@@ -54,6 +54,6 @@ public class UserDetailsImpl implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return user.getAudit().getDeletedAt() == null;
+        return user.getAudit() == null || user.getAudit().getDeletedAt() == null;
     }
 }
