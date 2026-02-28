@@ -1,6 +1,7 @@
 package com.dashboard.oauth.controller;
 
 import com.dashboard.common.model.exception.ResourceNotFoundException;
+import com.dashboard.oauth.dataTransferObject.user.UserInfoRead;
 import com.dashboard.oauth.environment.R2Properties;
 import com.dashboard.oauth.model.entities.User;
 import com.dashboard.oauth.service.UserDetailsImpl;
@@ -11,13 +12,7 @@ import org.bson.types.ObjectId;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 import java.util.Optional;
@@ -31,6 +26,11 @@ public class UserController {
     private final IUserService userService;
     private final IR2Service r2Service;
     private final R2Properties r2Properties;
+
+    @PutMapping("{id}")
+    public ResponseEntity<UserInfoRead> updateUser(){
+        return null;
+    }
 
     @GetMapping("/{id}/profilePicture")
     public ResponseEntity<String> getProfilePicture(@PathVariable("id") String userId) {
