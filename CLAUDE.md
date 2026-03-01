@@ -103,6 +103,24 @@ User profile images are stored in Cloudflare R2 (S3-compatible).
 3. New image uploaded, URL and key saved to User document
 4. Profile image URL returned in login/refresh/me responses
 
+### Two-Factor Authentication (TOTP)
+
+Time-based One-Time Password (TOTP) support for Google Authenticator and similar apps.
+
+**Architecture:**
+- `BaseTwoFactorConfig` - Abstract base class for 2FA methods (enabled, audit)
+- `TotpConfig` - Extends base, stores TOTP secret
+- `TotpService` - Generates secrets, QR codes, and verifies codes
+- `TotpController` - Exposes `/api/auth/2fa/*` endpoints
+
+**User field:**
+- `twoFactorConfig` - Stores the active 2FA configuration (polymorphic)
+
+**Flow:**
+1. User calls `POST /api/auth/2fa/setup` → generates secret, returns QR code data URI
+2. User scans QR code with authenticator app
+3. User calls `POST /api/auth/2fa/verify` with 6-digit code → validates and enables 2FA
+
 ### Database
 
 MongoDB with collections: users, roles, grants, refresh_tokens, email_send_attempts. All entities use soft delete pattern (check `deletedAt != null`).
@@ -113,6 +131,7 @@ MongoDB with collections: users, roles, grants, refresh_tokens, email_send_attem
 - JJWT 0.12.3 for JWT operations
 - springdoc-openapi for API documentation
 - Resend Java SDK for transactional emails
+- totp 1.7.1 (dev.samstevens.totp) for TOTP 2FA
 
 ### Configuration Properties
 
