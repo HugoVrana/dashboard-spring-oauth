@@ -39,6 +39,8 @@ public class User {
 
     @DBRef
     private List<Role> roles;
-    
+
+    private BaseTwoFactorConfig twoFactorConfig;
+
     private Audit audit;
 }
