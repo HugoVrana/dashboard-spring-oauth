@@ -35,7 +35,7 @@ import java.net.URI;
 @CrossOrigin
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(value ="/api/auth", produces = "application/json")
+@RequestMapping(value = "/api/auth", produces = "application/json")
 @Tag(name = "Authentication", description = "Authentication operations")
 public class AuthenticationController {
 
