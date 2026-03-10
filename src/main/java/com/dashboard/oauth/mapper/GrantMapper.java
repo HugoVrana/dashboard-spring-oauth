@@ -1,5 +1,6 @@
 package com.dashboard.oauth.mapper;
 
+import com.dashboard.oauth.dataTransferObject.grant.GrantCreate;
 import com.dashboard.oauth.dataTransferObject.grant.GrantRead;
 import com.dashboard.oauth.mapper.interfaces.IGrantMapper;
 import com.dashboard.oauth.model.entities.Grant;
@@ -14,5 +15,13 @@ public final class GrantMapper implements IGrantMapper {
         grantRead.setName(grant.getName());
         grantRead.setDescription(grant.getDescription());
         return grantRead;
+    }
+
+    @Override
+    public Grant toModel(GrantCreate grantCreate) {
+        Grant g = new Grant();
+        g.setName(grantCreate.getName());
+        g.setDescription(grantCreate.getDescription());
+        return g;
     }
 }

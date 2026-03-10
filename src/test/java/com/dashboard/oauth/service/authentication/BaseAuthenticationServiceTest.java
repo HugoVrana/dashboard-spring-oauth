@@ -6,6 +6,7 @@ import com.dashboard.oauth.mapper.interfaces.IUserInfoMapper;
 import com.dashboard.oauth.repository.IRefreshTokenRepository;
 import com.dashboard.oauth.repository.IUserRepository;
 import com.dashboard.oauth.service.AuthenticationService;
+import com.dashboard.oauth.service.interfaces.IActivityFeedService;
 import com.dashboard.oauth.service.interfaces.IJwtService;
 import com.dashboard.oauth.service.interfaces.ILoginAttemptService;
 import com.dashboard.oauth.service.interfaces.IRoleService;
@@ -49,6 +50,9 @@ public abstract class BaseAuthenticationServiceTest {
     @Mock
     protected ILoginAttemptService loginAttemptService;
 
+    @Mock
+    protected IActivityFeedService activityFeedService;
+
     protected AuthenticationService authenticationService;
     protected JWTProperties jwtProperties;
     protected EmailProperties emailProperties;
@@ -72,7 +76,8 @@ public abstract class BaseAuthenticationServiceTest {
                 authenticationManager,
                 userInfoMapper,
                 emailProperties,
-                jwtProperties
+                jwtProperties,
+                activityFeedService
         );
     }
 }
