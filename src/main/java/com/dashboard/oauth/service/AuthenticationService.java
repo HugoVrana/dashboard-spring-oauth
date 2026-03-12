@@ -352,8 +352,14 @@ public class AuthenticationService implements IAuthenticationService {
 
     @Override
     public UserInfoRead getCurrentUser(Authentication authentication) {
-        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-        User user = userDetails.getUser();
+        User user;
+        if (authentication instanceof GrantsAuthentication grantsAuth) {
+            user = userRepository.findById(new ObjectId(grantsAuth.getUserId()))
+                    .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        } else {
+            UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+            user = userDetails.getUser();
+        }
         UserInfo userInfo = userInfoMapper.toUserInfo(user);
         UserInfoRead userInfoRead = userInfoMapper.toRead(userInfo);
         return userInfoRead;

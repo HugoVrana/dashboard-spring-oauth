@@ -1,11 +1,11 @@
 package com.dashboard.oauth.controller;
 
 import com.dashboard.common.model.exception.ResourceNotFoundException;
+import com.dashboard.oauth.authentication.GrantsAuthentication;
 import com.dashboard.oauth.dataTransferObject.user.UserSelfRead;
 import com.dashboard.oauth.dataTransferObject.user.UserSelfUpdate;
 import com.dashboard.oauth.environment.R2Properties;
 import com.dashboard.oauth.model.entities.User;
-import com.dashboard.oauth.service.UserDetailsImpl;
 import com.dashboard.oauth.service.interfaces.IR2Service;
 import com.dashboard.oauth.service.interfaces.IUserService;
 import jakarta.validation.Valid;
@@ -40,9 +40,7 @@ public class UserController {
 
     @GetMapping("me")
     public ResponseEntity<UserSelfRead> getMe(Authentication authentication) {
-        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-        assert userDetails != null;
-        User user = userDetails.getUser();
+        User user = extractUser(authentication);
         return ResponseEntity.ok(userService.getSelf(user));
     }
 
@@ -50,9 +48,7 @@ public class UserController {
     public ResponseEntity<UserSelfRead> updateMe(
             Authentication authentication,
             @Valid @RequestBody UserSelfUpdate userSelfUpdate) {
-        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-        assert userDetails != null;
-        User user = userDetails.getUser();
+        User user = extractUser(authentication);
         return ResponseEntity.ok(userService.updateSelf(user, userSelfUpdate));
     }
 
@@ -84,9 +80,7 @@ public class UserController {
     @PostMapping("profilePicture")
     public ResponseEntity<String> setProfilePicture(Authentication authentication,
                                                         @RequestParam("file") MultipartFile file) {
-        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-        assert userDetails != null;
-        User user = userDetails.getUser();
+        User user = extractUser(authentication);
 
         // Delete old profile picture from R2 if exists
         if (user.getProfileImageId() != null) {
@@ -111,5 +105,13 @@ public class UserController {
         user.setProfileImageId(objectId);
         userService.saveUser(user);
         return ResponseEntity.status(HttpStatus.CREATED).body(publicUrl);
+    }
+
+    private User extractUser(Authentication authentication) {
+        if (authentication instanceof GrantsAuthentication grantsAuth) {
+            return userService.getUserById(new ObjectId(grantsAuth.getUserId()))
+                    .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        }
+        throw new IllegalStateException("Unexpected authentication type");
     }
 }

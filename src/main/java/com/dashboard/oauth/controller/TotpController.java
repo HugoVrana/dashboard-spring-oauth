@@ -1,9 +1,8 @@
 package com.dashboard.oauth.controller;
 
+import com.dashboard.oauth.authentication.GrantsAuthentication;
 import com.dashboard.oauth.dataTransferObject.totp.TotpSetupResponse;
 import com.dashboard.oauth.dataTransferObject.totp.TotpVerifyRequest;
-import com.dashboard.oauth.model.entities.User;
-import com.dashboard.oauth.service.UserDetailsImpl;
 import com.dashboard.oauth.service.interfaces.ITotpService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -25,10 +24,7 @@ public class TotpController {
 
     @PostMapping("/setup")
     public ResponseEntity<TotpSetupResponse> setupTotp(Authentication authentication) {
-        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-        User user = userDetails.getUser();
-        String userId = user.get_id().toHexString();
-
+        String userId = extractUserId(authentication);
         TotpSetupResponse response = totpService.setupTotp(userId);
         return ResponseEntity.ok(response);
     }
@@ -37,14 +33,18 @@ public class TotpController {
     public ResponseEntity<Void> verifyTotp(
             Authentication authentication,
             @Valid @RequestBody TotpVerifyRequest request) {
-        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-        User user = userDetails.getUser();
-        String userId = user.get_id().toHexString();
-
+        String userId = extractUserId(authentication);
         boolean isValid = totpService.verifyTotp(userId, request.getCode());
         if (isValid) {
             return ResponseEntity.ok().build();
         }
         return ResponseEntity.badRequest().build();
+    }
+
+    private String extractUserId(Authentication authentication) {
+        if (authentication instanceof GrantsAuthentication grantsAuth) {
+            return grantsAuth.getUserId();
+        }
+        throw new IllegalStateException("Unexpected authentication type");
     }
 }

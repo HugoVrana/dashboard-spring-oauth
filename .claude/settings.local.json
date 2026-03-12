@@ -6,7 +6,8 @@
       "Bash(.mvnw.cmd compile -q)",
       "Bash(jar tf:*)",
       "Bash(curl:*)",
-      "Bash(TESTCONTAINERS_CHECKS_DISABLE=true ./mvnw test:*)"
+      "Bash(TESTCONTAINERS_CHECKS_DISABLE=true ./mvnw test:*)",
+      "Bash(./mvnw test:*)"
     ]
   }
 }
