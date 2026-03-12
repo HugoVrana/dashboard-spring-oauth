@@ -1,5 +1,6 @@
 package com.dashboard.oauth.controller.auth;
 
+import com.dashboard.common.model.exception.ResourceNotFoundException;
 import com.dashboard.oauth.model.entities.User;
 import io.qameta.allure.Story;
 import org.junit.jupiter.api.DisplayName;
@@ -31,15 +32,14 @@ class LogoutTest extends BaseAuthControllerTest {
     }
 
     @Test
-    @DisplayName("Should return 400 when user not found")
-    void shouldReturn400WhenUserNotFound() throws Exception {
-        String unknownEmail = faker.internet().emailAddress();
-        when(jwtService.extractUsername(testAccessToken)).thenReturn(unknownEmail);
-        when(userService.getUserByEmail(unknownEmail)).thenReturn(Optional.empty());
+    @DisplayName("Should return 404 when user not found")
+    void shouldReturn404WhenUserNotFound() throws Exception {
+        doThrow(new ResourceNotFoundException("User not found"))
+                .when(authService).logout(anyString());
 
         mockMvc.perform(post("/api/auth/logout")
                         .header("Authorization", "Bearer " + testAccessToken))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isNotFound());
     }
 
     @Test
