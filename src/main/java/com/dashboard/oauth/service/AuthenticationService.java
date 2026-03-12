@@ -99,9 +99,13 @@ public class AuthenticationService implements IAuthenticationService {
         user.getRoles().add(role);
         user = userRepository.save(user);
 
-        DiffComparer<User> comparer = new DiffComparer<>(null, user);
-        DiffResult diff = comparer.compare();
-        DiffContext.addDiff(diff.toJson());
+        try {
+            DiffComparer<User> comparer = new DiffComparer<>(null, user);
+            DiffResult diff = comparer.compare();
+            DiffContext.addDiff(diff.toJson());
+        } catch (Exception e) {
+            // Log but don't fail if diff serialization fails
+        }
         publishActivityEvent(ActivityEventType.USER_REGISTERED, user);
 
         UserInfo userInfo = userInfoMapper.toUserInfo(user);
@@ -221,9 +225,13 @@ public class AuthenticationService implements IAuthenticationService {
         user.getRoles().add(role);
         user = userRepository.save(user);
 
-        DiffComparer<User> comparer = new DiffComparer<>(oldState, user);
-        DiffResult diff = comparer.compare();
-        DiffContext.addDiff(diff.toJson());
+        try {
+            DiffComparer<User> comparer = new DiffComparer<>(oldState, user);
+            DiffResult diff = comparer.compare();
+            DiffContext.addDiff(diff.toJson());
+        } catch (Exception e) {
+            // Log but don't fail if diff serialization fails
+        }
         publishActivityEvent(ActivityEventType.ROLE_ADDED_TO_USER, user);
 
         UserInfo userInfo = userInfoMapper.toUserInfo(user);
@@ -262,9 +270,13 @@ public class AuthenticationService implements IAuthenticationService {
 
         userRepository.save(user);
 
-        DiffComparer<User> comparer = new DiffComparer<>(oldState, user);
-        DiffResult diff = comparer.compare();
-        DiffContext.addDiff(diff.toJson());
+        try {
+            DiffComparer<User> comparer = new DiffComparer<>(oldState, user);
+            DiffResult diff = comparer.compare();
+            DiffContext.addDiff(diff.toJson());
+        } catch (Exception e) {
+            // Log but don't fail if diff serialization fails
+        }
         publishActivityEvent(ActivityEventType.EMAIL_VERIFIED, user);
     }
 
@@ -288,9 +300,13 @@ public class AuthenticationService implements IAuthenticationService {
         user.setPasswordResetToken(resetToken);
         userRepository.save(user);
 
-        DiffComparer<User> comparer = new DiffComparer<>(oldState, user);
-        DiffResult diff = comparer.compare();
-        DiffContext.addDiff(diff.toJson());
+        try {
+            DiffComparer<User> comparer = new DiffComparer<>(oldState, user);
+            DiffResult diff = comparer.compare();
+            DiffContext.addDiff(diff.toJson());
+        } catch (Exception e) {
+            // Log but don't fail if diff serialization fails
+        }
         publishActivityEvent(ActivityEventType.PASSWORD_RESET_REQUESTED, user);
     }
 
@@ -324,9 +340,13 @@ public class AuthenticationService implements IAuthenticationService {
 
         userRepository.save(user);
 
-        DiffComparer<User> comparer = new DiffComparer<>(oldState, user);
-        DiffResult diff = comparer.compare();
-        DiffContext.addDiff(diff.toJson());
+        try {
+            DiffComparer<User> comparer = new DiffComparer<>(oldState, user);
+            DiffResult diff = comparer.compare();
+            DiffContext.addDiff(diff.toJson());
+        } catch (Exception e) {
+            // Log but don't fail if diff serialization fails
+        }
         publishActivityEvent(ActivityEventType.PASSWORD_RESET, user);
     }
 

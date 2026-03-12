@@ -289,11 +289,21 @@ class AuthenticationServiceTest extends BaseAuthenticationServiceTest {
     @Test
     @DisplayName("Should delete refresh token when logout is called")
     void logout_shouldDeleteRefreshTokenByUserId() {
-        String userId = new ObjectId().toHexString();
+        String token = "test-jwt-token";
+        String authHeader = "Bearer " + token;
+        String email = "test@example.com";
+        ObjectId userId = new ObjectId();
 
-        authenticationService.logout(userId);
+        User user = new User();
+        user.set_id(userId);
+        user.setEmail(email);
 
-        verify(refreshTokenRepository).deleteByUserId(userId);
+        when(jwtService.extractUsername(token)).thenReturn(email);
+        when(userRepository.findByEmailAndAudit_DeletedAtIsNull(email)).thenReturn(Optional.of(user));
+
+        authenticationService.logout(authHeader);
+
+        verify(refreshTokenRepository).deleteByUserId(userId.toHexString());
     }
 
     @Test

@@ -107,8 +107,9 @@ class JwtAuthFilterTest {
 
         verify(filterChain).doFilter(request, response);
         assertThat(SecurityContextHolder.getContext().getAuthentication()).isNotNull();
+        // GrantsAuthentication uses email as the principal
         assertThat(SecurityContextHolder.getContext().getAuthentication().getPrincipal())
-                .isEqualTo(userDetails);
+                .isEqualTo(testEmail);
     }
 
     @Test

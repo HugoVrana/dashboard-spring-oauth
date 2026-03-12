@@ -61,9 +61,13 @@ public class GrantService implements IGrantService {
 
         grant = grantRepository.save(grant);
 
-        DiffComparer<Grant> comparer = new DiffComparer<>(null, grant);
-        DiffResult diff = comparer.compare();
-        DiffContext.addDiff(diff.toJson());
+        try {
+            DiffComparer<Grant> comparer = new DiffComparer<>(null, grant);
+            DiffResult diff = comparer.compare();
+            DiffContext.addDiff(diff.toJson());
+        } catch (Exception e) {
+            // Log but don't fail if diff serialization fails
+        }
         publishActivityEvent(ActivityEventType.GRANT_ADDED, grant);
 
         return grantMapper.toRead(grant);
