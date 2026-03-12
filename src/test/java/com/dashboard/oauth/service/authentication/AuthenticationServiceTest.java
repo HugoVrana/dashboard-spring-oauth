@@ -323,7 +323,11 @@ class AuthenticationServiceTest extends BaseAuthenticationServiceTest {
         when(userRepository.existsByEmail(anyString())).thenReturn(false);
         when(roleService.getRoleById(roleId)).thenReturn(Optional.of(role));
         when(passwordEncoder.encode("plainPassword")).thenReturn("$2a$10$encodedPassword");
-        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
+            User user = invocation.getArgument(0);
+            if (user.get_id() == null) user.set_id(new ObjectId());
+            return user;
+        });
         when(userInfoMapper.toUserInfo(any(User.class))).thenReturn(new UserInfo());
         when(userInfoMapper.toRead(any(UserInfo.class))).thenReturn(new UserInfoRead());
 

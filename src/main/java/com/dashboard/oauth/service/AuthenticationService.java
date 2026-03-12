@@ -386,12 +386,14 @@ public class AuthenticationService implements IAuthenticationService {
     }
 
     private void publishActivityEvent(ActivityEventType type, User user) {
+        String userId = user.get_id() != null ? user.get_id().toHexString() : null;
+
         Map<String, Object> metadata = new HashMap<>();
-        metadata.put("userId", user.get_id().toHexString());
+        metadata.put("userId", userId);
         metadata.put("userEmail", user.getEmail());
 
         // Try to get authenticated user info, but don't fail if not authenticated
-        String actorId = user.get_id().toHexString();
+        String actorId = userId;
         String actorImageUrl = "";
         try {
             GrantsAuthentication auth = GrantsAuthentication.current();

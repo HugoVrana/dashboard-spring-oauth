@@ -74,18 +74,27 @@ public class GrantService implements IGrantService {
     }
 
     private void publishActivityEvent(ActivityEventType activityEventType, Grant grant) {
-        GrantsAuthentication auth = GrantsAuthentication.current();
+        String actorId = null;
+        String actorImageUrl = "";
+        try {
+            GrantsAuthentication auth = GrantsAuthentication.current();
+            actorId = auth.getUserId();
+            actorImageUrl = auth.getProfileImageUrlOrEmpty();
+        } catch (IllegalStateException ignored) {
+            // No authentication context (e.g., in unit tests)
+        }
+
         Map<String, Object> metadata = new HashMap<>();
         metadata.put("grantId", grant.get_id().toHexString());
         metadata.put("grantName", grant.getName());
         metadata.put("grantDescription", grant.getDescription());
-        metadata.put("userImageUrl", auth.getProfileImageUrlOrEmpty());
+        metadata.put("userImageUrl", actorImageUrl);
 
         ActivityEvent event = ActivityEvent.builder()
                 .id(UUID.randomUUID().toString())
                 .timestamp(Instant.now())
                 .type(activityEventType.name())
-                .actorId(auth.getUserId())
+                .actorId(actorId)
                 .metadata(metadata)
                 .build();
         activityFeedService.publishEvent(event);
