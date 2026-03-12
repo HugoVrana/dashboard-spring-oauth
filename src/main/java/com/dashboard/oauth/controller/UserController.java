@@ -112,6 +112,11 @@ public class UserController {
             return userService.getUserById(new ObjectId(grantsAuth.getUserId()))
                     .orElseThrow(() -> new ResourceNotFoundException("User not found"));
         }
-        throw new IllegalStateException("Unexpected authentication type");
+        // Handle UsernamePasswordAuthenticationToken with UserDetailsImpl principal
+        Object principal = authentication.getPrincipal();
+        if (principal instanceof com.dashboard.oauth.service.UserDetailsImpl userDetails) {
+            return userDetails.getUser();
+        }
+        throw new IllegalStateException("Unexpected authentication type: " + authentication.getClass().getName());
     }
 }
