@@ -3,6 +3,7 @@ package com.dashboard.oauth.interceptor;
 import com.dashboard.common.logging.GrafanaHttpClient;
 import com.dashboard.common.logging.LogBuilderHelper;
 import com.dashboard.common.model.log.ApiCallLog;
+import com.dashboard.oauth.context.DiffContext;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -12,6 +13,8 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 import java.time.Instant;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 @Slf4j
@@ -35,8 +38,8 @@ public class ApiLoggingInterceptor implements HandlerInterceptor {
     @Override
     public void afterCompletion(@NotNull HttpServletRequest request, @NotNull HttpServletResponse response,
                                 @NotNull Object handler, Exception ex) {
-        if (ex == null) {
-            try {
+        try {
+            if (ex == null) {
                 Instant startTime = (Instant) request.getAttribute(REQUEST_START_TIME);
                 Instant endTime = Instant.now();
                 Long durationMs = startTime != null ?
@@ -45,18 +48,27 @@ public class ApiLoggingInterceptor implements HandlerInterceptor {
                 Instant timestamp = startTime != null ? startTime : Instant.now();
                 LogBuilderHelper logBuilderHelper = new LogBuilderHelper(objectMapper);
                 ApiCallLog.ApiCallLogBuilder builder = logBuilderHelper.buildBaseLog(
-                        "spring-dashboard-oauth",
+                        "spring-dashboard",
                         request,
                         response,
                         timestamp,
                         durationMs
                 );
 
-                ApiCallLog log = builder.build();
-                grafanaHttpClient.send(log);
-            } catch (Exception e) {
-                log.error("Failed to log API call", e);
+                String diff = DiffContext.getDiff();
+                if (diff != null) {
+                    Map<String, String> customFields = new HashMap<>();
+                    customFields.put("diff", diff);
+                    builder.customFields(customFields);
+                }
+
+                ApiCallLog apiLog = builder.build();
+                grafanaHttpClient.send(apiLog);
             }
+        } catch (Exception e) {
+            log.error("Failed to log API call", e);
+        } finally {
+            DiffContext.clear();
         }
     }
 }

@@ -4,6 +4,7 @@ import com.dashboard.common.logging.GrafanaHttpClient;
 import com.dashboard.common.logging.LogBuilderHelper;
 import com.dashboard.common.model.exception.ConflictException;
 import com.dashboard.common.model.exception.InvalidRequestException;
+import com.dashboard.common.model.exception.NotFoundException;
 import com.dashboard.common.model.exception.ResourceNotFoundException;
 import com.dashboard.common.model.log.ApiCallLog;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -67,6 +68,14 @@ public class GlobalExceptionHandler {
     public ProblemDetail handleResourceNotFound(ResourceNotFoundException ex) {
         var pd = ProblemDetail.forStatus(HttpStatus.NOT_FOUND);
         pd.setTitle("Resource not found");
+        pd.setDetail(ex.getMessage());
+        return pd;
+    }
+
+    @ExceptionHandler(NotFoundException.class)
+    public ProblemDetail handleNotFoundCommon(NotFoundException ex) {
+        var pd = ProblemDetail.forStatus(HttpStatus.NOT_FOUND);
+        pd.setTitle("Not found");
         pd.setDetail(ex.getMessage());
         return pd;
     }

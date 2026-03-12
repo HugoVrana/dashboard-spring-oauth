@@ -289,11 +289,21 @@ class AuthenticationServiceTest extends BaseAuthenticationServiceTest {
     @Test
     @DisplayName("Should delete refresh token when logout is called")
     void logout_shouldDeleteRefreshTokenByUserId() {
-        String userId = new ObjectId().toHexString();
+        String token = "test-jwt-token";
+        String authHeader = "Bearer " + token;
+        String email = "test@example.com";
+        ObjectId userId = new ObjectId();
 
-        authenticationService.logout(userId);
+        User user = new User();
+        user.set_id(userId);
+        user.setEmail(email);
 
-        verify(refreshTokenRepository).deleteByUserId(userId);
+        when(jwtService.extractUsername(token)).thenReturn(email);
+        when(userRepository.findByEmailAndAudit_DeletedAtIsNull(email)).thenReturn(Optional.of(user));
+
+        authenticationService.logout(authHeader);
+
+        verify(refreshTokenRepository).deleteByUserId(userId.toHexString());
     }
 
     @Test
@@ -313,7 +323,11 @@ class AuthenticationServiceTest extends BaseAuthenticationServiceTest {
         when(userRepository.existsByEmail(anyString())).thenReturn(false);
         when(roleService.getRoleById(roleId)).thenReturn(Optional.of(role));
         when(passwordEncoder.encode("plainPassword")).thenReturn("$2a$10$encodedPassword");
-        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
+            User user = invocation.getArgument(0);
+            if (user.get_id() == null) user.set_id(new ObjectId());
+            return user;
+        });
         when(userInfoMapper.toUserInfo(any(User.class))).thenReturn(new UserInfo());
         when(userInfoMapper.toRead(any(UserInfo.class))).thenReturn(new UserInfoRead());
 

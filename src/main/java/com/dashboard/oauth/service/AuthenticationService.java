@@ -1,12 +1,19 @@
 package com.dashboard.oauth.service;
 
+import com.dashboard.common.model.ActivityEvent;
 import com.dashboard.common.model.Audit;
 import com.dashboard.common.model.exception.ConflictException;
+import com.dashboard.common.model.exception.InvalidRequestException;
 import com.dashboard.common.model.exception.NotFoundException;
 import com.dashboard.common.model.exception.ResourceNotFoundException;
+import com.dashboard.common.utility.diff.DiffComparer;
+import com.dashboard.common.utility.diff.DiffResult;
+import com.dashboard.oauth.authentication.GrantsAuthentication;
+import com.dashboard.oauth.context.DiffContext;
 import com.dashboard.oauth.dataTransferObject.auth.AuthResponse;
 import com.dashboard.oauth.dataTransferObject.auth.LoginRequest;
 import com.dashboard.oauth.dataTransferObject.auth.RegisterRequest;
+import com.dashboard.oauth.dataTransferObject.role.AddRoleRequest;
 import com.dashboard.oauth.dataTransferObject.user.UserInfoRead;
 import com.dashboard.oauth.environment.EmailProperties;
 import com.dashboard.oauth.environment.JWTProperties;
@@ -16,8 +23,10 @@ import com.dashboard.oauth.model.entities.RefreshToken;
 import com.dashboard.oauth.model.entities.Role;
 import com.dashboard.oauth.model.entities.User;
 import com.dashboard.oauth.model.entities.VerificationToken;
+import com.dashboard.oauth.model.enums.ActivityEventType;
 import com.dashboard.oauth.repository.IRefreshTokenRepository;
 import com.dashboard.oauth.repository.IUserRepository;
+import com.dashboard.oauth.service.interfaces.IActivityFeedService;
 import com.dashboard.oauth.service.interfaces.IAuthenticationService;
 import com.dashboard.oauth.service.interfaces.IJwtService;
 import com.dashboard.oauth.service.interfaces.ILoginAttemptService;
@@ -28,11 +37,15 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -48,7 +61,9 @@ public class AuthenticationService implements IAuthenticationService {
     private final IUserInfoMapper userInfoMapper;
     private final EmailProperties emailProperties;
     private final JWTProperties jwtProperties;
+    private final IActivityFeedService activityFeedService;
 
+    @Override
     public UserInfoRead register(@NotNull RegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new ConflictException("User with this email already exists");
@@ -84,10 +99,20 @@ public class AuthenticationService implements IAuthenticationService {
         user.getRoles().add(role);
         user = userRepository.save(user);
 
+        try {
+            DiffComparer<User> comparer = new DiffComparer<>(null, user);
+            DiffResult diff = comparer.compare();
+            DiffContext.addDiff(diff.toJson());
+        } catch (Exception e) {
+            // Log but don't fail if diff serialization fails
+        }
+        publishActivityEvent(ActivityEventType.USER_REGISTERED, user);
+
         UserInfo userInfo = userInfoMapper.toUserInfo(user);
         return userInfoMapper.toRead(userInfo);
     }
 
+    @Override
     public AuthResponse login(@NotNull LoginRequest request) {
         User user = userRepository.findByEmailAndAudit_DeletedAtIsNull(request.getEmail())
                 .orElseThrow(() -> new BadCredentialsException("Invalid email or password"));
@@ -124,9 +149,13 @@ public class AuthenticationService implements IAuthenticationService {
         response.setAccessToken(accessToken);
         response.setRefreshToken(refreshTokenId.toHexString());
         response.setExpiresIn(jwtProperties.getExpiration());
+
+        publishActivityEvent(ActivityEventType.USER_LOGGED_IN, user);
+
         return response;
     }
 
+    @Override
     public AuthResponse refreshToken(String refreshTokenStr) {
         if (!ObjectId.isValid(refreshTokenStr)) {
             throw new RuntimeException("Invalid refresh token");
@@ -153,11 +182,65 @@ public class AuthenticationService implements IAuthenticationService {
         response.setExpiresIn(jwtProperties.getExpiration());
         response.setUser(userInfoRead);
 
+        publishActivityEvent(ActivityEventType.TOKEN_REFRESHED, user);
+
         return response;
     }
 
-    public void logout(String userId) {
-        refreshTokenRepository.deleteByUserId(userId);
+    @Override
+    public void logout(String authHeader) {
+        String token = authHeader.substring(7);
+        String email = jwtService.extractUsername(token);
+        User user = userRepository.findByEmailAndAudit_DeletedAtIsNull(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        refreshTokenRepository.deleteByUserId(user.get_id().toHexString());
+
+        publishActivityEvent(ActivityEventType.USER_LOGGED_OUT, user);
+    }
+
+    @Override
+    public AuthResponse addUserRole(AddRoleRequest request) {
+        if (!ObjectId.isValid(request.getUserId())) {
+            throw new InvalidRequestException("User id is invalid.");
+        }
+        ObjectId userId = new ObjectId(request.getUserId());
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        User oldState = copyUserState(user);
+
+        if (!ObjectId.isValid(request.getRoleId())) {
+            throw new InvalidRequestException("Role id is invalid.");
+        }
+        ObjectId roleId = new ObjectId(request.getRoleId());
+        Role role = roleService.getRoleById(roleId)
+                .orElseThrow(() -> new ResourceNotFoundException("Role not found"));
+
+        if (user.getRoles().contains(role)) {
+            throw new ConflictException("User already has this role");
+        }
+
+        user.getRoles().add(role);
+        user = userRepository.save(user);
+
+        try {
+            DiffComparer<User> comparer = new DiffComparer<>(oldState, user);
+            DiffResult diff = comparer.compare();
+            DiffContext.addDiff(diff.toJson());
+        } catch (Exception e) {
+            // Log but don't fail if diff serialization fails
+        }
+        publishActivityEvent(ActivityEventType.ROLE_ADDED_TO_USER, user);
+
+        UserInfo userInfo = userInfoMapper.toUserInfo(user);
+        UserInfoRead userInfoRead = userInfoMapper.toRead(userInfo);
+
+        AuthResponse response = new AuthResponse();
+        response.setUser(userInfoRead);
+
+        return response;
     }
 
     @Override
@@ -167,6 +250,8 @@ public class AuthenticationService implements IAuthenticationService {
         }
         User user = userRepository.getUserByEmailVerificationToken__idAndAudit_DeletedAtIsNull(new ObjectId(token))
                 .orElseThrow(() -> new RuntimeException("Invalid verification token"));
+
+        User oldState = copyUserState(user);
 
         VerificationToken verificationToken = user.getEmailVerificationToken();
         if (verificationToken == null) {
@@ -184,6 +269,15 @@ public class AuthenticationService implements IAuthenticationService {
         user.setEmailVerificationToken(null);
 
         userRepository.save(user);
+
+        try {
+            DiffComparer<User> comparer = new DiffComparer<>(oldState, user);
+            DiffResult diff = comparer.compare();
+            DiffContext.addDiff(diff.toJson());
+        } catch (Exception e) {
+            // Log but don't fail if diff serialization fails
+        }
+        publishActivityEvent(ActivityEventType.EMAIL_VERIFIED, user);
     }
 
     @Override
@@ -195,6 +289,7 @@ public class AuthenticationService implements IAuthenticationService {
         }
 
         User user = optionalUser.get();
+        User oldState = copyUserState(user);
 
         VerificationToken resetToken = new VerificationToken();
         resetToken.set_id(new ObjectId());
@@ -204,6 +299,15 @@ public class AuthenticationService implements IAuthenticationService {
 
         user.setPasswordResetToken(resetToken);
         userRepository.save(user);
+
+        try {
+            DiffComparer<User> comparer = new DiffComparer<>(oldState, user);
+            DiffResult diff = comparer.compare();
+            DiffContext.addDiff(diff.toJson());
+        } catch (Exception e) {
+            // Log but don't fail if diff serialization fails
+        }
+        publishActivityEvent(ActivityEventType.PASSWORD_RESET_REQUESTED, user);
     }
 
     @Override
@@ -213,6 +317,8 @@ public class AuthenticationService implements IAuthenticationService {
         }
         User user = userRepository.getUserByPasswordResetToken__idAndAudit_DeletedAtIsNull(new ObjectId(token))
                 .orElseThrow(() -> new RuntimeException("Invalid password reset token"));
+
+        User oldState = copyUserState(user);
 
         VerificationToken resetToken = user.getPasswordResetToken();
         if (resetToken == null) {
@@ -233,6 +339,15 @@ public class AuthenticationService implements IAuthenticationService {
         user.setLocked(false);
 
         userRepository.save(user);
+
+        try {
+            DiffComparer<User> comparer = new DiffComparer<>(oldState, user);
+            DiffResult diff = comparer.compare();
+            DiffContext.addDiff(diff.toJson());
+        } catch (Exception e) {
+            // Log but don't fail if diff serialization fails
+        }
+        publishActivityEvent(ActivityEventType.PASSWORD_RESET, user);
     }
 
     @Override
@@ -253,5 +368,60 @@ public class AuthenticationService implements IAuthenticationService {
         }
 
         return resetToken.isValid();
+    }
+
+    @Override
+    public UserInfoRead getCurrentUser(Authentication authentication) {
+        User user;
+        if (authentication instanceof GrantsAuthentication grantsAuth) {
+            user = userRepository.findById(new ObjectId(grantsAuth.getUserId()))
+                    .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        } else {
+            UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+            user = userDetails.getUser();
+        }
+        UserInfo userInfo = userInfoMapper.toUserInfo(user);
+        UserInfoRead userInfoRead = userInfoMapper.toRead(userInfo);
+        return userInfoRead;
+    }
+
+    private void publishActivityEvent(ActivityEventType type, User user) {
+        String userId = user.get_id() != null ? user.get_id().toHexString() : null;
+
+        Map<String, Object> metadata = new HashMap<>();
+        metadata.put("userId", userId);
+        metadata.put("userEmail", user.getEmail());
+
+        // Try to get authenticated user info, but don't fail if not authenticated
+        String actorId = userId;
+        String actorImageUrl = "";
+        try {
+            GrantsAuthentication auth = GrantsAuthentication.current();
+            actorId = auth.getUserId();
+            actorImageUrl = auth.getProfileImageUrlOrEmpty();
+        } catch (IllegalStateException ignored) {
+            // Not authenticated - use target user as actor (self-service action)
+        }
+        metadata.put("userImageUrl", actorImageUrl);
+
+        ActivityEvent event = ActivityEvent.builder()
+                .id(UUID.randomUUID().toString())
+                .timestamp(Instant.now())
+                .type(type.name())
+                .actorId(actorId)
+                .metadata(metadata)
+                .build();
+        activityFeedService.publishEvent(event);
+    }
+
+    private User copyUserState(User user) {
+        User copy = new User();
+        copy.set_id(user.get_id());
+        copy.setEmail(user.getEmail());
+        copy.setEmailVerified(user.getEmailVerified());
+        copy.setRoles(new ArrayList<>(user.getRoles()));
+        copy.setLocked(user.getLocked());
+        copy.setFailedLoginAttempts(user.getFailedLoginAttempts());
+        return copy;
     }
 }

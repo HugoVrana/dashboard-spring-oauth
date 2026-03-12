@@ -1,7 +1,6 @@
 package com.dashboard.oauth.controller.auth;
 
 import com.dashboard.oauth.dataTransferObject.user.UserInfoRead;
-import com.dashboard.oauth.model.UserInfo;
 import com.dashboard.oauth.model.entities.User;
 import com.dashboard.oauth.service.UserDetailsImpl;
 import io.qameta.allure.Story;
@@ -24,14 +23,10 @@ class MeTest extends BaseAuthControllerTest {
         User user = createTestUser();
         UserDetailsImpl userDetails = new UserDetailsImpl(user);
 
-        UserInfo userInfo = new UserInfo();
-        userInfo.setEmail(testEmail);
-
         UserInfoRead userInfoRead = new UserInfoRead();
         userInfoRead.setEmail(testEmail);
 
-        when(userInfoMapper.toUserInfo(any(User.class))).thenReturn(userInfo);
-        when(userInfoMapper.toRead(any(UserInfo.class))).thenReturn(userInfoRead);
+        when(authService.getCurrentUser(any())).thenReturn(userInfoRead);
 
         mockMvc.perform(get("/api/auth/me")
                         .principal(() -> "user")

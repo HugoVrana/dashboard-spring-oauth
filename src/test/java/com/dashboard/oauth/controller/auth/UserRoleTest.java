@@ -1,17 +1,15 @@
 package com.dashboard.oauth.controller.auth;
 
+import com.dashboard.common.model.exception.ConflictException;
+import com.dashboard.common.model.exception.InvalidRequestException;
+import com.dashboard.common.model.exception.ResourceNotFoundException;
+import com.dashboard.oauth.dataTransferObject.auth.AuthResponse;
 import com.dashboard.oauth.dataTransferObject.role.AddRoleRequest;
 import com.dashboard.oauth.dataTransferObject.user.UserInfoRead;
-import com.dashboard.oauth.model.UserInfo;
-import com.dashboard.oauth.model.entities.Role;
-import com.dashboard.oauth.model.entities.User;
 import io.qameta.allure.Story;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -28,21 +26,10 @@ class UserRoleTest extends BaseAuthControllerTest {
         request.setUserId(testUserId.toHexString());
         request.setRoleId(testRoleId.toHexString());
 
-        User user = createTestUser();
-        user.setRoles(new ArrayList<>());
+        AuthResponse authResponse = new AuthResponse();
+        authResponse.setAccessToken(testAccessToken);
 
-        Role role = createTestRole();
-
-        User updatedUser = createTestUser();
-        updatedUser.setRoles(new ArrayList<>(List.of(role)));
-
-        UserInfoRead userInfoRead = new UserInfoRead();
-        userInfoRead.setEmail(testEmail);
-
-        when(userService.getUserById(testUserId)).thenReturn(Optional.of(user));
-        when(roleService.getRoleById(testRoleId)).thenReturn(Optional.of(role));
-        when(userService.saveUser(any(User.class))).thenReturn(updatedUser);
-        when(userInfoMapper.toRead(any(UserInfo.class))).thenReturn(userInfoRead);
+        when(authService.addUserRole(any(AddRoleRequest.class))).thenReturn(authResponse);
 
         mockMvc.perform(post("/api/auth/user/role")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -57,6 +44,9 @@ class UserRoleTest extends BaseAuthControllerTest {
         request.setUserId("invalid-id");
         request.setRoleId(testRoleId.toHexString());
 
+        when(authService.addUserRole(any(AddRoleRequest.class)))
+                .thenThrow(new InvalidRequestException("User id is invalid."));
+
         mockMvc.perform(post("/api/auth/user/role")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -70,9 +60,8 @@ class UserRoleTest extends BaseAuthControllerTest {
         request.setUserId(testUserId.toHexString());
         request.setRoleId("invalid-id");
 
-        User user = createTestUser();
-
-        when(userService.getUserById(testUserId)).thenReturn(Optional.of(user));
+        when(authService.addUserRole(any(AddRoleRequest.class)))
+                .thenThrow(new InvalidRequestException("Role id is invalid."));
 
         mockMvc.perform(post("/api/auth/user/role")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -87,7 +76,8 @@ class UserRoleTest extends BaseAuthControllerTest {
         request.setUserId(testUserId.toHexString());
         request.setRoleId(testRoleId.toHexString());
 
-        when(userService.getUserById(testUserId)).thenReturn(Optional.empty());
+        when(authService.addUserRole(any(AddRoleRequest.class)))
+                .thenThrow(new ResourceNotFoundException("User not found"));
 
         mockMvc.perform(post("/api/auth/user/role")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -102,10 +92,8 @@ class UserRoleTest extends BaseAuthControllerTest {
         request.setUserId(testUserId.toHexString());
         request.setRoleId(testRoleId.toHexString());
 
-        User user = createTestUser();
-
-        when(userService.getUserById(testUserId)).thenReturn(Optional.of(user));
-        when(roleService.getRoleById(testRoleId)).thenReturn(Optional.empty());
+        when(authService.addUserRole(any(AddRoleRequest.class)))
+                .thenThrow(new ResourceNotFoundException("Role not found"));
 
         mockMvc.perform(post("/api/auth/user/role")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -120,12 +108,8 @@ class UserRoleTest extends BaseAuthControllerTest {
         request.setUserId(testUserId.toHexString());
         request.setRoleId(testRoleId.toHexString());
 
-        Role role = createTestRole();
-        User user = createTestUser();
-        user.setRoles(new ArrayList<>(List.of(role)));
-
-        when(userService.getUserById(testUserId)).thenReturn(Optional.of(user));
-        when(roleService.getRoleById(testRoleId)).thenReturn(Optional.of(role));
+        when(authService.addUserRole(any(AddRoleRequest.class)))
+                .thenThrow(new ConflictException("User already has role"));
 
         mockMvc.perform(post("/api/auth/user/role")
                         .contentType(MediaType.APPLICATION_JSON)

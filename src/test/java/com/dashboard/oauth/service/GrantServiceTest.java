@@ -1,8 +1,12 @@
 package com.dashboard.oauth.service;
 
 import com.dashboard.common.model.Audit;
+import com.dashboard.oauth.dataTransferObject.grant.GrantCreate;
+import com.dashboard.oauth.dataTransferObject.grant.GrantRead;
+import com.dashboard.oauth.mapper.interfaces.IGrantMapper;
 import com.dashboard.oauth.model.entities.Grant;
 import com.dashboard.oauth.repository.IGrantRepository;
+import com.dashboard.oauth.service.interfaces.IActivityFeedService;
 import net.datafaker.Faker;
 import org.bson.types.ObjectId;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,6 +29,12 @@ class GrantServiceTest {
 
     @Mock
     private IGrantRepository grantRepository;
+
+    @Mock
+    private IGrantMapper grantMapper;
+
+    @Mock
+    private IActivityFeedService activityFeedService;
 
     @InjectMocks
     private GrantService grantService;
@@ -104,12 +114,23 @@ class GrantServiceTest {
     @Test
     @DisplayName("Create Grant")
     void createGrant_shouldReturnCreatedGrant() {
-        when(grantRepository.save(any(Grant.class))).thenReturn(testGrant);
+        GrantCreate grantCreate = new GrantCreate();
+        grantCreate.setName(testGrantName);
+        grantCreate.setDescription(testGrant.getDescription());
 
-        Grant result = grantService.createGrant(testGrant);
+        GrantRead expectedRead = new GrantRead();
+        expectedRead.setName(testGrantName);
+        expectedRead.setDescription(testGrant.getDescription());
+
+        when(grantRepository.findByName(testGrantName)).thenReturn(Optional.empty());
+        when(grantMapper.toModel(any(GrantCreate.class))).thenReturn(testGrant);
+        when(grantRepository.save(any(Grant.class))).thenReturn(testGrant);
+        when(grantMapper.toRead(any(Grant.class))).thenReturn(expectedRead);
+
+        GrantRead result = grantService.createGrant(grantCreate);
 
         assertThat(result).isNotNull();
         assertThat(result.getName()).isEqualTo(testGrantName);
-        verify(grantRepository).save(testGrant);
+        verify(grantRepository).save(any(Grant.class));
     }
 }
