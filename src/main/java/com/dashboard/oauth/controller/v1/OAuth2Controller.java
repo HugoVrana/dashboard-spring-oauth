@@ -1,4 +1,4 @@
-package com.dashboard.oauth.controller;
+package com.dashboard.oauth.controller.v1;
 
 import com.dashboard.oauth.dataTransferObject.auth.TokenIntrospectionRequest;
 import com.dashboard.oauth.dataTransferObject.auth.TokenIntrospectionResponse;
@@ -28,7 +28,7 @@ import java.util.Optional;
 
 @RestController
 @CrossOrigin
-@RequestMapping("/api/oauth2")
+@RequestMapping("/api/v1/oauth2")
 @RequiredArgsConstructor
 public class OAuth2Controller {
 

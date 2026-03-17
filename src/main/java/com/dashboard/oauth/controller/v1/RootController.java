@@ -1,4 +1,4 @@
-package com.dashboard.oauth.controller;
+package com.dashboard.oauth.controller.v1;
 
 import io.swagger.v3.oas.annotations.Hidden;
 import org.springframework.http.HttpHeaders;

@@ -2,7 +2,7 @@ package com.dashboard.oauth.controller.user;
 
 import com.dashboard.common.logging.GrafanaHttpClient;
 import com.dashboard.common.model.Audit;
-import com.dashboard.oauth.controller.UserController;
+import com.dashboard.oauth.controller.v1.UserController;
 import com.dashboard.oauth.controller.config.TestConfig;
 import com.dashboard.oauth.environment.R2Properties;
 import com.dashboard.oauth.filter.JwtAuthFilter;

@@ -2,7 +2,7 @@ package com.dashboard.oauth.controller.grants;
 
 import com.dashboard.common.logging.GrafanaHttpClient;
 import com.dashboard.common.model.Audit;
-import com.dashboard.oauth.controller.GrantController;
+import com.dashboard.oauth.controller.v1.GrantController;
 import com.dashboard.oauth.filter.JwtAuthFilter;
 import com.dashboard.oauth.mapper.interfaces.IGrantMapper;
 import com.dashboard.oauth.model.entities.Grant;

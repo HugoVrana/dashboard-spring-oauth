@@ -3,6 +3,7 @@ package com.dashboard.oauth.controller;
 import com.dashboard.common.logging.GrafanaHttpClient;
 import com.dashboard.common.model.Audit;
 import com.dashboard.oauth.controller.config.TestConfig;
+import com.dashboard.oauth.controller.v1.OAuth2Controller;
 import com.dashboard.oauth.dataTransferObject.auth.TokenIntrospectionRequest;
 import com.dashboard.oauth.environment.Oauth2Properties;
 import com.dashboard.oauth.filter.JwtAuthFilter;

@@ -1,4 +1,4 @@
-package com.dashboard.oauth.controller;
+package com.dashboard.oauth.controller.v1;
 
 import com.dashboard.common.model.ActivityEvent;
 import com.dashboard.common.model.Audit;
@@ -35,7 +35,7 @@ import java.util.UUID;
 
 @RestController
 @CrossOrigin
-@RequestMapping("/api/role")
+@RequestMapping("/api/v1/role")
 @RequiredArgsConstructor
 public class RoleController {
 

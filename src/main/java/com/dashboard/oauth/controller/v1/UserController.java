@@ -1,4 +1,4 @@
-package com.dashboard.oauth.controller;
+package com.dashboard.oauth.controller.v1;
 
 import com.dashboard.common.model.exception.ResourceNotFoundException;
 import com.dashboard.oauth.authentication.GrantsAuthentication;
@@ -30,7 +30,7 @@ import java.util.Optional;
 
 @RestController
 @CrossOrigin
-@RequestMapping("api/user")
+@RequestMapping("/api/v1/user")
 @RequiredArgsConstructor
 public class UserController {
 
