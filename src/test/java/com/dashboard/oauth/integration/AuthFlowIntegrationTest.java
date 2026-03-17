@@ -80,7 +80,7 @@ class AuthFlowIntegrationTest extends BaseIntegrationTest {
         request.setPassword(testPassword);
         request.setRoleId(testRoleId);
 
-        mockMvc.perform(post("/api/auth/register")
+        mockMvc.perform(post("/api/v1/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -101,7 +101,7 @@ class AuthFlowIntegrationTest extends BaseIntegrationTest {
         request.setPassword(testPassword);
         request.setRoleId(testRoleId);
 
-        mockMvc.perform(post("/api/auth/register")
+        mockMvc.perform(post("/api/v1/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isConflict());
@@ -115,7 +115,7 @@ class AuthFlowIntegrationTest extends BaseIntegrationTest {
         request.setEmail(testEmail);
         request.setPassword(testPassword);
 
-        MvcResult result = mockMvc.perform(post("/api/auth/login")
+        MvcResult result = mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -141,7 +141,7 @@ class AuthFlowIntegrationTest extends BaseIntegrationTest {
         request.setEmail(testEmail);
         request.setPassword("wrong-password");
 
-        mockMvc.perform(post("/api/auth/login")
+        mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isInternalServerError());
@@ -154,7 +154,7 @@ class AuthFlowIntegrationTest extends BaseIntegrationTest {
         RefreshTokenRequest request = new RefreshTokenRequest();
         request.setRefreshToken(refreshToken);
 
-        MvcResult result = mockMvc.perform(post("/api/auth/refresh")
+        MvcResult result = mockMvc.perform(post("/api/v1/auth/refresh")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -171,7 +171,7 @@ class AuthFlowIntegrationTest extends BaseIntegrationTest {
     @Order(6)
     @DisplayName("Logout")
     void shouldLogout() throws Exception {
-        mockMvc.perform(post("/api/auth/logout")
+        mockMvc.perform(post("/api/v1/auth/logout")
                         .header("Authorization", "Bearer " + accessToken))
                 .andExpect(status().isOk());
     }
@@ -183,7 +183,7 @@ class AuthFlowIntegrationTest extends BaseIntegrationTest {
         RefreshTokenRequest request = new RefreshTokenRequest();
         request.setRefreshToken(refreshToken);
 
-        mockMvc.perform(post("/api/auth/refresh")
+        mockMvc.perform(post("/api/v1/auth/refresh")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isInternalServerError());

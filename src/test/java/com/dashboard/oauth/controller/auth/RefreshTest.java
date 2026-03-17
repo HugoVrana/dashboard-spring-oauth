@@ -28,7 +28,7 @@ class RefreshTest extends BaseAuthControllerTest {
 
         when(authService.refreshToken(testRefreshToken)).thenReturn(authResponse);
 
-        mockMvc.perform(post("/api/auth/refresh")
+        mockMvc.perform(post("/api/v1/auth/refresh")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -44,7 +44,7 @@ class RefreshTest extends BaseAuthControllerTest {
         when(authService.refreshToken("invalid-refresh-token"))
                 .thenThrow(new RuntimeException("Invalid refresh token"));
 
-        mockMvc.perform(post("/api/auth/refresh")
+        mockMvc.perform(post("/api/v1/auth/refresh")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isInternalServerError());
@@ -59,7 +59,7 @@ class RefreshTest extends BaseAuthControllerTest {
         when(authService.refreshToken(testRefreshToken))
                 .thenThrow(new RuntimeException("Refresh token expired"));
 
-        mockMvc.perform(post("/api/auth/refresh")
+        mockMvc.perform(post("/api/v1/auth/refresh")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isInternalServerError());

@@ -1,4 +1,4 @@
-package com.dashboard.oauth.controller;
+package com.dashboard.oauth.controller.v1;
 
 import com.dashboard.oauth.dataTransferObject.auth.AuthResponse;
 import com.dashboard.oauth.dataTransferObject.auth.ForgotPasswordRequest;
@@ -35,7 +35,7 @@ import java.net.URI;
 @CrossOrigin
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(value = "/api/auth", produces = "application/json")
+@RequestMapping(value = "/api/v1/auth", produces = "application/json")
 @Tag(name = "Authentication", description = "Authentication operations")
 public class AuthenticationController {
 

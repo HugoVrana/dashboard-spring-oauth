@@ -1,4 +1,4 @@
-package com.dashboard.oauth.controller;
+package com.dashboard.oauth.controller.v1;
 
 import com.dashboard.common.model.ActivityEvent;
 import com.dashboard.oauth.service.interfaces.IActivityFeedService;
@@ -15,7 +15,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @Tag(name = "Activity", description = "Activity feed operations")
-@RequestMapping(value = "api/activity", produces = "application/json")
+@RequestMapping(value = "/api/v1/activity", produces = "application/json")
 public class ActivityController {
 
     private final IActivityFeedService activityFeedService;

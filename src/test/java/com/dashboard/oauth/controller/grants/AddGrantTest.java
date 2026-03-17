@@ -28,7 +28,7 @@ class AddGrantTest extends BaseGrantControllerTest {
 
         when(grantService.createGrant(any(GrantCreate.class))).thenReturn(grantRead);
 
-        mockMvc.perform(post("/api/grant/")
+        mockMvc.perform(post("/api/v1/grant/")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(grantCreate)))
                 .andExpect(status().isOk())
@@ -46,7 +46,7 @@ class AddGrantTest extends BaseGrantControllerTest {
         when(grantService.createGrant(any(GrantCreate.class)))
                 .thenThrow(new ConflictException("Grant already exists"));
 
-        mockMvc.perform(post("/api/grant/")
+        mockMvc.perform(post("/api/v1/grant/")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(grantCreate)))
                 .andExpect(status().isConflict());

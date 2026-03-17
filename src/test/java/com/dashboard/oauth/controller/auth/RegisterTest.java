@@ -32,7 +32,7 @@ class RegisterTest extends BaseAuthControllerTest {
 
         when(authService.register(any(RegisterRequest.class))).thenReturn(userInfoRead);
 
-        mockMvc.perform(post("/api/auth/register")
+        mockMvc.perform(post("/api/v1/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -50,7 +50,7 @@ class RegisterTest extends BaseAuthControllerTest {
         when(authService.register(any(RegisterRequest.class)))
                 .thenThrow(new ConflictException("User with this email already exists"));
 
-        mockMvc.perform(post("/api/auth/register")
+        mockMvc.perform(post("/api/v1/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isConflict());
@@ -67,7 +67,7 @@ class RegisterTest extends BaseAuthControllerTest {
         when(authService.register(any(RegisterRequest.class)))
                 .thenThrow(new InvalidRequestException("Role id is invalid."));
 
-        mockMvc.perform(post("/api/auth/register")
+        mockMvc.perform(post("/api/v1/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
@@ -84,7 +84,7 @@ class RegisterTest extends BaseAuthControllerTest {
         when(authService.register(any(RegisterRequest.class)))
                 .thenThrow(new ResourceNotFoundException("Role not found"));
 
-        mockMvc.perform(post("/api/auth/register")
+        mockMvc.perform(post("/api/v1/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNotFound());
@@ -97,7 +97,7 @@ class RegisterTest extends BaseAuthControllerTest {
         request.setPassword(testPassword);
         request.setRoleId(testRoleId.toHexString());
 
-        mockMvc.perform(post("/api/auth/register")
+        mockMvc.perform(post("/api/v1/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
@@ -110,7 +110,7 @@ class RegisterTest extends BaseAuthControllerTest {
         request.setEmail(testEmail);
         request.setRoleId(testRoleId.toHexString());
 
-        mockMvc.perform(post("/api/auth/register")
+        mockMvc.perform(post("/api/v1/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
@@ -123,7 +123,7 @@ class RegisterTest extends BaseAuthControllerTest {
         request.setEmail(testEmail);
         request.setPassword(testPassword);
 
-        mockMvc.perform(post("/api/auth/register")
+        mockMvc.perform(post("/api/v1/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
@@ -137,7 +137,7 @@ class RegisterTest extends BaseAuthControllerTest {
         request.setPassword(testPassword);
         request.setRoleId(testRoleId.toHexString());
 
-        mockMvc.perform(post("/api/auth/register")
+        mockMvc.perform(post("/api/v1/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());

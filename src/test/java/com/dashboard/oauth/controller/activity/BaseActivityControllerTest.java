@@ -3,7 +3,7 @@ package com.dashboard.oauth.controller.activity;
 import com.dashboard.common.logging.GrafanaHttpClient;
 import com.dashboard.common.model.ActivityEvent;
 import com.dashboard.oauth.controller.config.TestConfig;
-import com.dashboard.oauth.controller.ActivityController;
+import com.dashboard.oauth.controller.v1.ActivityController;
 import com.dashboard.oauth.filter.JwtAuthFilter;
 import com.dashboard.oauth.service.JwtService;
 import com.dashboard.oauth.service.interfaces.IActivityFeedService;

@@ -31,7 +31,7 @@ class UserRoleTest extends BaseAuthControllerTest {
 
         when(authService.addUserRole(any(AddRoleRequest.class))).thenReturn(authResponse);
 
-        mockMvc.perform(post("/api/auth/user/role")
+        mockMvc.perform(post("/api/v1/auth/user/role")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk());
@@ -47,7 +47,7 @@ class UserRoleTest extends BaseAuthControllerTest {
         when(authService.addUserRole(any(AddRoleRequest.class)))
                 .thenThrow(new InvalidRequestException("User id is invalid."));
 
-        mockMvc.perform(post("/api/auth/user/role")
+        mockMvc.perform(post("/api/v1/auth/user/role")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
@@ -63,7 +63,7 @@ class UserRoleTest extends BaseAuthControllerTest {
         when(authService.addUserRole(any(AddRoleRequest.class)))
                 .thenThrow(new InvalidRequestException("Role id is invalid."));
 
-        mockMvc.perform(post("/api/auth/user/role")
+        mockMvc.perform(post("/api/v1/auth/user/role")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
@@ -79,7 +79,7 @@ class UserRoleTest extends BaseAuthControllerTest {
         when(authService.addUserRole(any(AddRoleRequest.class)))
                 .thenThrow(new ResourceNotFoundException("User not found"));
 
-        mockMvc.perform(post("/api/auth/user/role")
+        mockMvc.perform(post("/api/v1/auth/user/role")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNotFound());
@@ -95,7 +95,7 @@ class UserRoleTest extends BaseAuthControllerTest {
         when(authService.addUserRole(any(AddRoleRequest.class)))
                 .thenThrow(new ResourceNotFoundException("Role not found"));
 
-        mockMvc.perform(post("/api/auth/user/role")
+        mockMvc.perform(post("/api/v1/auth/user/role")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNotFound());
@@ -111,7 +111,7 @@ class UserRoleTest extends BaseAuthControllerTest {
         when(authService.addUserRole(any(AddRoleRequest.class)))
                 .thenThrow(new ConflictException("User already has role"));
 
-        mockMvc.perform(post("/api/auth/user/role")
+        mockMvc.perform(post("/api/v1/auth/user/role")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isConflict());

@@ -47,7 +47,7 @@ class AddGrantToRoleTest extends BaseRoleControllerTest {
         when(roleMapper.toRead(any(Role.class))).thenReturn(roleRead);
         when(grantMapper.toRead(any(Grant.class))).thenReturn(grantRead);
 
-        mockMvc.perform(post("/api/role/grant")
+        mockMvc.perform(post("/api/v1/role/grant")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk());
@@ -60,7 +60,7 @@ class AddGrantToRoleTest extends BaseRoleControllerTest {
         request.setRoleId("invalid-id");
         request.setGrantId(testGrantId.toHexString());
 
-        mockMvc.perform(post("/api/role/grant")
+        mockMvc.perform(post("/api/v1/role/grant")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
@@ -77,7 +77,7 @@ class AddGrantToRoleTest extends BaseRoleControllerTest {
 
         when(roleService.getRoleById(testRoleId)).thenReturn(Optional.of(role));
 
-        mockMvc.perform(post("/api/role/grant")
+        mockMvc.perform(post("/api/v1/role/grant")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
@@ -92,7 +92,7 @@ class AddGrantToRoleTest extends BaseRoleControllerTest {
 
         when(roleService.getRoleById(testRoleId)).thenReturn(Optional.empty());
 
-        mockMvc.perform(post("/api/role/grant")
+        mockMvc.perform(post("/api/v1/role/grant")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNotFound());
@@ -110,7 +110,7 @@ class AddGrantToRoleTest extends BaseRoleControllerTest {
         when(roleService.getRoleById(testRoleId)).thenReturn(Optional.of(role));
         when(grantService.getGrantById(testGrantId)).thenReturn(Optional.empty());
 
-        mockMvc.perform(post("/api/role/grant")
+        mockMvc.perform(post("/api/v1/role/grant")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNotFound());
@@ -130,7 +130,7 @@ class AddGrantToRoleTest extends BaseRoleControllerTest {
         when(roleService.getRoleById(testRoleId)).thenReturn(Optional.of(role));
         when(grantService.getGrantById(testGrantId)).thenReturn(Optional.of(grant));
 
-        mockMvc.perform(post("/api/role/grant")
+        mockMvc.perform(post("/api/v1/role/grant")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isConflict());

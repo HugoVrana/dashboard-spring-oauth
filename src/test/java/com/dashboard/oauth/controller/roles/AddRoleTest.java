@@ -33,7 +33,7 @@ class AddRoleTest extends BaseRoleControllerTest {
         when(roleService.createRole(any(Role.class))).thenReturn(createdRole);
         when(roleMapper.toRead(any(Role.class))).thenReturn(roleRead);
 
-        mockMvc.perform(post("/api/role/")
+        mockMvc.perform(post("/api/v1/role/")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(createRole)))
                 .andExpect(status().isOk())
@@ -51,7 +51,7 @@ class AddRoleTest extends BaseRoleControllerTest {
 
         when(roleService.getRoleByName(testRoleName)).thenReturn(Optional.of(existingRole));
 
-        mockMvc.perform(post("/api/role/")
+        mockMvc.perform(post("/api/v1/role/")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(createRole)))
                 .andExpect(status().isConflict());
