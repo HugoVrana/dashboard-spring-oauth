@@ -29,7 +29,7 @@ class UserMeTest extends BaseUserControllerTest {
 
         when(userService.getSelf(any(User.class))).thenReturn(expectedResponse);
 
-        mockMvc.perform(get("/api/user/me")
+        mockMvc.perform(get("/api/v1/user/me")
                         .with(request -> {
                             request.setUserPrincipal(testAuthentication);
                             return request;
@@ -58,7 +58,7 @@ class UserMeTest extends BaseUserControllerTest {
 
         when(userService.updateSelf(any(User.class), any(UserSelfUpdate.class))).thenReturn(expectedResponse);
 
-        mockMvc.perform(put("/api/user/me")
+        mockMvc.perform(put("/api/v1/user/me")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updateRequest))
                         .with(request -> {

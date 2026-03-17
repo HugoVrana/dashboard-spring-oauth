@@ -28,7 +28,7 @@ class MeTest extends BaseAuthControllerTest {
 
         when(authService.getCurrentUser(any())).thenReturn(userInfoRead);
 
-        mockMvc.perform(get("/api/auth/me")
+        mockMvc.perform(get("/api/v1/auth/me")
                         .principal(() -> "user")
                         .with(request -> {
                             request.setUserPrincipal(new UsernamePasswordAuthenticationToken(

@@ -115,7 +115,7 @@ class TokenControllerTest {
         when(userService.getUserByEmail("test@example.com")).thenReturn(Optional.of(user));
         when(grantService.getGrantByName("READ")).thenReturn(Optional.of(grant));
 
-        mockMvc.perform(post("/api/oauth2/introspect")
+        mockMvc.perform(post("/api/v1/oauth2/introspect")
                         .header("X-Service-Secret", SERVICE_SECRET)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -130,7 +130,7 @@ class TokenControllerTest {
         TokenIntrospectionRequest request = new TokenIntrospectionRequest();
         request.setToken("valid-jwt-token");
 
-        mockMvc.perform(post("/api/oauth2/introspect")
+        mockMvc.perform(post("/api/v1/oauth2/introspect")
                         .header("X-Service-Secret", "wrong-secret")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -151,7 +151,7 @@ class TokenControllerTest {
         when(jwtService.extractUsername("valid-jwt-token")).thenReturn("unknown@example.com");
         when(userService.getUserByEmail("unknown@example.com")).thenReturn(Optional.empty());
 
-        mockMvc.perform(post("/api/oauth2/introspect")
+        mockMvc.perform(post("/api/v1/oauth2/introspect")
                         .header("X-Service-Secret", SERVICE_SECRET)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -177,7 +177,7 @@ class TokenControllerTest {
         when(jwtService.extractUsername("valid-jwt-token")).thenReturn("test@example.com");
         when(userService.getUserByEmail("test@example.com")).thenReturn(Optional.of(deletedUser));
 
-        mockMvc.perform(post("/api/oauth2/introspect")
+        mockMvc.perform(post("/api/v1/oauth2/introspect")
                         .header("X-Service-Secret", SERVICE_SECRET)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -201,7 +201,7 @@ class TokenControllerTest {
         when(userService.getUserByEmail("test@example.com")).thenReturn(Optional.of(user));
         when(grantService.getGrantByName("DELETED_GRANT")).thenReturn(Optional.empty());
 
-        mockMvc.perform(post("/api/oauth2/introspect")
+        mockMvc.perform(post("/api/v1/oauth2/introspect")
                         .header("X-Service-Secret", SERVICE_SECRET)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -228,7 +228,7 @@ class TokenControllerTest {
         when(userService.getUserByEmail("test@example.com")).thenReturn(Optional.of(user));
         when(grantService.getGrantByName("DELETED_GRANT")).thenReturn(Optional.of(deletedGrant));
 
-        mockMvc.perform(post("/api/oauth2/introspect")
+        mockMvc.perform(post("/api/v1/oauth2/introspect")
                         .header("X-Service-Secret", SERVICE_SECRET)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -245,7 +245,7 @@ class TokenControllerTest {
         when(jwtService.extractClaim(eq("invalid-jwt-token"), any(Function.class)))
                 .thenThrow(new JwtException("Invalid token"));
 
-        mockMvc.perform(post("/api/oauth2/introspect")
+        mockMvc.perform(post("/api/v1/oauth2/introspect")
                         .header("X-Service-Secret", SERVICE_SECRET)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -270,7 +270,7 @@ class TokenControllerTest {
         when(userService.getUserByEmail("test@example.com")).thenReturn(Optional.of(user));
         when(grantService.getGrantByName("READ")).thenReturn(Optional.of(grant));
 
-        mockMvc.perform(post("/api/oauth2/introspect")
+        mockMvc.perform(post("/api/v1/oauth2/introspect")
                         .header("X-Service-Secret", SERVICE_SECRET)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -285,7 +285,7 @@ class TokenControllerTest {
         request.setToken("valid-jwt-token");
 
         // Note: Returns 500 because MissingRequestHeaderException is caught by generic exception handler
-        mockMvc.perform(post("/api/oauth2/introspect")
+        mockMvc.perform(post("/api/v1/oauth2/introspect")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isInternalServerError());

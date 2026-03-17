@@ -84,7 +84,7 @@ class RoleGrantIntegrationTest extends BaseIntegrationTest {
         loginRequest.setEmail(testEmail);
         loginRequest.setPassword(testPassword);
 
-        MvcResult result = mockMvc.perform(post("/api/auth/login")
+        MvcResult result = mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(loginRequest)))
                 .andExpect(status().isOk())
@@ -119,7 +119,7 @@ class RoleGrantIntegrationTest extends BaseIntegrationTest {
         CreateRole createRole = new CreateRole();
         createRole.setName(testRoleName);
 
-        mockMvc.perform(post("/api/role/")
+        mockMvc.perform(post("/api/v1/role/")
                         .header("Authorization", "Bearer " + accessToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(createRole)))
@@ -137,7 +137,7 @@ class RoleGrantIntegrationTest extends BaseIntegrationTest {
         CreateRole createRole = new CreateRole();
         createRole.setName(testRoleName);
 
-        mockMvc.perform(post("/api/role/")
+        mockMvc.perform(post("/api/v1/role/")
                         .header("Authorization", "Bearer " + accessToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(createRole)))
@@ -152,7 +152,7 @@ class RoleGrantIntegrationTest extends BaseIntegrationTest {
         grantCreate.setName(testGrantName);
         grantCreate.setDescription("Test grant for integration testing");
 
-        mockMvc.perform(post("/api/grant/")
+        mockMvc.perform(post("/api/v1/grant/")
                         .header("Authorization", "Bearer " + accessToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(grantCreate)))
@@ -171,7 +171,7 @@ class RoleGrantIntegrationTest extends BaseIntegrationTest {
         grantCreate.setName(testGrantName);
         grantCreate.setDescription("Duplicate grant");
 
-        mockMvc.perform(post("/api/grant/")
+        mockMvc.perform(post("/api/v1/grant/")
                         .header("Authorization", "Bearer " + accessToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(grantCreate)))
@@ -186,7 +186,7 @@ class RoleGrantIntegrationTest extends BaseIntegrationTest {
         request.setRoleId(testRoleId);
         request.setGrantId(testGrantId);
 
-        mockMvc.perform(post("/api/role/grant")
+        mockMvc.perform(post("/api/v1/role/grant")
                         .header("Authorization", "Bearer " + accessToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -208,7 +208,7 @@ class RoleGrantIntegrationTest extends BaseIntegrationTest {
         request.setRoleId(testRoleId);
         request.setGrantId(testGrantId);
 
-        mockMvc.perform(post("/api/role/grant")
+        mockMvc.perform(post("/api/v1/role/grant")
                         .header("Authorization", "Bearer " + accessToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -223,7 +223,7 @@ class RoleGrantIntegrationTest extends BaseIntegrationTest {
         request.setRoleId(testRoleId);
         request.setGrantId(testGrantId);
 
-        mockMvc.perform(delete("/api/role/grant")
+        mockMvc.perform(delete("/api/v1/role/grant")
                         .header("Authorization", "Bearer " + accessToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -243,7 +243,7 @@ class RoleGrantIntegrationTest extends BaseIntegrationTest {
         request.setRoleId(testRoleId);
         request.setGrantId(testGrantId);
 
-        mockMvc.perform(delete("/api/role/grant")
+        mockMvc.perform(delete("/api/v1/role/grant")
                         .header("Authorization", "Bearer " + accessToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))

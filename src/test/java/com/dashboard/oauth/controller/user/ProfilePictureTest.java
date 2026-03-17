@@ -38,7 +38,7 @@ class ProfilePictureTest extends BaseUserControllerTest {
         when(r2Service.uploadFile(any(), any())).thenReturn(new String[]{expectedUrl, expectedKey, expectedImageId});
         when(userService.saveUser(any())).thenReturn(testUser);
 
-        mockMvc.perform(multipart("/api/user/profilePicture")
+        mockMvc.perform(multipart("/api/v1/user/profilePicture")
                         .file(file)
                         .with(request -> {
                             request.setUserPrincipal(testAuthentication);
@@ -73,7 +73,7 @@ class ProfilePictureTest extends BaseUserControllerTest {
         when(r2Service.uploadFile(any(), any())).thenReturn(new String[]{newUrl, newKey, newImageId});
         when(userService.saveUser(any())).thenReturn(testUser);
 
-        mockMvc.perform(multipart("/api/user/profilePicture")
+        mockMvc.perform(multipart("/api/v1/user/profilePicture")
                         .file(file)
                         .with(request -> {
                             request.setUserPrincipal(testAuthentication);
@@ -105,7 +105,7 @@ class ProfilePictureTest extends BaseUserControllerTest {
         when(r2Service.uploadFile(any(), any())).thenReturn(new String[]{expectedUrl, expectedKey, expectedImageId});
         when(userService.saveUser(any())).thenReturn(testUser);
 
-        mockMvc.perform(multipart("/api/user/profilePicture")
+        mockMvc.perform(multipart("/api/v1/user/profilePicture")
                         .file(file)
                         .with(request -> {
                             request.setUserPrincipal(testAuthentication);

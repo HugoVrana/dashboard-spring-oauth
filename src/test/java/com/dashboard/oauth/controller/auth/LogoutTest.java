@@ -18,7 +18,7 @@ class LogoutTest extends BaseAuthControllerTest {
     void shouldReturn200WhenSuccessful() throws Exception {
         doNothing().when(authService).logout(anyString());
 
-        mockMvc.perform(post("/api/auth/logout")
+        mockMvc.perform(post("/api/v1/auth/logout")
                         .header("Authorization", "Bearer " + testAccessToken))
                 .andExpect(status().isOk());
 
@@ -31,7 +31,7 @@ class LogoutTest extends BaseAuthControllerTest {
         doThrow(new ResourceNotFoundException("User not found"))
                 .when(authService).logout(anyString());
 
-        mockMvc.perform(post("/api/auth/logout")
+        mockMvc.perform(post("/api/v1/auth/logout")
                         .header("Authorization", "Bearer " + testAccessToken))
                 .andExpect(status().isNotFound());
     }
@@ -41,7 +41,7 @@ class LogoutTest extends BaseAuthControllerTest {
     void shouldReturn500WhenAuthorizationHeaderMissing() throws Exception {
         // Note: Returns 500 because MissingRequestHeaderException is caught by generic exception handler
         // Consider adding specific handler for MissingRequestHeaderException to return 400
-        mockMvc.perform(post("/api/auth/logout"))
+        mockMvc.perform(post("/api/v1/auth/logout"))
                 .andExpect(status().isInternalServerError());
     }
 }

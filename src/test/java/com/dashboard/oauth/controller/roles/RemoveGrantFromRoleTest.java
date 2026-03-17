@@ -37,7 +37,7 @@ class RemoveGrantFromRoleTest extends BaseRoleControllerTest {
         when(grantService.getGrantById(testGrantId)).thenReturn(Optional.of(grant));
         when(roleService.updateRole(any(Role.class))).thenReturn(updatedRole);
 
-        mockMvc.perform(delete("/api/role/grant")
+        mockMvc.perform(delete("/api/v1/role/grant")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -53,7 +53,7 @@ class RemoveGrantFromRoleTest extends BaseRoleControllerTest {
 
         when(roleService.getRoleById(testRoleId)).thenReturn(Optional.empty());
 
-        mockMvc.perform(delete("/api/role/grant")
+        mockMvc.perform(delete("/api/v1/role/grant")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNotFound());
@@ -72,7 +72,7 @@ class RemoveGrantFromRoleTest extends BaseRoleControllerTest {
         when(roleService.getRoleById(testRoleId)).thenReturn(Optional.of(role));
         when(grantService.getGrantById(testGrantId)).thenReturn(Optional.empty());
 
-        mockMvc.perform(delete("/api/role/grant")
+        mockMvc.perform(delete("/api/v1/role/grant")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNotFound());
@@ -94,7 +94,7 @@ class RemoveGrantFromRoleTest extends BaseRoleControllerTest {
         when(grantService.getGrantById(testGrantId)).thenReturn(Optional.of(grant));
         when(roleService.updateRole(any(Role.class))).thenReturn(role);
 
-        mockMvc.perform(delete("/api/role/grant")
+        mockMvc.perform(delete("/api/v1/role/grant")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -108,7 +108,7 @@ class RemoveGrantFromRoleTest extends BaseRoleControllerTest {
         request.setRoleId("invalid-id");
         request.setGrantId(testGrantId.toHexString());
 
-        mockMvc.perform(delete("/api/role/grant")
+        mockMvc.perform(delete("/api/v1/role/grant")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
@@ -126,7 +126,7 @@ class RemoveGrantFromRoleTest extends BaseRoleControllerTest {
 
         when(roleService.getRoleById(testRoleId)).thenReturn(Optional.of(role));
 
-        mockMvc.perform(delete("/api/role/grant")
+        mockMvc.perform(delete("/api/v1/role/grant")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());

@@ -28,7 +28,7 @@ class GetRecentEventsTest extends BaseActivityControllerTest {
         );
         when(activityFeedService.getRecentEvents(50)).thenReturn(events);
 
-        mockMvc.perform(get("/api/activity/recent"))
+        mockMvc.perform(get("/api/v1/activity/recent"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(2));
 
@@ -42,7 +42,7 @@ class GetRecentEventsTest extends BaseActivityControllerTest {
         List<ActivityEvent> events = Collections.singletonList(createTestEvent("INVOICE_DELETED"));
         when(activityFeedService.getRecentEvents(10)).thenReturn(events);
 
-        mockMvc.perform(get("/api/activity/recent")
+        mockMvc.perform(get("/api/v1/activity/recent")
                         .param("limit", "10"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(1));
@@ -56,7 +56,7 @@ class GetRecentEventsTest extends BaseActivityControllerTest {
     void shouldReturnEmptyListWhenNoEvents() throws Exception {
         when(activityFeedService.getRecentEvents(anyInt())).thenReturn(Collections.emptyList());
 
-        mockMvc.perform(get("/api/activity/recent"))
+        mockMvc.perform(get("/api/v1/activity/recent"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(0));
     }
@@ -67,7 +67,7 @@ class GetRecentEventsTest extends BaseActivityControllerTest {
     void shouldReturnEventWithAllFields() throws Exception {
         when(activityFeedService.getRecentEvents(50)).thenReturn(Collections.singletonList(testEvent));
 
-        mockMvc.perform(get("/api/activity/recent"))
+        mockMvc.perform(get("/api/v1/activity/recent"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(testEvent.getId()))
                 .andExpect(jsonPath("$[0].type").value(testEvent.getType()))
