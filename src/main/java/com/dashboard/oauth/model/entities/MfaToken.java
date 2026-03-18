@@ -8,21 +8,25 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.util.List;
+import java.time.Instant;
 
 @Data
 @Builder
-@Document(collection = "oauth_clients")
-public class OAuthClient {
+@Document(collection = "mfa_tokens")
+public class MfaToken {
 
     @Id
     private ObjectId id;
 
     @Indexed(unique = true)
-    private String clientId;
+    private String token;
 
-    private List<String> redirectUris;
-    private List<String> allowedScopes;
+    private String userId;
+    private ObjectId authorizationRequestId;
+    private boolean used;
+
+    @Indexed(expireAfter = "0")
+    private Instant expiryDate;
 
     private Audit audit;
 }

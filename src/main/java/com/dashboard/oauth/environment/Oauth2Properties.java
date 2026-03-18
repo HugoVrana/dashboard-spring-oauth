@@ -9,4 +9,7 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties(prefix = "spring.security.oauth2")
 public final class Oauth2Properties {
     private String secret;
+
+    /** URL of the React login page, e.g. https://app.example.com/login */
+    private String loginUrl;
 }

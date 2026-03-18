@@ -200,6 +200,27 @@ public class AuthenticationService implements IAuthenticationService {
     }
 
     @Override
+    public void revokeToken(String token) {
+        if (ObjectId.isValid(token)) {
+            // Refresh token — delete it directly
+            refreshTokenRepository.findByToken(new ObjectId(token))
+                    .ifPresent(refreshTokenRepository::delete);
+        } else {
+            // Access token (JWT) — extract user and delete all their refresh tokens
+            try {
+                String email = jwtService.extractUsername(token);
+                userRepository.findByEmailAndAudit_DeletedAtIsNull(email)
+                        .ifPresent(user -> {
+                            refreshTokenRepository.deleteByUserId(user.get_id().toHexString());
+                            publishActivityEvent(ActivityEventType.USER_LOGGED_OUT, user);
+                        });
+            } catch (Exception ignored) {
+                // RFC 7009: silently succeed if token is unrecognised or malformed
+            }
+        }
+    }
+
+    @Override
     public AuthResponse addUserRole(AddRoleRequest request) {
         if (!ObjectId.isValid(request.getUserId())) {
             throw new InvalidRequestException("User id is invalid.");

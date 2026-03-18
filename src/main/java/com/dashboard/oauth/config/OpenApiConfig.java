@@ -38,7 +38,7 @@ public class OpenApiConfig {
         return GroupedOpenApi.builder()
                 .group("v2")
                 .displayName("API v2 (OAuth2 spec)")
-                .pathsToMatch("/api/v2/**")
+                .pathsToMatch("/v2/**")
                 .build();
     }
 }
