@@ -8,16 +8,19 @@ import com.dashboard.oauth.mapper.interfaces.IUserInfoMapper;
 import com.dashboard.oauth.model.UserInfo;
 import com.dashboard.oauth.model.entities.AuthorizationCode;
 import com.dashboard.oauth.model.entities.AuthorizationRequest;
+import com.dashboard.oauth.model.entities.MfaToken;
 import com.dashboard.oauth.model.entities.OAuthClient;
 import com.dashboard.oauth.model.entities.RefreshToken;
 import com.dashboard.oauth.model.entities.User;
 import com.dashboard.oauth.repository.IAuthorizationCodeRepository;
 import com.dashboard.oauth.repository.IAuthorizationRequestRepository;
+import com.dashboard.oauth.repository.IMfaTokenRepository;
 import com.dashboard.oauth.repository.IOAuthClientRepository;
 import com.dashboard.oauth.repository.IRefreshTokenRepository;
 import com.dashboard.oauth.repository.IUserRepository;
 import com.dashboard.oauth.service.interfaces.IAuthorizationService;
 import com.dashboard.oauth.service.interfaces.IJwtService;
+import com.dashboard.oauth.service.interfaces.ITotpService;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
 import org.springframework.stereotype.Service;
@@ -27,6 +30,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.util.Base64;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -35,13 +39,16 @@ public class AuthorizationService implements IAuthorizationService {
 
     private static final long AUTH_REQUEST_TTL_SECONDS = 600;  // 10 minutes
     private static final long AUTH_CODE_TTL_SECONDS = 600;      // 10 minutes
+    private static final long MFA_TOKEN_TTL_SECONDS = 300;      // 5 minutes
 
     private final IOAuthClientRepository clientRepository;
     private final IAuthorizationRequestRepository authRequestRepository;
     private final IAuthorizationCodeRepository authCodeRepository;
+    private final IMfaTokenRepository mfaTokenRepository;
     private final IUserRepository userRepository;
     private final IRefreshTokenRepository refreshTokenRepository;
     private final IJwtService jwtService;
+    private final ITotpService totpService;
     private final IUserInfoMapper userInfoMapper;
     private final JWTProperties jwtProperties;
 
@@ -67,6 +74,15 @@ public class AuthorizationService implements IAuthorizationService {
 
         if (codeChallenge == null || codeChallenge.isBlank()) {
             throw new InvalidRequestException("code_challenge is required");
+        }
+
+        if (scope != null && !scope.isBlank()) {
+            List<String> allowedScopes = client.getAllowedScopes();
+            for (String requested : scope.split(" ")) {
+                if (!allowedScopes.contains(requested)) {
+                    throw new InvalidRequestException("Scope not allowed: " + requested);
+                }
+            }
         }
 
         Audit audit = new Audit();
@@ -112,12 +128,50 @@ public class AuthorizationService implements IAuthorizationService {
                 .codeChallenge(request.getCodeChallenge())
                 .codeChallengeMethod(request.getCodeChallengeMethod())
                 .scope(request.getScope())
+                .state(request.getState())
                 .used(false)
                 .expiryDate(Instant.now().plusSeconds(AUTH_CODE_TTL_SECONDS))
                 .audit(audit)
                 .build();
 
         return authCodeRepository.save(code);
+    }
+
+    @Override
+    public String createMfaToken(String userId, AuthorizationRequest request) {
+        Audit audit = new Audit();
+        audit.setCreatedAt(Instant.now());
+
+        MfaToken mfaToken = MfaToken.builder()
+                .token(UUID.randomUUID().toString())
+                .userId(userId)
+                .authorizationRequestId(request.getId())
+                .used(false)
+                .expiryDate(Instant.now().plusSeconds(MFA_TOKEN_TTL_SECONDS))
+                .audit(audit)
+                .build();
+
+        return mfaTokenRepository.save(mfaToken).getToken();
+    }
+
+    @Override
+    public AuthorizationCode exchangeMfaToken(String mfaToken, String totpCode) {
+        MfaToken token = mfaTokenRepository.findByTokenAndUsedFalseAndAudit_DeletedAtIsNull(mfaToken)
+                .orElseThrow(() -> new InvalidRequestException("Invalid or expired MFA token"));
+
+        // Verify TOTP before consuming the token so a wrong code allows a retry
+        if (!totpService.verifyTotp(token.getUserId(), totpCode)) {
+            return null;
+        }
+
+        token.setUsed(true);
+        mfaTokenRepository.save(token);
+
+        AuthorizationRequest request = authRequestRepository
+                .findByIdAndUsedFalseAndAudit_DeletedAtIsNull(token.getAuthorizationRequestId())
+                .orElseThrow(() -> new InvalidRequestException("Authorization request not found or already used"));
+
+        return createAuthorizationCode(request, token.getUserId());
     }
 
     @Override

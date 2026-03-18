@@ -16,6 +16,12 @@ public interface IAuthenticationService {
 
     void logout(String authHeader);
 
+    /**
+     * RFC 7009 token revocation. Accepts either a refresh token (hex ObjectId)
+     * or an access token (JWT). Silently succeeds if the token is not found.
+     */
+    void revokeToken(String token);
+
     AuthResponse addUserRole(AddRoleRequest request);
 
     void verifyEmail(String token);

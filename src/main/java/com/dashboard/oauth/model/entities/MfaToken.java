@@ -12,22 +12,17 @@ import java.time.Instant;
 
 @Data
 @Builder
-@Document(collection = "authorization_codes")
-public class AuthorizationCode {
+@Document(collection = "mfa_tokens")
+public class MfaToken {
 
     @Id
     private ObjectId id;
 
     @Indexed(unique = true)
-    private String code;
+    private String token;
 
-    private String clientId;
     private String userId;
-    private String redirectUri;
-    private String codeChallenge;
-    private String codeChallengeMethod;
-    private String scope;
-    private String state;
+    private ObjectId authorizationRequestId;
     private boolean used;
 
     @Indexed(expireAfter = "0")

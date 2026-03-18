@@ -3,11 +3,13 @@ package com.dashboard.oauth.controller.v2;
 import com.dashboard.common.model.exception.InvalidRequestException;
 import com.dashboard.oauth.dataTransferObject.auth.AuthResponse;
 import com.dashboard.oauth.dataTransferObject.v2.IntrospectionResponse;
+import com.dashboard.oauth.dataTransferObject.v2.MfaRequiredResponse;
 import com.dashboard.oauth.dataTransferObject.v2.OAuth2ErrorResponse;
 import com.dashboard.oauth.dataTransferObject.v2.TokenResponse;
 import com.dashboard.oauth.environment.Oauth2Properties;
 import com.dashboard.oauth.model.entities.AuthorizationCode;
 import com.dashboard.oauth.model.entities.AuthorizationRequest;
+import com.dashboard.oauth.model.entities.BaseTwoFactorConfig;
 import com.dashboard.oauth.model.entities.Grant;
 import com.dashboard.oauth.model.entities.User;
 import com.dashboard.oauth.service.interfaces.IAuthorizationService;
@@ -93,8 +95,8 @@ public class TokenController {
 
     // -------------------------------------------------------------------------
     // POST /v2/oauth2/authorize
-    // Called by the React login form. Validates credentials, generates an auth
-    // code, and redirects back to the client's redirect_uri with the code.
+    // Called by the React login form. Validates credentials. If 2FA is enabled,
+    // returns an mfa_token for the next step instead of redirecting immediately.
     // -------------------------------------------------------------------------
     @PostMapping(value = "/authorize", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     public ResponseEntity<?> submitAuthorize(
@@ -116,12 +118,10 @@ public class TokenController {
                     .filter(u -> u.getAudit().getDeletedAt() == null)
                     .orElseThrow(() -> new BadCredentialsException("Invalid credentials"));
 
-            // Delegate credential check to the existing login flow via a LoginRequest
             com.dashboard.oauth.dataTransferObject.auth.LoginRequest loginRequest =
                     new com.dashboard.oauth.dataTransferObject.auth.LoginRequest();
             loginRequest.setEmail(username);
             loginRequest.setPassword(password);
-            // This validates credentials and handles locking/attempt counting
             authenticationService.login(loginRequest);
 
         } catch (BadCredentialsException | org.springframework.security.authentication.LockedException e) {
@@ -129,17 +129,56 @@ public class TokenController {
                     "Invalid credentials", authRequest.getState());
         }
 
-        AuthorizationCode code = authorizationService.createAuthorizationCode(
-                authRequest, user.get_id().toHexString());
-
-        String redirectUrl = authRequest.getRedirectUri() + "?code=" + code.getCode();
-        if (authRequest.getState() != null) {
-            redirectUrl += "&state=" + authRequest.getState();
+        BaseTwoFactorConfig twoFactor = user.getTwoFactorConfig();
+        if (twoFactor != null && Boolean.TRUE.equals(twoFactor.getEnabled())) {
+            String mfaToken = authorizationService.createMfaToken(
+                    user.get_id().toHexString(), authRequest);
+            return ResponseEntity.ok(new MfaRequiredResponse(true, mfaToken));
         }
 
-        return ResponseEntity.status(HttpStatus.FOUND)
-                .location(URI.create(redirectUrl))
-                .build();
+        return issueCodeRedirect(authRequest, user.get_id().toHexString());
+    }
+
+    // -------------------------------------------------------------------------
+    // POST /v2/oauth2/authorize/mfa
+    // Called after /authorize when mfa_required=true. Validates the TOTP code
+    // and completes the authorization redirect.
+    // -------------------------------------------------------------------------
+    @PostMapping(value = "/authorize/mfa", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+    public ResponseEntity<?> submitMfa(
+            @RequestParam("mfa_token") String mfaToken,
+            @RequestParam("totp_code") String totpCode) {
+
+        AuthorizationCode authCode;
+        try {
+            authCode = authorizationService.exchangeMfaToken(mfaToken, totpCode);
+            if (authCode == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(new OAuth2ErrorResponse("invalid_grant", "Invalid TOTP code"));
+            }
+        } catch (InvalidRequestException e) {
+            return ResponseEntity.badRequest()
+                    .body(new OAuth2ErrorResponse("invalid_request", e.getMessage()));
+        }
+
+        URI redirectUri = buildRedirectUri(authCode.getRedirectUri(), authCode.getCode(), authCode.getState());
+        return ResponseEntity.status(HttpStatus.FOUND).location(redirectUri).build();
+    }
+
+    private ResponseEntity<?> issueCodeRedirect(AuthorizationRequest authRequest, String userId) {
+        AuthorizationCode code = authorizationService.createAuthorizationCode(authRequest, userId);
+        URI location = buildRedirectUri(authRequest.getRedirectUri(), code.getCode(), authRequest.getState());
+        return ResponseEntity.status(HttpStatus.FOUND).location(location).build();
+    }
+
+    private URI buildRedirectUri(String baseUri, String code, String state) {
+        org.springframework.web.util.UriComponentsBuilder builder =
+                org.springframework.web.util.UriComponentsBuilder.fromUriString(baseUri)
+                        .queryParam("code", code);
+        if (state != null) {
+            builder.queryParam("state", state);
+        }
+        return builder.build().toUri();
     }
 
     // -------------------------------------------------------------------------
@@ -201,6 +240,18 @@ public class TokenController {
         tokenResponse.setExpiresIn(authResponse.getExpiresIn() / 1000);
         tokenResponse.setRefreshToken(authResponse.getRefreshToken());
         return tokenResponse;
+    }
+
+    // -------------------------------------------------------------------------
+    // POST /v2/oauth2/revoke  (RFC 7009)
+    // Always returns 200, even if the token is not found or already revoked.
+    // -------------------------------------------------------------------------
+    @PostMapping(value = "/revoke", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+    public ResponseEntity<Void> revoke(
+            @RequestParam("token") String token,
+            @RequestParam(value = "token_type_hint", required = false) String tokenTypeHint) {
+        authenticationService.revokeToken(token);
+        return ResponseEntity.ok().build();
     }
 
     // -------------------------------------------------------------------------
@@ -274,11 +325,15 @@ public class TokenController {
     }
 
     private ResponseEntity<?> buildErrorRedirect(String redirectUri, String error, String description, String state) {
-        String url = redirectUri + "?error=" + error
-                + (description != null ? "&error_description=" + description : "")
-                + (state != null ? "&state=" + state : "");
-        return ResponseEntity.status(HttpStatus.FOUND)
-                .location(URI.create(url))
-                .build();
+        org.springframework.web.util.UriComponentsBuilder builder =
+                org.springframework.web.util.UriComponentsBuilder.fromUriString(redirectUri)
+                        .queryParam("error", error);
+        if (description != null) {
+            builder.queryParam("error_description", description);
+        }
+        if (state != null) {
+            builder.queryParam("state", state);
+        }
+        return ResponseEntity.status(HttpStatus.FOUND).location(builder.build().toUri()).build();
     }
 }
