@@ -3,6 +3,7 @@ package com.dashboard.oauth.controller.v2;
 import com.dashboard.oauth.dataTransferObject.user.UserAdminRead;
 import com.dashboard.oauth.dataTransferObject.user.UserAdminUpdate;
 import com.dashboard.oauth.service.interfaces.IUserService;
+import jakarta.validation.Valid;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -78,7 +79,7 @@ public class UserController {
     @PutMapping("/{id}")
     public ResponseEntity<UserAdminRead> updateUser(
             @Parameter(description = "User ID", required = true) @PathVariable String id,
-            @RequestBody UserAdminUpdate update) {
+            @Valid @RequestBody UserAdminUpdate update) {
         return ResponseEntity.ok(userService.updateUser(new ObjectId(id), update));
     }
 

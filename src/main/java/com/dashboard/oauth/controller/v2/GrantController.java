@@ -3,6 +3,7 @@ package com.dashboard.oauth.controller.v2;
 import com.dashboard.oauth.dataTransferObject.grant.GrantCreate;
 import com.dashboard.oauth.dataTransferObject.grant.GrantRead;
 import com.dashboard.oauth.service.GrantService;
+import jakarta.validation.Valid;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -62,7 +63,7 @@ public class GrantController {
             @ApiResponse(responseCode = "409", description = "Grant with this name already exists", content = @Content)
     })
     @PostMapping("/")
-    public ResponseEntity<GrantRead> createGrant(@RequestBody GrantCreate grantCreate) {
+    public ResponseEntity<GrantRead> createGrant(@Valid @RequestBody GrantCreate grantCreate) {
         return ResponseEntity.ok(grantService.createGrant(grantCreate));
     }
 

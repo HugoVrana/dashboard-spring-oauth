@@ -3,6 +3,7 @@ package com.dashboard.oauth.controller.v2;
 import com.dashboard.oauth.dataTransferObject.role.CreateRole;
 import com.dashboard.oauth.dataTransferObject.role.RoleRead;
 import com.dashboard.oauth.service.interfaces.IRoleService;
+import jakarta.validation.Valid;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -62,7 +63,7 @@ public class RoleController {
             @ApiResponse(responseCode = "409", description = "Role with this name already exists", content = @Content)
     })
     @PostMapping("/")
-    public ResponseEntity<RoleRead> createRole(@RequestBody CreateRole createRole) {
+    public ResponseEntity<RoleRead> createRole(@Valid @RequestBody CreateRole createRole) {
         return ResponseEntity.ok(roleService.createRole(createRole));
     }
 
