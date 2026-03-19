@@ -3,6 +3,7 @@ package com.dashboard.oauth.service;
 import com.dashboard.common.model.ActivityEvent;
 import com.dashboard.common.model.Audit;
 import com.dashboard.common.model.exception.ConflictException;
+import com.dashboard.common.model.exception.ResourceNotFoundException;
 import com.dashboard.common.utility.diff.DiffComparer;
 import com.dashboard.common.utility.diff.DiffResult;
 import com.dashboard.oauth.authentication.GrantsAuthentication;
@@ -21,6 +22,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -35,6 +37,13 @@ public class GrantService implements IGrantService {
     private final IGrantMapper grantMapper;
 
     @Override
+    public List<GrantRead> getGrants() {
+        return grantRepository.findAll().stream()
+                .map(grantMapper::toRead)
+                .toList();
+    }
+
+    @Override
     public Optional<Grant> getGrantByName(String name) {
         return grantRepository.findByName(name);
     }
@@ -42,6 +51,13 @@ public class GrantService implements IGrantService {
     @Override
     public Optional<Grant> getGrantById(ObjectId id) {
         return grantRepository.findById(id);
+    }
+
+    @Override
+    public GrantRead getGrantReadById(ObjectId id) {
+        Grant grant = grantRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Grant not found"));
+        return grantMapper.toRead(grant);
     }
 
     @Override
@@ -71,6 +87,14 @@ public class GrantService implements IGrantService {
         publishActivityEvent(ActivityEventType.GRANT_ADDED, grant);
 
         return grantMapper.toRead(grant);
+    }
+
+    @Override
+    public void deleteGrant(ObjectId id) {
+        Grant grant = grantRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Grant not found"));
+        grantRepository.delete(grant);
+        publishActivityEvent(ActivityEventType.GRANT_REMOVED, grant);
     }
 
     private void publishActivityEvent(ActivityEventType activityEventType, Grant grant) {
