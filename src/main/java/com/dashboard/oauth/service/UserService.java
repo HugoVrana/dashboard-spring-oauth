@@ -11,6 +11,7 @@ import com.dashboard.oauth.environment.EmailProperties;
 import com.dashboard.oauth.mapper.interfaces.IUserInfoMapper;
 import com.dashboard.oauth.model.entities.User;
 import com.dashboard.oauth.model.entities.VerificationToken;
+import com.dashboard.oauth.repository.IRefreshTokenRepository;
 import com.dashboard.oauth.repository.IUserRepository;
 import com.dashboard.oauth.service.interfaces.IUserService;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +28,7 @@ import java.util.Optional;
 public class UserService implements IUserService {
 
     private final IUserRepository userRepository;
+    private final IRefreshTokenRepository refreshTokenRepository;
     private final IUserInfoMapper userInfoMapper;
     private final PasswordEncoder passwordEncoder;
     private final EmailProperties emailProperties;
@@ -121,6 +123,7 @@ public class UserService implements IUserService {
 
         user.getAudit().setDeletedAt(Instant.now());
         userRepository.save(user);
+        refreshTokenRepository.deleteByUserId(id.toHexString());
     }
 
     @Override

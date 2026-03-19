@@ -10,6 +10,7 @@ import com.dashboard.oauth.dataTransferObject.user.UserSelfUpdate;
 import com.dashboard.oauth.environment.EmailProperties;
 import com.dashboard.oauth.mapper.interfaces.IUserInfoMapper;
 import com.dashboard.oauth.model.entities.User;
+import com.dashboard.oauth.repository.IRefreshTokenRepository;
 import com.dashboard.oauth.repository.IUserRepository;
 import net.datafaker.Faker;
 import org.bson.types.ObjectId;
@@ -40,6 +41,9 @@ class UserServiceTest {
     private IUserRepository userRepository;
 
     @Mock
+    private IRefreshTokenRepository refreshTokenRepository;
+
+    @Mock
     private IUserInfoMapper userInfoMapper;
 
     @Mock
@@ -61,7 +65,7 @@ class UserServiceTest {
         testUserId = new ObjectId();
         testEmail = faker.internet().emailAddress();
         testUser = createTestUser();
-        userService = new UserService(userRepository, userInfoMapper, passwordEncoder, emailProperties);
+        userService = new UserService(userRepository, refreshTokenRepository, userInfoMapper, passwordEncoder, emailProperties);
     }
 
     private User createTestUser() {
@@ -341,7 +345,7 @@ class UserServiceTest {
     }
 
     @Test
-    @DisplayName("Delete user soft-deletes the user")
+    @DisplayName("Delete user soft-deletes the user and revokes refresh tokens")
     void deleteUser_shouldSoftDeleteUser() {
         when(userRepository.getUserBy_idAndAudit_DeletedAtIsNull(testUserId))
                 .thenReturn(Optional.of(testUser));
@@ -351,8 +355,8 @@ class UserServiceTest {
 
         ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
         verify(userRepository).save(captor.capture());
-        User saved = captor.getValue();
-        assertThat(saved.getAudit().getDeletedAt()).isNotNull();
+        assertThat(captor.getValue().getAudit().getDeletedAt()).isNotNull();
+        verify(refreshTokenRepository).deleteByUserId(testUserId.toHexString());
     }
 
     @Test
