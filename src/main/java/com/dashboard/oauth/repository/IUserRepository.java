@@ -10,6 +10,11 @@ import java.util.List;
 import java.util.Optional;
 
 public interface IUserRepository extends MongoRepository<User, ObjectId> {
+    List<User> findAllByAudit_DeletedAtIsNull();
+
+    @Query("{ 'audit.deletedAt': null, 'email': { $regex: ?0, $options: 'i' } }")
+    List<User> searchByEmail(String emailPattern);
+
     Optional<User> findByEmailAndAudit_DeletedAtIsNull(String email);
 
     Optional<User> getUserBy_idAndAudit_DeletedAtIsNull(ObjectId id);

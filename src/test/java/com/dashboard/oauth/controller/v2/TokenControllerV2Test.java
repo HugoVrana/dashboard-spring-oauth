@@ -3,7 +3,7 @@ package com.dashboard.oauth.controller.v2;
 import com.dashboard.common.logging.GrafanaHttpClient;
 import com.dashboard.common.model.Audit;
 import com.dashboard.common.model.exception.InvalidRequestException;
-import com.dashboard.oauth.controller.config.TestConfig;
+import com.dashboard.oauth.controller.v1.config.TestConfig;
 import com.dashboard.oauth.dataTransferObject.auth.AuthResponse;
 import com.dashboard.oauth.dataTransferObject.user.UserInfoRead;
 import com.dashboard.oauth.environment.Oauth2Properties;

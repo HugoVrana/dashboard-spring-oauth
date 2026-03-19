@@ -1,6 +1,7 @@
 package com.dashboard.oauth.service;
 
 import com.dashboard.common.model.Audit;
+import com.dashboard.common.model.exception.ResourceNotFoundException;
 import com.dashboard.oauth.dataTransferObject.grant.GrantCreate;
 import com.dashboard.oauth.dataTransferObject.grant.GrantRead;
 import com.dashboard.oauth.mapper.interfaces.IGrantMapper;
@@ -17,8 +18,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -132,5 +135,64 @@ class GrantServiceTest {
         assertThat(result).isNotNull();
         assertThat(result.getName()).isEqualTo(testGrantName);
         verify(grantRepository).save(any(Grant.class));
+    }
+
+    @Test
+    @DisplayName("Get all grants returns list")
+    void getGrants_shouldReturnAllGrants() {
+        GrantRead expectedRead = new GrantRead();
+        expectedRead.setName(testGrantName);
+        expectedRead.setDescription(testGrant.getDescription());
+
+        when(grantRepository.findAll()).thenReturn(List.of(testGrant));
+        when(grantMapper.toRead(testGrant)).thenReturn(expectedRead);
+
+        List<GrantRead> result = grantService.getGrants();
+
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getName()).isEqualTo(testGrantName);
+    }
+
+    @Test
+    @DisplayName("Get grant read by id returns DTO when grant exists")
+    void getGrantReadById_shouldReturnGrantRead_whenExists() {
+        GrantRead expectedRead = new GrantRead();
+        expectedRead.setName(testGrantName);
+
+        when(grantRepository.findById(testGrantId)).thenReturn(Optional.of(testGrant));
+        when(grantMapper.toRead(testGrant)).thenReturn(expectedRead);
+
+        GrantRead result = grantService.getGrantReadById(testGrantId);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getName()).isEqualTo(testGrantName);
+    }
+
+    @Test
+    @DisplayName("Get grant read by id throws ResourceNotFoundException when not found")
+    void getGrantReadById_shouldThrowResourceNotFoundException_whenNotFound() {
+        when(grantRepository.findById(testGrantId)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> grantService.getGrantReadById(testGrantId))
+                .isInstanceOf(ResourceNotFoundException.class);
+    }
+
+    @Test
+    @DisplayName("Delete grant removes entity when it exists")
+    void deleteGrant_shouldDeleteGrant_whenExists() {
+        when(grantRepository.findById(testGrantId)).thenReturn(Optional.of(testGrant));
+
+        grantService.deleteGrant(testGrantId);
+
+        verify(grantRepository).delete(testGrant);
+    }
+
+    @Test
+    @DisplayName("Delete grant throws ResourceNotFoundException when not found")
+    void deleteGrant_shouldThrowResourceNotFoundException_whenNotFound() {
+        when(grantRepository.findById(testGrantId)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> grantService.deleteGrant(testGrantId))
+                .isInstanceOf(ResourceNotFoundException.class);
     }
 }

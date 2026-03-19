@@ -194,12 +194,16 @@ public class TokenController {
             @RequestParam(value = "redirect_uri", required = false) String redirectUri,
             @RequestParam(value = "refresh_token", required = false) String refreshToken) {
 
-        return switch (grantType) {
+        ResponseEntity<?> response = switch (grantType) {
             case "authorization_code" -> handleAuthorizationCodeGrant(code, codeVerifier, clientId, redirectUri);
             case "refresh_token" -> handleRefreshTokenGrant(refreshToken);
             default -> ResponseEntity.badRequest()
                     .body(new OAuth2ErrorResponse("unsupported_grant_type", null));
         };
+        return ResponseEntity.status(response.getStatusCode())
+                .header("Cache-Control", "no-store")
+                .header("Pragma", "no-cache")
+                .body(response.getBody());
     }
 
     private ResponseEntity<?> handleAuthorizationCodeGrant(

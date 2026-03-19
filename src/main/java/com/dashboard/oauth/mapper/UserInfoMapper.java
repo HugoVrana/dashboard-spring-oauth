@@ -2,6 +2,7 @@ package com.dashboard.oauth.mapper;
 
 import com.dashboard.oauth.dataTransferObject.grant.GrantRead;
 import com.dashboard.oauth.dataTransferObject.role.RoleRead;
+import com.dashboard.oauth.dataTransferObject.user.UserAdminRead;
 import com.dashboard.oauth.dataTransferObject.user.UserInfoRead;
 import com.dashboard.oauth.dataTransferObject.user.UserSelfRead;
 import com.dashboard.oauth.environment.R2Properties;
@@ -69,5 +70,39 @@ public final class UserInfoMapper implements IUserInfoMapper {
         }
         userSelfRead.setLocked(userInfo.getLocked());
         return userSelfRead;
+    }
+
+    @Override
+    public UserAdminRead toAdminRead(final User user) {
+        UserAdminRead read = new UserAdminRead();
+        read.setId(user.get_id().toHexString());
+        read.setEmail(user.getEmail());
+        read.setEmailVerified(user.getEmailVerified());
+        read.setEmailVerifiedAt(user.getEmailVerifiedAt());
+        read.setLocked(user.getLocked());
+        read.setFailedLoginAttempts(user.getFailedLoginAttempts());
+        if (user.getProfileImageId() != null) {
+            read.setProfileImageUrl(r2Properties.buildPublicUrl(user.get_id(), user.getProfileImageId()));
+        }
+        if (user.getRoles() != null) {
+            List<RoleRead> roleReads = new ArrayList<>();
+            for (Role role : user.getRoles()) {
+                RoleRead roleRead = roleMapper.toRead(role);
+                List<GrantRead> grantReads = new ArrayList<>();
+                if (role.getGrants() != null) {
+                    for (Grant grant : role.getGrants()) {
+                        grantReads.add(grantMapper.toRead(grant));
+                    }
+                }
+                roleRead.setGrants(grantReads);
+                roleReads.add(roleRead);
+            }
+            read.setRoles(roleReads);
+        }
+        if (user.getAudit() != null) {
+            read.setCreatedAt(user.getAudit().getCreatedAt());
+            read.setDeletedAt(user.getAudit().getDeletedAt());
+        }
+        return read;
     }
 }

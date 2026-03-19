@@ -1,6 +1,11 @@
 package com.dashboard.oauth.service;
 
 import com.dashboard.common.model.Audit;
+import com.dashboard.common.model.exception.ConflictException;
+import com.dashboard.common.model.exception.ResourceNotFoundException;
+import com.dashboard.oauth.dataTransferObject.role.CreateRole;
+import com.dashboard.oauth.dataTransferObject.role.RoleRead;
+import com.dashboard.oauth.mapper.interfaces.IRoleMapper;
 import com.dashboard.oauth.model.entities.Role;
 import com.dashboard.oauth.repository.IRoleRepository;
 import net.datafaker.Faker;
@@ -14,8 +19,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -26,6 +33,9 @@ class RoleServiceTest {
 
     @Mock
     private IRoleRepository roleRepository;
+
+    @Mock
+    private IRoleMapper roleMapper;
 
     @InjectMocks
     private RoleService roleService;
@@ -127,5 +137,96 @@ class RoleServiceTest {
         assertThat(result).isNotNull();
         assertThat(result.getName()).isEqualTo("UPDATED_ROLE");
         verify(roleRepository).save(testRole);
+    }
+
+    @Test
+    @DisplayName("Get all roles returns list")
+    void getRoles_shouldReturnAllRoles() {
+        RoleRead expectedRead = new RoleRead();
+        expectedRead.setName(testRoleName);
+
+        when(roleRepository.findAll()).thenReturn(List.of(testRole));
+        when(roleMapper.toRead(testRole)).thenReturn(expectedRead);
+
+        List<RoleRead> result = roleService.getRoles();
+
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getName()).isEqualTo(testRoleName);
+    }
+
+    @Test
+    @DisplayName("Get role read by id returns DTO when role exists")
+    void getRoleReadById_shouldReturnRoleRead_whenExists() {
+        RoleRead expectedRead = new RoleRead();
+        expectedRead.setName(testRoleName);
+
+        when(roleRepository.findById(testRoleId)).thenReturn(Optional.of(testRole));
+        when(roleMapper.toRead(testRole)).thenReturn(expectedRead);
+
+        RoleRead result = roleService.getRoleReadById(testRoleId);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getName()).isEqualTo(testRoleName);
+    }
+
+    @Test
+    @DisplayName("Get role read by id throws ResourceNotFoundException when not found")
+    void getRoleReadById_shouldThrowResourceNotFoundException_whenNotFound() {
+        when(roleRepository.findById(testRoleId)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> roleService.getRoleReadById(testRoleId))
+                .isInstanceOf(ResourceNotFoundException.class);
+    }
+
+    @Test
+    @DisplayName("Create role from DTO returns RoleRead when name not taken")
+    void createRoleFromDto_shouldReturnRoleRead_whenNameNotTaken() {
+        CreateRole createRole = new CreateRole();
+        createRole.setName(testRoleName);
+
+        RoleRead expectedRead = new RoleRead();
+        expectedRead.setName(testRoleName);
+
+        when(roleRepository.findByNameAndAudit_DeletedAtIsNull(testRoleName)).thenReturn(Optional.empty());
+        when(roleRepository.insert(any(Role.class))).thenReturn(testRole);
+        when(roleMapper.toRead(any(Role.class))).thenReturn(expectedRead);
+
+        RoleRead result = roleService.createRole(createRole);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getName()).isEqualTo(testRoleName);
+        verify(roleRepository).insert(any(Role.class));
+    }
+
+    @Test
+    @DisplayName("Create role from DTO throws ConflictException when name is taken")
+    void createRoleFromDto_shouldThrowConflictException_whenNameTaken() {
+        CreateRole createRole = new CreateRole();
+        createRole.setName(testRoleName);
+
+        when(roleRepository.findByNameAndAudit_DeletedAtIsNull(testRoleName))
+                .thenReturn(Optional.of(testRole));
+
+        assertThatThrownBy(() -> roleService.createRole(createRole))
+                .isInstanceOf(ConflictException.class);
+    }
+
+    @Test
+    @DisplayName("Delete role removes entity when it exists")
+    void deleteRole_shouldDeleteRole_whenExists() {
+        when(roleRepository.findById(testRoleId)).thenReturn(Optional.of(testRole));
+
+        roleService.deleteRole(testRoleId);
+
+        verify(roleRepository).delete(testRole);
+    }
+
+    @Test
+    @DisplayName("Delete role throws ResourceNotFoundException when not found")
+    void deleteRole_shouldThrowResourceNotFoundException_whenNotFound() {
+        when(roleRepository.findById(testRoleId)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> roleService.deleteRole(testRoleId))
+                .isInstanceOf(ResourceNotFoundException.class);
     }
 }
