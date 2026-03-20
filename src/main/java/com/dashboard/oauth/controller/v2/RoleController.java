@@ -15,6 +15,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -62,6 +63,7 @@ public class RoleController {
                     content = @Content(schema = @Schema(implementation = RoleRead.class))),
             @ApiResponse(responseCode = "409", description = "Role with this name already exists", content = @Content)
     })
+    @PreAuthorize("hasAuthority('dashboard-oauth-role-create')")
     @PostMapping("/")
     public ResponseEntity<RoleRead> createRole(@Valid @RequestBody CreateRole createRole) {
         return ResponseEntity.ok(roleService.createRole(createRole));
@@ -72,6 +74,7 @@ public class RoleController {
             @ApiResponse(responseCode = "204", description = "Role deleted"),
             @ApiResponse(responseCode = "404", description = "Role not found", content = @Content)
     })
+    @PreAuthorize("hasAuthority('dashboard-oauth-role-delete')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteRole(
             @Parameter(description = "Role ID", required = true) @PathVariable String id) {

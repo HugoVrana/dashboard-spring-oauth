@@ -15,6 +15,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -62,6 +63,7 @@ public class GrantController {
                     content = @Content(schema = @Schema(implementation = GrantRead.class))),
             @ApiResponse(responseCode = "409", description = "Grant with this name already exists", content = @Content)
     })
+    @PreAuthorize("hasAuthority('dashboard-oauth-grant-create')")
     @PostMapping("/")
     public ResponseEntity<GrantRead> createGrant(@Valid @RequestBody GrantCreate grantCreate) {
         return ResponseEntity.ok(grantService.createGrant(grantCreate));
@@ -72,6 +74,7 @@ public class GrantController {
             @ApiResponse(responseCode = "204", description = "Grant deleted"),
             @ApiResponse(responseCode = "404", description = "Grant not found", content = @Content)
     })
+    @PreAuthorize("hasAuthority('dashboard-oauth-grant-delete')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteGrant(
             @Parameter(description = "Grant ID", required = true) @PathVariable String id) {
