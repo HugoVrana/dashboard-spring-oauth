@@ -1,6 +1,8 @@
 package com.dashboard.oauth.service.interfaces;
 
 import com.dashboard.oauth.dataTransferObject.auth.AuthResponse;
+import com.dashboard.oauth.dataTransferObject.v2.IntrospectionResponse;
+import com.dashboard.oauth.dataTransferObject.v2.SubmitAuthorizeResult;
 import com.dashboard.oauth.model.entities.AuthorizationCode;
 import com.dashboard.oauth.model.entities.AuthorizationRequest;
 
@@ -52,4 +54,22 @@ public interface IAuthorizationService {
      * redirect_uri matches, client_id matches.
      */
     AuthResponse exchangeCode(String code, String codeVerifier, String clientId, String redirectUri);
+
+    /**
+     * Validates user credentials and 2FA state for a pending authorization request.
+     * Returns a result indicating whether an MFA challenge or an authorization code was issued.
+     * Throws BadCredentialsException or LockedException on invalid/locked credentials.
+     */
+    SubmitAuthorizeResult submitAuthorize(AuthorizationRequest authRequest, String username, String password);
+
+    /**
+     * Validates a Bearer token and returns its introspection metadata.
+     * Always returns a response — inactive if the token is invalid, expired, or the user/grants no longer exist.
+     */
+    IntrospectionResponse introspect(String token);
+
+    /**
+     * Validates the HTTP Basic authorization header against the configured service client secret.
+     */
+    boolean validateClientSecret(String authorizationHeader);
 }
