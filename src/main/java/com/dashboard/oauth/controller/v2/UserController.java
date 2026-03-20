@@ -15,6 +15,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -76,6 +77,7 @@ public class UserController {
             @ApiResponse(responseCode = "404", description = "User not found", content = @Content),
             @ApiResponse(responseCode = "409", description = "Email already in use", content = @Content)
     })
+    @PreAuthorize("hasAuthority('dashboard-oauth-user-update')")
     @PutMapping("/{id}")
     public ResponseEntity<UserAdminRead> updateUser(
             @Parameter(description = "User ID", required = true) @PathVariable String id,
@@ -88,6 +90,7 @@ public class UserController {
             @ApiResponse(responseCode = "204", description = "User deleted"),
             @ApiResponse(responseCode = "404", description = "User not found", content = @Content)
     })
+    @PreAuthorize("hasAuthority('dashboard-oauth-user-delete')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUser(
             @Parameter(description = "User ID", required = true) @PathVariable String id) {
@@ -101,6 +104,7 @@ public class UserController {
             @ApiResponse(responseCode = "404", description = "User not found", content = @Content),
             @ApiResponse(responseCode = "409", description = "User is already blocked", content = @Content)
     })
+    @PreAuthorize("hasAuthority('dashboard-oauth-user-block')")
     @PostMapping("/{id}/block")
     public ResponseEntity<Void> blockUser(
             @Parameter(description = "User ID", required = true) @PathVariable String id) {
@@ -114,6 +118,7 @@ public class UserController {
             @ApiResponse(responseCode = "404", description = "User not found", content = @Content),
             @ApiResponse(responseCode = "409", description = "User is not blocked", content = @Content)
     })
+    @PreAuthorize("hasAuthority('dashboard-oauth-user-block')")
     @PostMapping("/{id}/unblock")
     public ResponseEntity<Void> unblockUser(
             @Parameter(description = "User ID", required = true) @PathVariable String id) {
@@ -128,6 +133,7 @@ public class UserController {
             @ApiResponse(responseCode = "404", description = "User not found", content = @Content),
             @ApiResponse(responseCode = "409", description = "Email is already verified", content = @Content)
     })
+    @PreAuthorize("hasAuthority('dashboard-oauth-user-resend-verification')")
     @PostMapping("/{id}/resend-verification")
     public ResponseEntity<Void> resendVerificationEmail(
             @Parameter(description = "User ID", required = true) @PathVariable String id) {
@@ -141,6 +147,7 @@ public class UserController {
             @ApiResponse(responseCode = "204", description = "Password reset email queued"),
             @ApiResponse(responseCode = "404", description = "User not found", content = @Content)
     })
+    @PreAuthorize("hasAuthority('dashboard-oauth-user-reset-password')")
     @PostMapping("/{id}/reset-password")
     public ResponseEntity<Void> triggerPasswordReset(
             @Parameter(description = "User ID", required = true) @PathVariable String id) {
