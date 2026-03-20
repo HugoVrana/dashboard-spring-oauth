@@ -6,19 +6,17 @@ import com.dashboard.common.model.exception.InvalidRequestException;
 import com.dashboard.oauth.controller.v1.config.TestConfig;
 import com.dashboard.oauth.dataTransferObject.auth.AuthResponse;
 import com.dashboard.oauth.dataTransferObject.user.UserInfoRead;
+import com.dashboard.oauth.dataTransferObject.v2.IntrospectionResponse;
+import com.dashboard.oauth.dataTransferObject.v2.SubmitAuthorizeResult;
 import com.dashboard.oauth.environment.Oauth2Properties;
 import com.dashboard.oauth.filter.JwtAuthFilter;
 import com.dashboard.oauth.model.entities.AuthorizationCode;
 import com.dashboard.oauth.model.entities.AuthorizationRequest;
-import com.dashboard.oauth.model.entities.Grant;
 import com.dashboard.oauth.model.entities.TotpConfig;
 import com.dashboard.oauth.model.entities.User;
 import com.dashboard.oauth.service.interfaces.IActivityFeedService;
 import com.dashboard.oauth.service.interfaces.IAuthenticationService;
 import com.dashboard.oauth.service.interfaces.IAuthorizationService;
-import com.dashboard.oauth.service.interfaces.IGrantService;
-import com.dashboard.oauth.service.interfaces.IJwtService;
-import com.dashboard.oauth.service.interfaces.IUserService;
 import io.qameta.allure.Epic;
 import io.qameta.allure.Feature;
 import org.bson.types.ObjectId;
@@ -36,7 +34,6 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -44,10 +41,6 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Base64;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import java.util.function.Function;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -77,15 +70,6 @@ class TokenControllerV2Test {
 
     @MockitoBean
     private IAuthenticationService authenticationService;
-
-    @MockitoBean
-    private IUserService userService;
-
-    @MockitoBean
-    private IJwtService jwtService;
-
-    @MockitoBean
-    private IGrantService grantService;
 
     @MockitoBean
     private Oauth2Properties oauth2Properties;
@@ -181,14 +165,12 @@ class TokenControllerV2Test {
     @DisplayName("POST /v2/oauth2/authorize with valid credentials and no 2FA → 302 redirect with code")
     void authorize_post_success_no2fa() throws Exception {
         AuthorizationRequest authRequest = buildAuthorizationRequest(null);
-        User user = createTestUser(false);
         AuthorizationCode code = buildAuthorizationCode("abc123", null);
 
         when(authorizationService.getAuthorizationRequest(authRequest.getId().toHexString()))
                 .thenReturn(authRequest);
-        when(userService.getUserByEmail("user@example.com")).thenReturn(Optional.of(user));
-        when(authenticationService.login(any())).thenReturn(buildAuthResponse());
-        when(authorizationService.createAuthorizationCode(any(), any())).thenReturn(code);
+        when(authorizationService.submitAuthorize(eq(authRequest), eq("user@example.com"), eq("Password1!")))
+                .thenReturn(new SubmitAuthorizeResult(false, null, code));
 
         mockMvc.perform(post("/v2/oauth2/authorize")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
@@ -204,13 +186,11 @@ class TokenControllerV2Test {
     @DisplayName("POST /v2/oauth2/authorize with 2FA enabled → 200 mfa_required")
     void authorize_post_mfaRequired() throws Exception {
         AuthorizationRequest authRequest = buildAuthorizationRequest(null);
-        User user = createTestUser(true);
 
         when(authorizationService.getAuthorizationRequest(authRequest.getId().toHexString()))
                 .thenReturn(authRequest);
-        when(userService.getUserByEmail("user@example.com")).thenReturn(Optional.of(user));
-        when(authenticationService.login(any())).thenReturn(buildAuthResponse());
-        when(authorizationService.createMfaToken(any(), any())).thenReturn("mfa-token-xyz");
+        when(authorizationService.submitAuthorize(eq(authRequest), eq("user@example.com"), eq("Password1!")))
+                .thenReturn(new SubmitAuthorizeResult(true, "mfa-token-xyz", null));
 
         mockMvc.perform(post("/v2/oauth2/authorize")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
@@ -226,12 +206,11 @@ class TokenControllerV2Test {
     @DisplayName("POST /v2/oauth2/authorize with bad credentials → 302 error redirect")
     void authorize_post_badCredentials() throws Exception {
         AuthorizationRequest authRequest = buildAuthorizationRequest(null);
-        User user = createTestUser(false);
 
         when(authorizationService.getAuthorizationRequest(authRequest.getId().toHexString()))
                 .thenReturn(authRequest);
-        when(userService.getUserByEmail("user@example.com")).thenReturn(Optional.of(user));
-        when(authenticationService.login(any())).thenThrow(new BadCredentialsException("bad"));
+        when(authorizationService.submitAuthorize(eq(authRequest), eq("user@example.com"), eq("wrong")))
+                .thenThrow(new BadCredentialsException("bad"));
 
         mockMvc.perform(post("/v2/oauth2/authorize")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
@@ -430,16 +409,14 @@ class TokenControllerV2Test {
     @Test
     @DisplayName("POST /v2/oauth2/introspect with valid token and correct Basic Auth → 200 active=true")
     void introspect_validToken_active() throws Exception {
-        User user = createTestUser(false);
-        Grant grant = createTestGrant("READ");
-        Date futureExpiration = Date.from(Instant.now().plusSeconds(3600));
+        IntrospectionResponse introspectionResponse = new IntrospectionResponse();
+        introspectionResponse.setActive(true);
+        introspectionResponse.setSub("test@example.com");
+        introspectionResponse.setScope("READ");
+        introspectionResponse.setExp(Instant.now().plusSeconds(3600).getEpochSecond());
 
-        when(jwtService.extractClaim(eq("valid-jwt"), any(Function.class)))
-                .thenReturn(List.of("READ"))
-                .thenReturn(futureExpiration);
-        when(jwtService.extractUsername("valid-jwt")).thenReturn("test@example.com");
-        when(userService.getUserByEmail("test@example.com")).thenReturn(Optional.of(user));
-        when(grantService.getGrantByName("READ")).thenReturn(Optional.of(grant));
+        when(authorizationService.validateClientSecret(BASIC_AUTH)).thenReturn(true);
+        when(authorizationService.introspect("valid-jwt")).thenReturn(introspectionResponse);
 
         mockMvc.perform(post("/v2/oauth2/introspect")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
@@ -476,8 +453,11 @@ class TokenControllerV2Test {
     @Test
     @DisplayName("POST /v2/oauth2/introspect with invalid JWT → 200 active=false")
     void introspect_invalidJwt() throws Exception {
-        when(jwtService.extractClaim(eq("bad-jwt"), any(Function.class)))
-                .thenThrow(new JwtException("invalid"));
+        IntrospectionResponse inactive = new IntrospectionResponse();
+        inactive.setActive(false);
+
+        when(authorizationService.validateClientSecret(BASIC_AUTH)).thenReturn(true);
+        when(authorizationService.introspect("bad-jwt")).thenReturn(inactive);
 
         mockMvc.perform(post("/v2/oauth2/introspect")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
@@ -552,14 +532,4 @@ class TokenControllerV2Test {
         return user;
     }
 
-    private Grant createTestGrant(String name) {
-        Grant grant = new Grant();
-        grant.set_id(new ObjectId());
-        grant.setName(name);
-        grant.setDescription("Test grant");
-        Audit audit = new Audit();
-        audit.setCreatedAt(Instant.now());
-        grant.setAudit(audit);
-        return grant;
-    }
 }
