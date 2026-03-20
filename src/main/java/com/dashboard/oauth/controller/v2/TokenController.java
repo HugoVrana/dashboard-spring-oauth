@@ -5,19 +5,12 @@ import com.dashboard.oauth.dataTransferObject.auth.AuthResponse;
 import com.dashboard.oauth.dataTransferObject.v2.IntrospectionResponse;
 import com.dashboard.oauth.dataTransferObject.v2.MfaRequiredResponse;
 import com.dashboard.oauth.dataTransferObject.v2.OAuth2ErrorResponse;
+import com.dashboard.oauth.dataTransferObject.v2.SubmitAuthorizeResult;
 import com.dashboard.oauth.dataTransferObject.v2.TokenResponse;
 import com.dashboard.oauth.environment.Oauth2Properties;
-import com.dashboard.oauth.model.entities.AuthorizationCode;
 import com.dashboard.oauth.model.entities.AuthorizationRequest;
-import com.dashboard.oauth.model.entities.BaseTwoFactorConfig;
-import com.dashboard.oauth.model.entities.Grant;
-import com.dashboard.oauth.model.entities.User;
 import com.dashboard.oauth.service.interfaces.IAuthorizationService;
 import com.dashboard.oauth.service.interfaces.IAuthenticationService;
-import com.dashboard.oauth.service.interfaces.IGrantService;
-import com.dashboard.oauth.service.interfaces.IJwtService;
-import com.dashboard.oauth.service.interfaces.IUserService;
-import io.jsonwebtoken.Claims;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.headers.Header;
@@ -31,7 +24,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -39,15 +31,9 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
 
 @RestController
 @CrossOrigin
@@ -58,9 +44,6 @@ public class TokenController {
 
     private final IAuthorizationService authorizationService;
     private final IAuthenticationService authenticationService;
-    private final IUserService userService;
-    private final IJwtService jwtService;
-    private final IGrantService grantService;
     private final Oauth2Properties oauth2Properties;
 
     // -------------------------------------------------------------------------
@@ -139,31 +122,23 @@ public class TokenController {
                     .body(new OAuth2ErrorResponse("invalid_request", e.getMessage()));
         }
 
-        User user;
+        SubmitAuthorizeResult result;
         try {
-            user = userService.getUserByEmail(username)
-                    .filter(u -> u.getAudit().getDeletedAt() == null)
-                    .orElseThrow(() -> new BadCredentialsException("Invalid credentials"));
-
-            com.dashboard.oauth.dataTransferObject.auth.LoginRequest loginRequest =
-                    new com.dashboard.oauth.dataTransferObject.auth.LoginRequest();
-            loginRequest.setEmail(username);
-            loginRequest.setPassword(password);
-            authenticationService.login(loginRequest);
-
+            result = authorizationService.submitAuthorize(authRequest, username, password);
         } catch (BadCredentialsException | org.springframework.security.authentication.LockedException e) {
             return buildErrorRedirect(authRequest.getRedirectUri(), "access_denied",
                     "Invalid credentials", authRequest.getState());
         }
 
-        BaseTwoFactorConfig twoFactor = user.getTwoFactorConfig();
-        if (twoFactor != null && Boolean.TRUE.equals(twoFactor.getEnabled())) {
-            String mfaToken = authorizationService.createMfaToken(
-                    user.get_id().toHexString(), authRequest);
-            return ResponseEntity.ok(new MfaRequiredResponse(true, mfaToken));
+        if (result.mfaRequired()) {
+            return ResponseEntity.ok(new MfaRequiredResponse(true, result.mfaToken()));
         }
 
-        return issueCodeRedirect(authRequest, user.get_id().toHexString());
+        URI location = buildRedirectUri(
+                result.authorizationCode().getRedirectUri(),
+                result.authorizationCode().getCode(),
+                result.authorizationCode().getState());
+        return ResponseEntity.status(HttpStatus.FOUND).location(location).build();
     }
 
     // -------------------------------------------------------------------------
@@ -186,36 +161,18 @@ public class TokenController {
             @Parameter(description = "MFA token received from POST /authorize", required = true) @RequestParam("mfa_token") String mfaToken,
             @Parameter(description = "6-digit TOTP code from authenticator app", required = true) @RequestParam("totp_code") String totpCode) {
 
-        AuthorizationCode authCode;
         try {
-            authCode = authorizationService.exchangeMfaToken(mfaToken, totpCode);
+            var authCode = authorizationService.exchangeMfaToken(mfaToken, totpCode);
             if (authCode == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                         .body(new OAuth2ErrorResponse("invalid_grant", "Invalid TOTP code"));
             }
+            URI redirectUri = buildRedirectUri(authCode.getRedirectUri(), authCode.getCode(), authCode.getState());
+            return ResponseEntity.status(HttpStatus.FOUND).location(redirectUri).build();
         } catch (InvalidRequestException e) {
             return ResponseEntity.badRequest()
                     .body(new OAuth2ErrorResponse("invalid_request", e.getMessage()));
         }
-
-        URI redirectUri = buildRedirectUri(authCode.getRedirectUri(), authCode.getCode(), authCode.getState());
-        return ResponseEntity.status(HttpStatus.FOUND).location(redirectUri).build();
-    }
-
-    private ResponseEntity<?> issueCodeRedirect(AuthorizationRequest authRequest, String userId) {
-        AuthorizationCode code = authorizationService.createAuthorizationCode(authRequest, userId);
-        URI location = buildRedirectUri(authRequest.getRedirectUri(), code.getCode(), authRequest.getState());
-        return ResponseEntity.status(HttpStatus.FOUND).location(location).build();
-    }
-
-    private URI buildRedirectUri(String baseUri, String code, String state) {
-        org.springframework.web.util.UriComponentsBuilder builder =
-                org.springframework.web.util.UriComponentsBuilder.fromUriString(baseUri)
-                        .queryParam("code", code);
-        if (state != null) {
-            builder.queryParam("state", state);
-        }
-        return builder.build().toUri();
     }
 
     // -------------------------------------------------------------------------
@@ -253,46 +210,6 @@ public class TokenController {
                 .body(response.getBody());
     }
 
-    private ResponseEntity<?> handleAuthorizationCodeGrant(
-            String code, String codeVerifier, String clientId, String redirectUri) {
-
-        if (code == null || codeVerifier == null || clientId == null || redirectUri == null) {
-            return ResponseEntity.badRequest()
-                    .body(new OAuth2ErrorResponse("invalid_request",
-                            "code, code_verifier, client_id and redirect_uri are required"));
-        }
-        try {
-            AuthResponse authResponse = authorizationService.exchangeCode(
-                    code, codeVerifier, clientId, redirectUri);
-            return ResponseEntity.ok(mapToTokenResponse(authResponse));
-        } catch (InvalidRequestException e) {
-            return ResponseEntity.badRequest()
-                    .body(new OAuth2ErrorResponse("invalid_grant", e.getMessage()));
-        }
-    }
-
-    private ResponseEntity<?> handleRefreshTokenGrant(String refreshToken) {
-        if (refreshToken == null) {
-            return ResponseEntity.badRequest()
-                    .body(new OAuth2ErrorResponse("invalid_request", "refresh_token is required"));
-        }
-        try {
-            AuthResponse authResponse = authenticationService.refreshToken(refreshToken);
-            return ResponseEntity.ok(mapToTokenResponse(authResponse));
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest()
-                    .body(new OAuth2ErrorResponse("invalid_grant", "Invalid or expired refresh token"));
-        }
-    }
-
-    private TokenResponse mapToTokenResponse(AuthResponse authResponse) {
-        TokenResponse tokenResponse = new TokenResponse();
-        tokenResponse.setAccessToken(authResponse.getAccessToken());
-        tokenResponse.setExpiresIn(authResponse.getExpiresIn() / 1000);
-        tokenResponse.setRefreshToken(authResponse.getRefreshToken());
-        return tokenResponse;
-    }
-
     // -------------------------------------------------------------------------
     // POST /v2/oauth2/revoke  (RFC 7009)
     // -------------------------------------------------------------------------
@@ -328,72 +245,69 @@ public class TokenController {
             @Parameter(description = "HTTP Basic credentials (Base64 encoded `client_id:client_secret`)", required = true)
             @RequestHeader(value = "Authorization", required = false) String authorization) {
 
-        if (!isAuthorized(authorization)) {
+        if (!authorizationService.validateClientSecret(authorization)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .header("WWW-Authenticate", "Basic realm=\"oauth2\"")
                     .build();
         }
 
+        return ResponseEntity.ok(authorizationService.introspect(token));
+    }
+
+    // -------------------------------------------------------------------------
+    // Private HTTP helpers
+    // -------------------------------------------------------------------------
+
+    private ResponseEntity<?> handleAuthorizationCodeGrant(
+            String code, String codeVerifier, String clientId, String redirectUri) {
+        if (code == null || codeVerifier == null || clientId == null || redirectUri == null) {
+            return ResponseEntity.badRequest()
+                    .body(new OAuth2ErrorResponse("invalid_request",
+                            "code, code_verifier, client_id and redirect_uri are required"));
+        }
         try {
-            List<String> grantNames = jwtService.extractClaim(token, c ->
-                    ((List<?>) c.get("grants")).stream()
-                            .map(String::valueOf)
-                            .toList()
-            );
-            String email = jwtService.extractUsername(token);
-            Date expiration = jwtService.extractClaim(token, Claims::getExpiration);
-
-            Optional<User> optionalUser = userService.getUserByEmail(email);
-            if (optionalUser.isEmpty() || optionalUser.get().getAudit().getDeletedAt() != null) {
-                IntrospectionResponse inactive = new IntrospectionResponse();
-                inactive.setActive(false);
-                return ResponseEntity.ok(inactive);
-            }
-
-            List<String> activeGrants = new ArrayList<>();
-            for (String grantName : grantNames) {
-                Optional<Grant> optional = grantService.getGrantByName(grantName);
-                if (optional.isEmpty() || optional.get().getAudit().getDeletedAt() != null) {
-                    IntrospectionResponse inactive = new IntrospectionResponse();
-                    inactive.setActive(false);
-                    return ResponseEntity.ok(inactive);
-                }
-                activeGrants.add(grantName);
-            }
-
-            IntrospectionResponse response = new IntrospectionResponse();
-            response.setActive(true);
-            response.setSub(email);
-            response.setExp(expiration.toInstant().getEpochSecond());
-            response.setScope(String.join(" ", activeGrants));
-            return ResponseEntity.ok(response);
-
-        } catch (JwtException e) {
-            IntrospectionResponse inactive = new IntrospectionResponse();
-            inactive.setActive(false);
-            return ResponseEntity.ok(inactive);
+            AuthResponse authResponse = authorizationService.exchangeCode(code, codeVerifier, clientId, redirectUri);
+            return ResponseEntity.ok(mapToTokenResponse(authResponse));
+        } catch (InvalidRequestException e) {
+            return ResponseEntity.badRequest()
+                    .body(new OAuth2ErrorResponse("invalid_grant", e.getMessage()));
         }
     }
 
-    private boolean isAuthorized(String authorization) {
-        if (authorization == null || !authorization.startsWith("Basic ")) {
-            return false;
+    private ResponseEntity<?> handleRefreshTokenGrant(String refreshToken) {
+        if (refreshToken == null) {
+            return ResponseEntity.badRequest()
+                    .body(new OAuth2ErrorResponse("invalid_request", "refresh_token is required"));
         }
         try {
-            String decoded = new String(Base64.getDecoder().decode(authorization.substring(6)), StandardCharsets.UTF_8);
-            String clientSecret = decoded.contains(":") ? decoded.substring(decoded.indexOf(':') + 1) : decoded;
-            return MessageDigest.isEqual(
-                    oauth2Properties.getSecret().getBytes(StandardCharsets.UTF_8),
-                    clientSecret.getBytes(StandardCharsets.UTF_8));
-        } catch (IllegalArgumentException e) {
-            return false;
+            AuthResponse authResponse = authenticationService.refreshToken(refreshToken);
+            return ResponseEntity.ok(mapToTokenResponse(authResponse));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest()
+                    .body(new OAuth2ErrorResponse("invalid_grant", "Invalid or expired refresh token"));
         }
+    }
+
+    private TokenResponse mapToTokenResponse(AuthResponse authResponse) {
+        TokenResponse tokenResponse = new TokenResponse();
+        tokenResponse.setAccessToken(authResponse.getAccessToken());
+        tokenResponse.setExpiresIn(authResponse.getExpiresIn() / 1000);
+        tokenResponse.setRefreshToken(authResponse.getRefreshToken());
+        return tokenResponse;
+    }
+
+    private URI buildRedirectUri(String baseUri, String code, String state) {
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(baseUri)
+                .queryParam("code", code);
+        if (state != null) {
+            builder.queryParam("state", state);
+        }
+        return builder.build().toUri();
     }
 
     private ResponseEntity<?> buildErrorRedirect(String redirectUri, String error, String description, String state) {
-        org.springframework.web.util.UriComponentsBuilder builder =
-                org.springframework.web.util.UriComponentsBuilder.fromUriString(redirectUri)
-                        .queryParam("error", error);
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(redirectUri)
+                .queryParam("error", error);
         if (description != null) {
             builder.queryParam("error_description", description);
         }
