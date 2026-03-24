@@ -1,5 +1,6 @@
 package com.dashboard.oauth.service.interfaces;
 
+import com.dashboard.oauth.dataTransferObject.grant.EnsureGrantsResponse;
 import com.dashboard.oauth.dataTransferObject.grant.GrantCreate;
 import com.dashboard.oauth.dataTransferObject.grant.GrantRead;
 import com.dashboard.oauth.model.entities.Grant;
@@ -19,4 +20,6 @@ public interface IGrantService {
     GrantRead createGrant(GrantCreate grant);
 
     void deleteGrant(ObjectId id);
+
+    EnsureGrantsResponse ensureGrants(List<GrantCreate> grants);
 }

@@ -27,7 +27,10 @@ public class OAuthGrantSeeder implements ApplicationRunner {
             Map.entry("dashboard-oauth-user-delete",               "Delete users"),
             Map.entry("dashboard-oauth-user-block",                "Block and unblock users"),
             Map.entry("dashboard-oauth-user-resend-verification",  "Resend verification emails to users"),
-            Map.entry("dashboard-oauth-user-reset-password",       "Trigger password resets for users")
+            Map.entry("dashboard-oauth-user-reset-password",       "Trigger password resets for users"),
+            Map.entry("dashboard-oauth-client-create",             "Register OAuth clients"),
+            Map.entry("dashboard-oauth-client-delete",             "Delete OAuth clients"),
+            Map.entry("dashboard-oauth-client-rotate-secret",      "Rotate OAuth client secrets")
     );
 
     @Override

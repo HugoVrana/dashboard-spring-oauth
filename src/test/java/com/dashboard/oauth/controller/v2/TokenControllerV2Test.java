@@ -293,7 +293,7 @@ class TokenControllerV2Test {
     @Test
     @DisplayName("POST /v2/oauth2/token with authorization_code grant → 200 with token fields")
     void token_authorizationCodeGrant_success() throws Exception {
-        when(authorizationService.exchangeCode("my-code", "my-verifier", CLIENT_ID, REDIRECT_URI))
+        when(authorizationService.exchangeCode("my-code", "my-verifier", CLIENT_ID, REDIRECT_URI, null))
                 .thenReturn(buildAuthResponse());
 
         mockMvc.perform(post("/v2/oauth2/token")
@@ -324,7 +324,7 @@ class TokenControllerV2Test {
     @Test
     @DisplayName("POST /v2/oauth2/token with invalid code → 400 invalid_grant")
     void token_authorizationCodeGrant_invalidCode() throws Exception {
-        when(authorizationService.exchangeCode(any(), any(), any(), any()))
+        when(authorizationService.exchangeCode(any(), any(), any(), any(), any()))
                 .thenThrow(new InvalidRequestException("Invalid or expired authorization code"));
 
         mockMvc.perform(post("/v2/oauth2/token")

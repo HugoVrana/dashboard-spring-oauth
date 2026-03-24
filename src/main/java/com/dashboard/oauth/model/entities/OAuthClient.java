@@ -16,12 +16,12 @@ import java.util.List;
 public class OAuthClient {
 
     @Id
-    private ObjectId id;
+    private ObjectId _id;
 
-    @Indexed(unique = true)
-    private String clientId;
+    private String clientSecret;
 
     private List<String> redirectUris;
+
     private List<String> allowedScopes;
 
     private Audit audit;

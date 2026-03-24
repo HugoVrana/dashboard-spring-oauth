@@ -51,9 +51,10 @@ public interface IAuthorizationService {
     /**
      * Exchanges an authorization code + PKCE code_verifier for tokens.
      * Validates: code exists and unused, code_verifier matches code_challenge,
-     * redirect_uri matches, client_id matches.
+     * redirect_uri matches, client_id matches. If the client has a stored secret,
+     * clientSecret must be provided and must match.
      */
-    AuthResponse exchangeCode(String code, String codeVerifier, String clientId, String redirectUri);
+    AuthResponse exchangeCode(String code, String codeVerifier, String clientId, String redirectUri, String clientSecret);
 
     /**
      * Validates user credentials and 2FA state for a pending authorization request.

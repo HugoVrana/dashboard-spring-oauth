@@ -40,6 +40,7 @@ public class SecurityConfig {
                         .requestMatchers("/v2/oauth2/token", "/v2/oauth2/introspect",
                                 "/v2/oauth2/authorize", "/v2/oauth2/authorize/mfa",
                                 "/v2/oauth2/revoke").permitAll()
+                        .requestMatchers("/v2/service/**").permitAll()
                         .requestMatchers("/api/v1/public/**").permitAll()
                         .requestMatchers("/api/v1/test/**").permitAll()
                         .requestMatchers("/ws/**", "/ws-sockjs/**", "/api/v1/activity/test").permitAll()

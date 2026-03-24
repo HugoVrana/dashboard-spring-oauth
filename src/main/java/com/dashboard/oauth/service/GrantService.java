@@ -8,6 +8,7 @@ import com.dashboard.common.utility.diff.DiffComparer;
 import com.dashboard.common.utility.diff.DiffResult;
 import com.dashboard.oauth.authentication.GrantsAuthentication;
 import com.dashboard.oauth.context.DiffContext;
+import com.dashboard.oauth.dataTransferObject.grant.EnsureGrantsResponse;
 import com.dashboard.oauth.dataTransferObject.grant.GrantCreate;
 import com.dashboard.oauth.dataTransferObject.grant.GrantRead;
 import com.dashboard.oauth.mapper.interfaces.IGrantMapper;
@@ -21,6 +22,7 @@ import org.bson.types.ObjectId;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -87,6 +89,23 @@ public class GrantService implements IGrantService {
         publishActivityEvent(ActivityEventType.GRANT_ADDED, grant);
 
         return grantMapper.toRead(grant);
+    }
+
+    @Override
+    public EnsureGrantsResponse ensureGrants(List<GrantCreate> grants) {
+        List<String> created = new ArrayList<>();
+        List<String> alreadyExisted = new ArrayList<>();
+
+        for (GrantCreate grantCreate : grants) {
+            if (getGrantByName(grantCreate.getName()).isEmpty()) {
+                createGrant(grantCreate);
+                created.add(grantCreate.getName());
+            } else {
+                alreadyExisted.add(grantCreate.getName());
+            }
+        }
+
+        return new EnsureGrantsResponse(created, alreadyExisted);
     }
 
     @Override
