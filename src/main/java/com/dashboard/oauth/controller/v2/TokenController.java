@@ -244,9 +244,7 @@ public class TokenController {
     public ResponseEntity<?> introspect(
             @Parameter(description = "The token to introspect", required = true) @RequestParam("token") String token,
             @Parameter(description = "HTTP Basic credentials (Base64 encoded `client_id:client_secret`)", required = true)
-            @RequestHeader(value = "Authorization", required = false) String authorization)
-    {
-
+            @RequestHeader(value = "Authorization", required = false) String authorization) {
         if (!authorizationService.validateClientSecret(authorization)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .header("WWW-Authenticate", "Basic realm=\"oauth2\"")
