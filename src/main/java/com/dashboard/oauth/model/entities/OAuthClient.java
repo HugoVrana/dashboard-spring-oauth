@@ -5,7 +5,6 @@ import lombok.Builder;
 import lombok.Data;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.List;
@@ -16,12 +15,12 @@ import java.util.List;
 public class OAuthClient {
 
     @Id
-    private ObjectId id;
+    private ObjectId _id;
 
-    @Indexed(unique = true)
-    private String clientId;
+    private String clientSecret;
 
     private List<String> redirectUris;
+
     private List<String> allowedScopes;
 
     private Audit audit;

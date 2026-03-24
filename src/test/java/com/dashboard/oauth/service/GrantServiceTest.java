@@ -2,6 +2,7 @@ package com.dashboard.oauth.service;
 
 import com.dashboard.common.model.Audit;
 import com.dashboard.common.model.exception.ResourceNotFoundException;
+import com.dashboard.oauth.dataTransferObject.grant.EnsureGrantsResponse;
 import com.dashboard.oauth.dataTransferObject.grant.GrantCreate;
 import com.dashboard.oauth.dataTransferObject.grant.GrantRead;
 import com.dashboard.oauth.mapper.interfaces.IGrantMapper;
@@ -194,5 +195,65 @@ class GrantServiceTest {
 
         assertThatThrownBy(() -> grantService.deleteGrant(testGrantId))
                 .isInstanceOf(ResourceNotFoundException.class);
+    }
+
+    @Test
+    @DisplayName("ensureGrants creates missing grants and reports already existing ones")
+    void ensureGrants_shouldCreateMissingAndReportExisting() {
+        GrantCreate existing = new GrantCreate();
+        existing.setName(testGrantName);
+
+        GrantCreate newGrant = new GrantCreate();
+        newGrant.setName("new-grant");
+
+        GrantRead newGrantRead = new GrantRead();
+        newGrantRead.setName("new-grant");
+
+        when(grantRepository.findByName(testGrantName)).thenReturn(Optional.of(testGrant));
+        when(grantRepository.findByName("new-grant")).thenReturn(Optional.empty());
+        when(grantMapper.toModel(any(GrantCreate.class))).thenReturn(testGrant);
+        when(grantRepository.save(any())).thenReturn(testGrant);
+        when(grantMapper.toRead(any())).thenReturn(newGrantRead);
+
+        EnsureGrantsResponse result = grantService.ensureGrants(List.of(existing, newGrant));
+
+        assertThat(result.getCreated()).containsExactly("new-grant");
+        assertThat(result.getAlreadyExisted()).containsExactly(testGrantName);
+    }
+
+    @Test
+    @DisplayName("ensureGrants returns empty lists when all grants already exist")
+    void ensureGrants_shouldReturnEmptyCreated_whenAllExist() {
+        GrantCreate existing = new GrantCreate();
+        existing.setName(testGrantName);
+
+        when(grantRepository.findByName(testGrantName)).thenReturn(Optional.of(testGrant));
+
+        EnsureGrantsResponse result = grantService.ensureGrants(List.of(existing));
+
+        assertThat(result.getCreated()).isEmpty();
+        assertThat(result.getAlreadyExisted()).containsExactly(testGrantName);
+    }
+
+    @Test
+    @DisplayName("ensureGrants creates all grants when none exist")
+    void ensureGrants_shouldCreateAll_whenNoneExist() {
+        GrantCreate g1 = new GrantCreate();
+        g1.setName("grant-one");
+        GrantCreate g2 = new GrantCreate();
+        g2.setName("grant-two");
+
+        GrantRead read = new GrantRead();
+        read.setName("grant-one");
+
+        when(grantRepository.findByName(any())).thenReturn(Optional.empty());
+        when(grantMapper.toModel(any())).thenReturn(testGrant);
+        when(grantRepository.save(any())).thenReturn(testGrant);
+        when(grantMapper.toRead(any())).thenReturn(read);
+
+        EnsureGrantsResponse result = grantService.ensureGrants(List.of(g1, g2));
+
+        assertThat(result.getCreated()).containsExactlyInAnyOrder("grant-one", "grant-two");
+        assertThat(result.getAlreadyExisted()).isEmpty();
     }
 }

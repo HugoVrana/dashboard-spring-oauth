@@ -7,7 +7,10 @@
       "Bash(jar tf:*)",
       "Bash(curl:*)",
       "Bash(TESTCONTAINERS_CHECKS_DISABLE=true ./mvnw test:*)",
-      "Bash(./mvnw test:*)"
+      "Bash(./mvnw test:*)",
+      "Bash(git log:*)",
+      "Bash(xargs basename:*)",
+      "Bash(grep:*)"
     ]
   }
 }

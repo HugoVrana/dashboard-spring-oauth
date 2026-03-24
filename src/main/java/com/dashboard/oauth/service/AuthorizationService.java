@@ -20,7 +20,7 @@ import com.dashboard.oauth.model.entities.User;
 import com.dashboard.oauth.repository.IAuthorizationCodeRepository;
 import com.dashboard.oauth.repository.IAuthorizationRequestRepository;
 import com.dashboard.oauth.repository.IMfaTokenRepository;
-import com.dashboard.oauth.repository.IOAuthClientRepository;
+import com.dashboard.oauth.repository.IOauthClientRepository;
 import com.dashboard.oauth.repository.IRefreshTokenRepository;
 import com.dashboard.oauth.repository.IUserRepository;
 import com.dashboard.oauth.service.interfaces.IAuthenticationService;
@@ -55,7 +55,7 @@ public class AuthorizationService implements IAuthorizationService {
     private static final long AUTH_CODE_TTL_SECONDS = 600;      // 10 minutes
     private static final long MFA_TOKEN_TTL_SECONDS = 300;      // 5 minutes
 
-    private final IOAuthClientRepository clientRepository;
+    private final IOauthClientRepository clientRepository;
     private final IAuthorizationRequestRepository authRequestRepository;
     private final IAuthorizationCodeRepository authCodeRepository;
     private final IMfaTokenRepository mfaTokenRepository;
@@ -69,6 +69,7 @@ public class AuthorizationService implements IAuthorizationService {
     private final IUserService userService;
     private final IGrantService grantService;
     private final Oauth2Properties oauth2Properties;
+    private final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
 
     @Override
     public AuthorizationRequest createAuthorizationRequest(
@@ -79,7 +80,7 @@ public class AuthorizationService implements IAuthorizationService {
             String scope,
             String state) {
 
-        OAuthClient client = clientRepository.findByClientIdAndAudit_DeletedAtIsNull(clientId)
+        OAuthClient client = clientRepository.findBy_idAndAudit_DeletedAtIsNull(new org.bson.types.ObjectId(clientId))
                 .orElseThrow(() -> new InvalidRequestException("Unknown client_id"));
 
         if (!client.getRedirectUris().contains(redirectUri)) {
@@ -193,7 +194,7 @@ public class AuthorizationService implements IAuthorizationService {
     }
 
     @Override
-    public AuthResponse exchangeCode(String code, String codeVerifier, String clientId, String redirectUri) {
+    public AuthResponse exchangeCode(String code, String codeVerifier, String clientId, String redirectUri, String clientSecret) {
         AuthorizationCode authCode = authCodeRepository.findByCodeAndUsedFalseAndAudit_DeletedAtIsNull(code)
                 .orElseThrow(() -> new InvalidRequestException("Invalid or expired authorization code"));
 
@@ -203,6 +204,17 @@ public class AuthorizationService implements IAuthorizationService {
 
         if (!authCode.getRedirectUri().equals(redirectUri)) {
             throw new InvalidRequestException("redirect_uri mismatch");
+        }
+
+        if (org.bson.types.ObjectId.isValid(clientId)) {
+            clientRepository.findBy_idAndAudit_DeletedAtIsNull(new org.bson.types.ObjectId(clientId))
+                    .ifPresent(client -> {
+                        if (client.getClientSecret() != null) {
+                            if (clientSecret == null || !passwordEncoder.matches(clientSecret, client.getClientSecret())) {
+                                throw new InvalidRequestException("Invalid client credentials");
+                            }
+                        }
+                    });
         }
 
         if (!verifyPkce(codeVerifier, authCode.getCodeChallenge())) {

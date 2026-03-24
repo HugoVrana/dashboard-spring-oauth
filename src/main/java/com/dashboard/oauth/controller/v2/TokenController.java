@@ -196,10 +196,11 @@ public class TokenController {
             @Parameter(description = "PKCE code verifier (required for `authorization_code` grant)") @RequestParam(value = "code_verifier", required = false) String codeVerifier,
             @Parameter(description = "Client ID (required for `authorization_code` grant)") @RequestParam(value = "client_id", required = false) String clientId,
             @Parameter(description = "Redirect URI (required for `authorization_code` grant)") @RequestParam(value = "redirect_uri", required = false) String redirectUri,
+            @Parameter(description = "Client secret (required for confidential clients)") @RequestParam(value = "client_secret", required = false) String clientSecret,
             @Parameter(description = "Refresh token (required for `refresh_token` grant)") @RequestParam(value = "refresh_token", required = false) String refreshToken) {
 
         ResponseEntity<?> response = switch (grantType) {
-            case "authorization_code" -> handleAuthorizationCodeGrant(code, codeVerifier, clientId, redirectUri);
+            case "authorization_code" -> handleAuthorizationCodeGrant(code, codeVerifier, clientId, redirectUri, clientSecret);
             case "refresh_token" -> handleRefreshTokenGrant(refreshToken);
             default -> ResponseEntity.badRequest()
                     .body(new OAuth2ErrorResponse("unsupported_grant_type", null));
@@ -244,7 +245,6 @@ public class TokenController {
             @Parameter(description = "The token to introspect", required = true) @RequestParam("token") String token,
             @Parameter(description = "HTTP Basic credentials (Base64 encoded `client_id:client_secret`)", required = true)
             @RequestHeader(value = "Authorization", required = false) String authorization) {
-
         if (!authorizationService.validateClientSecret(authorization)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .header("WWW-Authenticate", "Basic realm=\"oauth2\"")
@@ -259,14 +259,14 @@ public class TokenController {
     // -------------------------------------------------------------------------
 
     private ResponseEntity<?> handleAuthorizationCodeGrant(
-            String code, String codeVerifier, String clientId, String redirectUri) {
+            String code, String codeVerifier, String clientId, String redirectUri, String clientSecret) {
         if (code == null || codeVerifier == null || clientId == null || redirectUri == null) {
             return ResponseEntity.badRequest()
                     .body(new OAuth2ErrorResponse("invalid_request",
                             "code, code_verifier, client_id and redirect_uri are required"));
         }
         try {
-            AuthResponse authResponse = authorizationService.exchangeCode(code, codeVerifier, clientId, redirectUri);
+            AuthResponse authResponse = authorizationService.exchangeCode(code, codeVerifier, clientId, redirectUri, clientSecret);
             return ResponseEntity.ok(mapToTokenResponse(authResponse));
         } catch (InvalidRequestException e) {
             return ResponseEntity.badRequest()
