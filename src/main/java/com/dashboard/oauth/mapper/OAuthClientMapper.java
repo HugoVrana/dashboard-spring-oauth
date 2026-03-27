@@ -12,6 +12,7 @@ public final class OAuthClientMapper implements IOAuthClientMapper {
         OAuthClientRead read = new OAuthClientRead();
         read.setId(oAuthClient.get_id().toHexString());
         read.setRedirectUris(oAuthClient.getRedirectUris());
+        read.setAllowedHosts(oAuthClient.getAllowedHosts());
         read.setAllowedScopes(oAuthClient.getAllowedScopes());
         return read;
     }

@@ -1,7 +1,11 @@
 package com.dashboard.oauth.startup;
 
 import com.dashboard.oauth.dataTransferObject.grant.GrantCreate;
+import com.dashboard.oauth.dataTransferObject.oauthClient.OAuthClientCreate;
+import com.dashboard.oauth.dataTransferObject.oauthClient.OAuthClientCreated;
+import com.dashboard.oauth.repository.IOauthClientRepository;
 import com.dashboard.oauth.service.interfaces.IGrantService;
+import com.dashboard.oauth.service.interfaces.IOAuthClientService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.ApplicationArguments;
@@ -17,6 +21,8 @@ import java.util.List;
 public class OAuthGrantSeeder implements ApplicationRunner {
 
     private final IGrantService grantService;
+    private final IOAuthClientService clientService;
+    private final IOauthClientRepository clientRepository;
 
     private static final List<Map.Entry<String, String>> REQUIRED_GRANTS = List.of(
             Map.entry("dashboard-oauth-grant-create",              "Create OAuth grants"),
@@ -36,7 +42,7 @@ public class OAuthGrantSeeder implements ApplicationRunner {
     @Override
     public void run(ApplicationArguments args) {
         log.info("Checking required OAuth grants...");
-        int created = 0;
+        int grantsCreated = 0;
 
         for (Map.Entry<String, String> entry : REQUIRED_GRANTS) {
             String name = entry.getKey();
@@ -46,14 +52,25 @@ public class OAuthGrantSeeder implements ApplicationRunner {
                 grantCreate.setDescription(entry.getValue());
                 grantService.createGrant(grantCreate);
                 log.info("Created missing grant: {}", name);
-                created++;
+                grantsCreated++;
             }
         }
 
-        if (created == 0) {
+        if (grantsCreated == 0) {
             log.info("All required OAuth grants are present.");
         } else {
-            log.info("Seeded {} missing OAuth grant(s).", created);
+            log.info("Seeded {} missing OAuth grant(s).", grantsCreated);
+        }
+
+        String frontendRedirectUri = "http://localhost:3000/api/auth/callback";
+        if (!clientRepository.existsByRedirectUrisContainingAndAudit_DeletedAtIsNull(frontendRedirectUri)) {
+            OAuthClientCreate oauthClientCreate = new OAuthClientCreate();
+            oauthClientCreate.setRedirectUris(List.of(frontendRedirectUri));
+            oauthClientCreate.setAllowedScopes(List.of("openid", "profile"));
+            OAuthClientCreated clientCreated = clientService.createClient(oauthClientCreate);
+            log.info("Seeded frontend OAuth client. ID: {}, Secret: {}", clientCreated.getId(), clientCreated.getClientSecret());
+        } else {
+            log.info("Frontend OAuth client already exists, skipping.");
         }
     }
 }

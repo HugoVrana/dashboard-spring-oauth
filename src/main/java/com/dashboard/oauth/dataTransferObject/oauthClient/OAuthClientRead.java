@@ -8,5 +8,6 @@ import java.util.List;
 public class OAuthClientRead {
     private String id;
     private List<String> redirectUris;
+    private List<String> allowedHosts;
     private List<String> allowedScopes;
 }

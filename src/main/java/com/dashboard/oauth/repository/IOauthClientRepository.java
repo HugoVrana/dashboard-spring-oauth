@@ -7,4 +7,5 @@ import java.util.Optional;
 
 public interface IOauthClientRepository extends MongoRepository<OAuthClient, ObjectId> {
     Optional<OAuthClient> findBy_idAndAudit_DeletedAtIsNull(ObjectId id);
+    boolean existsByRedirectUrisContainingAndAudit_DeletedAtIsNull(String redirectUri);
 }

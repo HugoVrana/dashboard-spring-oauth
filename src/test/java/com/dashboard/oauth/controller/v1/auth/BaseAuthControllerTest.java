@@ -31,6 +31,10 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.time.Instant;
 import java.util.ArrayList;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.nullable;
+import static org.mockito.Mockito.when;
+
 @Epic("Authentication")
 @Feature( "Authentication")
 @Tag("controller-authentication")
@@ -49,6 +53,9 @@ public abstract class BaseAuthControllerTest {
 
     @MockitoBean
     protected IAuthenticationService authService;
+
+    @MockitoBean
+    protected IOAuthClientService oAuthClientService;
 
     @MockitoBean
     protected IDashboardUserDetailService userDetailsService;
@@ -117,6 +124,9 @@ public abstract class BaseAuthControllerTest {
         testGrantDescription = faker.lorem().sentence();
         testAccessToken = faker.regexify("[a-zA-Z0-9]{32}");
         testRefreshToken = faker.regexify("[a-zA-Z0-9]{32}");
+
+        when(oAuthClientService.isRegisteredClient(nullable(String.class))).thenReturn(true);
+        when(oAuthClientService.isAllowedHost(nullable(String.class), any())).thenReturn(true);
     }
 
     protected User createTestUser() {
