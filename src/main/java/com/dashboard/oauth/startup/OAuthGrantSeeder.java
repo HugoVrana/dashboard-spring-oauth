@@ -67,6 +67,7 @@ public class OAuthGrantSeeder implements ApplicationRunner {
             OAuthClientCreate oauthClientCreate = new OAuthClientCreate();
             oauthClientCreate.setRedirectUris(List.of(frontendRedirectUri));
             oauthClientCreate.setAllowedScopes(List.of("openid", "profile"));
+            oauthClientCreate.setAllowedHosts(List.of("http://localhost:3000"));
             OAuthClientCreated clientCreated = clientService.createClient(oauthClientCreate);
             log.info("Seeded frontend OAuth client. ID: {}, Secret: {}", clientCreated.getId(), clientCreated.getClientSecret());
         } else {

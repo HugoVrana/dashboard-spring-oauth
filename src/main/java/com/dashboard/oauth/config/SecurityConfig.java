@@ -37,6 +37,7 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/v1/auth/**").permitAll()
+                        .requestMatchers("/api/v2/auth/**").permitAll()
                         .requestMatchers("/v2/oauth2/token", "/v2/oauth2/introspect",
                                 "/v2/oauth2/authorize", "/v2/oauth2/authorize/mfa",
                                 "/v2/oauth2/revoke").permitAll()

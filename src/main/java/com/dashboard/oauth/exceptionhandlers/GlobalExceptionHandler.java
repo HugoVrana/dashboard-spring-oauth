@@ -7,6 +7,7 @@ import com.dashboard.common.model.exception.InvalidRequestException;
 import com.dashboard.common.model.exception.NotFoundException;
 import com.dashboard.common.model.exception.ResourceNotFoundException;
 import com.dashboard.common.model.log.ApiCallLog;
+import com.dashboard.oauth.logging.RequestLoggingAttributes;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -34,7 +35,8 @@ public class GlobalExceptionHandler {
     private final ObjectMapper objectMapper;
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    ProblemDetail handleValidation(MethodArgumentNotValidException ex) {
+    ProblemDetail handleValidation(MethodArgumentNotValidException ex, HttpServletRequest request) {
+        annotateException(request, ex);
         var pd = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
         pd.setTitle("Validation failed");
         // Optional: aggregate field errors into pd.setProperty("errors", ...)
@@ -43,7 +45,8 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(ChangeSetPersister.NotFoundException.class)
-    ProblemDetail handleNotFound(ChangeSetPersister.NotFoundException ex) {
+    ProblemDetail handleNotFound(ChangeSetPersister.NotFoundException ex, HttpServletRequest request) {
+        annotateException(request, ex);
         var pd = ProblemDetail.forStatus(HttpStatus.NOT_FOUND);
         pd.setTitle("Resource not found");
         pd.setDetail(ex.getMessage());
@@ -52,12 +55,14 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(InvalidRequestException.class)
-    public ResponseEntity<String> handleInvalidRequest(InvalidRequestException ex) {
+    public ResponseEntity<String> handleInvalidRequest(InvalidRequestException ex, HttpServletRequest request) {
+        annotateException(request, ex);
         return ResponseEntity.badRequest().body(ex.getMessage());
     }
 
     @ExceptionHandler(ConflictException.class)
-    public ProblemDetail handleConflict(ConflictException ex) {
+    public ProblemDetail handleConflict(ConflictException ex, HttpServletRequest request) {
+        annotateException(request, ex);
         var pd = ProblemDetail.forStatus(HttpStatus.CONFLICT);
         pd.setTitle("Conflict");
         pd.setDetail(ex.getMessage());
@@ -65,7 +70,8 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(ResourceNotFoundException.class)
-    public ProblemDetail handleResourceNotFound(ResourceNotFoundException ex) {
+    public ProblemDetail handleResourceNotFound(ResourceNotFoundException ex, HttpServletRequest request) {
+        annotateException(request, ex);
         var pd = ProblemDetail.forStatus(HttpStatus.NOT_FOUND);
         pd.setTitle("Resource not found");
         pd.setDetail(ex.getMessage());
@@ -73,7 +79,8 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(NotFoundException.class)
-    public ProblemDetail handleNotFoundCommon(NotFoundException ex) {
+    public ProblemDetail handleNotFoundCommon(NotFoundException ex, HttpServletRequest request) {
+        annotateException(request, ex);
         var pd = ProblemDetail.forStatus(HttpStatus.NOT_FOUND);
         pd.setTitle("Not found");
         pd.setDetail(ex.getMessage());
@@ -81,7 +88,8 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(ResponseStatusException.class)
-    public ProblemDetail handleResponseStatusException(ResponseStatusException ex) {
+    public ProblemDetail handleResponseStatusException(ResponseStatusException ex, HttpServletRequest request) {
+        annotateException(request, ex);
         var pd = ProblemDetail.forStatus(ex.getStatusCode());
         pd.setTitle(ex.getReason());
         pd.setDetail(ex.getMessage());
@@ -92,6 +100,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleAllExceptions(Exception ex, HttpServletRequest request) {
         log.error("Unhandled exception occurred", ex);
+        annotateException(request, ex);
 
         // Log to Grafana
         try {
@@ -114,7 +123,6 @@ public class GlobalExceptionHandler {
         } catch (Exception loggingEx) {
             log.error("Failed to log exception to Grafana", loggingEx);
         }
-
         Map<String, Object> errorResponse = new HashMap<>();
         errorResponse.put("timestamp", Instant.now().toString());
         errorResponse.put("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
@@ -125,5 +133,9 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(errorResponse);
+    }
+
+    private void annotateException(HttpServletRequest request, Exception ex) {
+        request.setAttribute(RequestLoggingAttributes.EXCEPTION, ex);
     }
 }
