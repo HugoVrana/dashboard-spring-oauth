@@ -21,6 +21,8 @@ public class OAuthClient {
 
     private List<String> redirectUris;
 
+    private List<String> allowedHosts;
+
     private List<String> allowedScopes;
 
     private Audit audit;

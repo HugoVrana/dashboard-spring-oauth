@@ -2,11 +2,13 @@ package com.dashboard.oauth.service;
 
 import com.dashboard.common.model.ActivityEvent;
 import com.dashboard.common.model.Audit;
+import com.dashboard.common.model.exception.InvalidRequestException;
 import com.dashboard.common.model.exception.ResourceNotFoundException;
 import com.dashboard.oauth.authentication.GrantsAuthentication;
 import com.dashboard.oauth.dataTransferObject.oauthClient.OAuthClientCreate;
 import com.dashboard.oauth.dataTransferObject.oauthClient.OAuthClientCreated;
 import com.dashboard.oauth.dataTransferObject.oauthClient.OAuthClientRead;
+import jakarta.servlet.http.HttpServletRequest;
 import com.dashboard.oauth.mapper.interfaces.IOAuthClientMapper;
 import com.dashboard.oauth.model.entities.OAuthClient;
 import com.dashboard.oauth.model.enums.ActivityEventType;
@@ -18,11 +20,14 @@ import org.bson.types.ObjectId;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Base64;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -43,16 +48,32 @@ public class OAuthClientService implements IOAuthClientService {
 
     @Override
     public OAuthClientCreated createClient(OAuthClientCreate request) {
-        String rawSecret = UUID.randomUUID().toString();
+        return createClient(request, UUID.randomUUID().toString());
+    }
+
+    @Override
+    public OAuthClientCreated createClient(OAuthClientCreate request, String rawSecret) {
 
         Instant now = Instant.now();
         Audit audit = new Audit();
         audit.setCreatedAt(now);
         audit.setUpdatedAt(now);
 
+        List<String> allowedHosts = normalizeAllowedHosts(request.getAllowedHosts());
+        List<String> redirectUris = normalizeRedirectUris(request.getRedirectUris());
+        List<String> redirectHosts = redirectUris.stream()
+                .map(this::extractOrigin)
+                .distinct()
+                .toList();
+
+        if (!allowedHosts.containsAll(redirectHosts)) {
+            throw new InvalidRequestException("Every redirect URI host must be included in allowedHosts");
+        }
+
         OAuthClient client = OAuthClient.builder()
                 .clientSecret(passwordEncoder.encode(rawSecret))
-                .redirectUris(request.getRedirectUris())
+                .redirectUris(redirectUris)
+                .allowedHosts(allowedHosts)
                 .allowedScopes(request.getAllowedScopes())
                 .audit(audit)
                 .build();
@@ -64,6 +85,7 @@ public class OAuthClientService implements IOAuthClientService {
         OAuthClientCreated created = new OAuthClientCreated();
         created.setId(client.get_id().toHexString());
         created.setRedirectUris(client.getRedirectUris());
+        created.setAllowedHosts(client.getAllowedHosts());
         created.setAllowedScopes(client.getAllowedScopes());
         created.setClientSecret(rawSecret);
         return created;
@@ -93,6 +115,7 @@ public class OAuthClientService implements IOAuthClientService {
         OAuthClientCreated created = new OAuthClientCreated();
         created.setId(client.get_id().toHexString());
         created.setRedirectUris(client.getRedirectUris());
+        created.setAllowedHosts(client.getAllowedHosts());
         created.setAllowedScopes(client.getAllowedScopes());
         created.setClientSecret(rawSecret);
         return created;
@@ -126,6 +149,32 @@ public class OAuthClientService implements IOAuthClientService {
         }
     }
 
+    @Override
+    public boolean isRegisteredClient(String clientId) {
+        return getActiveClient(clientId).isPresent();
+    }
+
+    @Override
+    public boolean isAllowedHost(String clientId, HttpServletRequest request) {
+        Optional<OAuthClient> optionalOAuthClient = getActiveClient(clientId);
+        if (optionalOAuthClient.isEmpty()) {
+            return false;
+        }
+        OAuthClient client = optionalOAuthClient.get();
+
+        if (client.getAllowedHosts() == null || client.getAllowedHosts().isEmpty()) {
+            return false;
+        }
+
+        String callerHost = extractCallerHost(request);
+        if (callerHost == null) {
+            return false;
+        }
+
+
+        return  client.getAllowedHosts().contains(callerHost);
+    }
+
     private void publishActivityEvent(ActivityEventType type, OAuthClient client) {
         String actorId = null;
         String actorImageUrl = "";
@@ -148,5 +197,73 @@ public class OAuthClientService implements IOAuthClientService {
                 .metadata(metadata)
                 .build();
         activityFeedService.publishEvent(event);
+    }
+
+    private Optional<OAuthClient> getActiveClient(String clientId) {
+        if (clientId == null || !ObjectId.isValid(clientId)) {
+            return Optional.empty();
+        }
+
+        return oauthClientRepository.findBy_idAndAudit_DeletedAtIsNull(new ObjectId(clientId));
+    }
+
+    private List<String> normalizeAllowedHosts(List<String> allowedHosts) {
+        return allowedHosts.stream()
+                .map(this::normalizeOrigin)
+                .distinct()
+                .toList();
+    }
+
+    private List<String> normalizeRedirectUris(List<String> redirectUris) {
+        return redirectUris.stream()
+                .map(this::normalizeAbsoluteUri)
+                .distinct()
+                .toList();
+    }
+
+    private String extractCallerHost(HttpServletRequest request) {
+        String origin = request.getHeader("Origin");
+        if (origin != null && !origin.isBlank()) {
+            return normalizeOrigin(origin);
+        }
+
+        String referer = request.getHeader("Referer");
+        if (referer != null && !referer.isBlank()) {
+            return normalizeOrigin(referer);
+        }
+
+        return null;
+    }
+
+    private String extractOrigin(String uriValue) {
+        return normalizeOrigin(uriValue);
+    }
+
+    private String normalizeAbsoluteUri(String uriValue) {
+        URI uri = parseUri(uriValue, "redirectUri");
+        if (uri.getPath() == null || uri.getPath().isBlank()) {
+            throw new InvalidRequestException("redirectUri must include a path");
+        }
+        return uri.toString();
+    }
+
+    private String normalizeOrigin(String uriValue) {
+        URI uri = parseUri(uriValue, "allowedHost");
+        return uri.getScheme() + "://" + uri.getHost() + (uri.getPort() != -1 ? ":" + uri.getPort() : "");
+    }
+
+    private URI parseUri(String uriValue, String fieldName) {
+        try {
+            URI uri = URI.create(uriValue.trim());
+            if (uri.getScheme() == null || uri.getHost() == null) {
+                throw new InvalidRequestException(fieldName + " must be an absolute http/https URL");
+            }
+            if (!"http".equalsIgnoreCase(uri.getScheme()) && !"https".equalsIgnoreCase(uri.getScheme())) {
+                throw new InvalidRequestException(fieldName + " must use http or https");
+            }
+            return uri;
+        } catch (IllegalArgumentException e) {
+            throw new InvalidRequestException("Invalid " + fieldName + ": " + uriValue);
+        }
     }
 }

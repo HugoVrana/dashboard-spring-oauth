@@ -8,9 +8,11 @@ import com.dashboard.oauth.dataTransferObject.v2.OAuth2ErrorResponse;
 import com.dashboard.oauth.dataTransferObject.v2.SubmitAuthorizeResult;
 import com.dashboard.oauth.dataTransferObject.v2.TokenResponse;
 import com.dashboard.oauth.environment.Oauth2Properties;
+import com.dashboard.oauth.mapper.interfaces.ITokenResponseMapper;
 import com.dashboard.oauth.model.entities.AuthorizationRequest;
 import com.dashboard.oauth.service.interfaces.IAuthorizationService;
 import com.dashboard.oauth.service.interfaces.IAuthenticationService;
+import com.dashboard.oauth.service.interfaces.IOAuthClientService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.headers.Header;
@@ -32,6 +34,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.UriComponentsBuilder;
+import jakarta.servlet.http.HttpServletRequest;
 
 import java.net.URI;
 
@@ -44,6 +47,8 @@ public class TokenController {
 
     private final IAuthorizationService authorizationService;
     private final IAuthenticationService authenticationService;
+    private final IOAuthClientService oAuthClientService;
+    private final ITokenResponseMapper tokenResponseMapper;
     private final Oauth2Properties oauth2Properties;
 
     // -------------------------------------------------------------------------
@@ -66,11 +71,22 @@ public class TokenController {
             @Parameter(description = "PKCE code challenge (RFC 7636)", required = true) @RequestParam("code_challenge") String codeChallenge,
             @Parameter(description = "Must be `S256`", required = true) @RequestParam("code_challenge_method") String codeChallengeMethod,
             @Parameter(description = "Space-separated list of requested scopes") @RequestParam(value = "scope", required = false) String scope,
-            @Parameter(description = "Opaque value for CSRF protection, echoed back on redirect") @RequestParam(value = "state", required = false) String state) {
+            @Parameter(description = "Opaque value for CSRF protection, echoed back on redirect") @RequestParam(value = "state", required = false) String state,
+            HttpServletRequest httpRequest) {
 
         if (!"code".equals(responseType)) {
             return buildErrorRedirect(redirectUri, "unsupported_response_type",
                     "Only response_type=code is supported", state);
+        }
+
+        if (!oAuthClientService.isRegisteredClient(clientId)) {
+            return buildErrorRedirect(redirectUri, "unauthorized_client",
+                    "Unknown client_id", state);
+        }
+
+        if (!oAuthClientService.isAllowedHost(clientId, httpRequest)) {
+            return buildErrorRedirect(redirectUri, "access_denied",
+                    "The request origin is not allowed for this client", state);
         }
 
         try {
@@ -112,7 +128,8 @@ public class TokenController {
     public ResponseEntity<?> submitAuthorize(
             @Parameter(description = "Authorization request ID from the GET /authorize redirect", required = true) @RequestParam("request_id") String requestId,
             @Parameter(description = "User email", required = true) @RequestParam("username") String username,
-            @Parameter(description = "User password", required = true) @RequestParam("password") String password) {
+            @Parameter(description = "User password", required = true) @RequestParam("password") String password,
+            HttpServletRequest httpRequest) {
 
         AuthorizationRequest authRequest;
         try {
@@ -120,6 +137,11 @@ public class TokenController {
         } catch (InvalidRequestException e) {
             return ResponseEntity.badRequest()
                     .body(new OAuth2ErrorResponse("invalid_request", e.getMessage()));
+        }
+
+        if (!oAuthClientService.isAllowedHost(authRequest.getClientId(), httpRequest)) {
+            return buildErrorRedirect(authRequest.getRedirectUri(), "access_denied",
+                    "The request origin is not allowed for this client", authRequest.getState());
         }
 
         SubmitAuthorizeResult result;
@@ -267,7 +289,7 @@ public class TokenController {
         }
         try {
             AuthResponse authResponse = authorizationService.exchangeCode(code, codeVerifier, clientId, redirectUri, clientSecret);
-            return ResponseEntity.ok(mapToTokenResponse(authResponse));
+            return ResponseEntity.ok(tokenResponseMapper.toTokenResponse(authResponse));
         } catch (InvalidRequestException e) {
             return ResponseEntity.badRequest()
                     .body(new OAuth2ErrorResponse("invalid_grant", e.getMessage()));
@@ -281,19 +303,11 @@ public class TokenController {
         }
         try {
             AuthResponse authResponse = authenticationService.refreshToken(refreshToken);
-            return ResponseEntity.ok(mapToTokenResponse(authResponse));
+            return ResponseEntity.ok(tokenResponseMapper.toTokenResponse(authResponse));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest()
                     .body(new OAuth2ErrorResponse("invalid_grant", "Invalid or expired refresh token"));
         }
-    }
-
-    private TokenResponse mapToTokenResponse(AuthResponse authResponse) {
-        TokenResponse tokenResponse = new TokenResponse();
-        tokenResponse.setAccessToken(authResponse.getAccessToken());
-        tokenResponse.setExpiresIn(authResponse.getExpiresIn() / 1000);
-        tokenResponse.setRefreshToken(authResponse.getRefreshToken());
-        return tokenResponse;
     }
 
     private URI buildRedirectUri(String baseUri, String code, String state) {

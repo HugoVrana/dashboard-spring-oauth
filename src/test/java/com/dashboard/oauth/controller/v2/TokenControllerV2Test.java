@@ -8,8 +8,10 @@ import com.dashboard.oauth.dataTransferObject.auth.AuthResponse;
 import com.dashboard.oauth.dataTransferObject.user.UserInfoRead;
 import com.dashboard.oauth.dataTransferObject.v2.IntrospectionResponse;
 import com.dashboard.oauth.dataTransferObject.v2.SubmitAuthorizeResult;
+import com.dashboard.oauth.dataTransferObject.v2.TokenResponse;
 import com.dashboard.oauth.environment.Oauth2Properties;
 import com.dashboard.oauth.filter.JwtAuthFilter;
+import com.dashboard.oauth.mapper.interfaces.ITokenResponseMapper;
 import com.dashboard.oauth.model.entities.AuthorizationCode;
 import com.dashboard.oauth.model.entities.AuthorizationRequest;
 import com.dashboard.oauth.model.entities.TotpConfig;
@@ -17,6 +19,7 @@ import com.dashboard.oauth.model.entities.User;
 import com.dashboard.oauth.service.interfaces.IActivityFeedService;
 import com.dashboard.oauth.service.interfaces.IAuthenticationService;
 import com.dashboard.oauth.service.interfaces.IAuthorizationService;
+import com.dashboard.oauth.service.interfaces.IOAuthClientService;
 import io.qameta.allure.Epic;
 import io.qameta.allure.Feature;
 import org.bson.types.ObjectId;
@@ -72,6 +75,12 @@ class TokenControllerV2Test {
     private IAuthenticationService authenticationService;
 
     @MockitoBean
+    private IOAuthClientService oAuthClientService;
+
+    @MockitoBean
+    private ITokenResponseMapper tokenResponseMapper;
+
+    @MockitoBean
     private Oauth2Properties oauth2Properties;
 
     @MockitoBean
@@ -101,6 +110,16 @@ class TokenControllerV2Test {
         testUserId = new ObjectId();
         when(oauth2Properties.getSecret()).thenReturn(SERVICE_SECRET);
         when(oauth2Properties.getLoginUrl()).thenReturn(LOGIN_URL);
+        when(oAuthClientService.isRegisteredClient(any())).thenReturn(true);
+        when(oAuthClientService.isAllowedHost(any(), any())).thenReturn(true);
+        when(tokenResponseMapper.toTokenResponse(any())).thenAnswer(invocation -> {
+            AuthResponse authResponse = invocation.getArgument(0);
+            TokenResponse tokenResponse = new TokenResponse();
+            tokenResponse.setAccessToken(authResponse.getAccessToken());
+            tokenResponse.setRefreshToken(authResponse.getRefreshToken());
+            tokenResponse.setExpiresIn(authResponse.getExpiresIn() / 1000);
+            return tokenResponse;
+        });
     }
 
     // -------------------------------------------------------------------------
@@ -155,6 +174,22 @@ class TokenControllerV2Test {
                 .andExpect(status().isFound())
                 .andExpect(header().string("Location",
                         org.hamcrest.Matchers.containsString("error=invalid_request")));
+    }
+
+    @Test
+    @DisplayName("GET /v2/oauth2/authorize with blocked host → 302 access_denied redirect")
+    void authorize_get_blockedHost() throws Exception {
+        when(oAuthClientService.isAllowedHost(eq(CLIENT_ID), any())).thenReturn(false);
+
+        mockMvc.perform(get("/v2/oauth2/authorize")
+                        .param("response_type", "code")
+                        .param("client_id", CLIENT_ID)
+                        .param("redirect_uri", REDIRECT_URI)
+                        .param("code_challenge", CODE_CHALLENGE)
+                        .param("code_challenge_method", "S256"))
+                .andExpect(status().isFound())
+                .andExpect(header().string("Location",
+                        org.hamcrest.Matchers.containsString("error=access_denied")));
     }
 
     // -------------------------------------------------------------------------
@@ -235,6 +270,24 @@ class TokenControllerV2Test {
                         .param("password", "Password1!"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("invalid_request"));
+    }
+
+    @Test
+    @DisplayName("POST /v2/oauth2/authorize with blocked host → 302 access_denied redirect")
+    void authorize_post_blockedHost() throws Exception {
+        AuthorizationRequest authRequest = buildAuthorizationRequest(null);
+        when(authorizationService.getAuthorizationRequest(authRequest.getId().toHexString()))
+                .thenReturn(authRequest);
+        when(oAuthClientService.isAllowedHost(eq(CLIENT_ID), any())).thenReturn(false);
+
+        mockMvc.perform(post("/v2/oauth2/authorize")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                        .param("request_id", authRequest.getId().toHexString())
+                        .param("username", "user@example.com")
+                        .param("password", "Password1!"))
+                .andExpect(status().isFound())
+                .andExpect(header().string("Location",
+                        org.hamcrest.Matchers.containsString("error=access_denied")));
     }
 
     // -------------------------------------------------------------------------

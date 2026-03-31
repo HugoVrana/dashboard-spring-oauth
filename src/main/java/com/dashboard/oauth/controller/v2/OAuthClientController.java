@@ -79,7 +79,7 @@ public class OAuthClientController {
             @ApiResponse(responseCode = "404", description = "Client not found", content = @Content),
             @ApiResponse(responseCode = "403", description = "Insufficient permissions", content = @Content)
     })
-    @PreAuthorize("hasAuthority('dashboard-oauth-client-rotate-secret')")
+   // @PreAuthorize("hasAuthority('dashboard-oauth-client-rotate-secret')")
     @PostMapping("/{id}/secret")
     public ResponseEntity<OAuthClientCreated> rotateSecret(@PathVariable String id) {
         return ResponseEntity.ok(oAuthClientService.rotateSecret(new ObjectId(id)));

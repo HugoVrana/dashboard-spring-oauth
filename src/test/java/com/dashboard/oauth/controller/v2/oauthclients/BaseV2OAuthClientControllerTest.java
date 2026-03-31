@@ -73,11 +73,13 @@ public abstract class BaseV2OAuthClientControllerTest {
         testClientRead = new OAuthClientRead();
         testClientRead.setId(testClientId);
         testClientRead.setRedirectUris(List.of("https://app.example.com/callback"));
+        testClientRead.setAllowedHosts(List.of("https://app.example.com"));
         testClientRead.setAllowedScopes(List.of("openid", "profile"));
 
         testClientCreated = new OAuthClientCreated();
         testClientCreated.setId(testClientId);
         testClientCreated.setRedirectUris(List.of("https://app.example.com/callback"));
+        testClientCreated.setAllowedHosts(List.of("https://app.example.com"));
         testClientCreated.setAllowedScopes(List.of("openid", "profile"));
         testClientCreated.setClientSecret(testClientSecret);
     }

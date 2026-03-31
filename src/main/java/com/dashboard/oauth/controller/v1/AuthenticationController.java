@@ -169,4 +169,5 @@ public class AuthenticationController {
     public ResponseEntity<UserInfoRead> getCurrentUser(Authentication authentication) {
         return ResponseEntity.ok(authService.getCurrentUser(authentication));
     }
+
 }

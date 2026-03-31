@@ -1,6 +1,7 @@
 package com.dashboard.oauth.service;
 
 import com.dashboard.common.model.Audit;
+import com.dashboard.common.model.exception.InvalidRequestException;
 import com.dashboard.common.model.exception.ResourceNotFoundException;
 import com.dashboard.oauth.dataTransferObject.oauthClient.OAuthClientCreate;
 import com.dashboard.oauth.dataTransferObject.oauthClient.OAuthClientCreated;
@@ -22,6 +23,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.mock.web.MockHttpServletRequest;
 
 import java.time.Instant;
 import java.util.List;
@@ -71,6 +73,7 @@ class OAuthClientServiceTest {
                 ._id(testClientId)
                 .clientSecret("hashed-secret")
                 .redirectUris(List.of("https://app.example.com/callback"))
+                .allowedHosts(List.of("https://app.example.com"))
                 .allowedScopes(List.of("openid", "profile"))
                 .audit(audit)
                 .build();
@@ -107,6 +110,7 @@ class OAuthClientServiceTest {
     void createClient_shouldReturnCreatedWithRawSecret() {
         OAuthClientCreate request = new OAuthClientCreate();
         request.setRedirectUris(List.of("https://app.example.com/callback"));
+        request.setAllowedHosts(List.of("https://app.example.com"));
         request.setAllowedScopes(List.of("openid", "profile"));
 
         when(passwordEncoder.encode(anyString())).thenReturn("hashed-secret");
@@ -121,6 +125,7 @@ class OAuthClientServiceTest {
         verify(oauthClientRepository).save(captor.capture());
         assertThat(captor.getValue().getClientSecret()).isEqualTo("hashed-secret");
         assertThat(captor.getValue().getRedirectUris()).containsExactly("https://app.example.com/callback");
+        assertThat(captor.getValue().getAllowedHosts()).containsExactly("https://app.example.com");
     }
 
     @Test
@@ -128,6 +133,7 @@ class OAuthClientServiceTest {
     void createClient_rawSecretShouldDifferFromStoredHash() {
         OAuthClientCreate request = new OAuthClientCreate();
         request.setRedirectUris(List.of("https://app.example.com/callback"));
+        request.setAllowedHosts(List.of("https://app.example.com"));
         request.setAllowedScopes(List.of("openid"));
 
         when(passwordEncoder.encode(anyString())).thenReturn("hashed-secret");
@@ -136,6 +142,19 @@ class OAuthClientServiceTest {
         OAuthClientCreated result = oAuthClientService.createClient(request);
 
         assertThat(result.getClientSecret()).isNotEqualTo("hashed-secret");
+    }
+
+    @Test
+    @DisplayName("createClient throws when redirect URI host is missing from allowed hosts")
+    void createClient_shouldThrow_whenRedirectHostNotAllowed() {
+        OAuthClientCreate request = new OAuthClientCreate();
+        request.setRedirectUris(List.of("https://app.example.com/callback"));
+        request.setAllowedHosts(List.of("https://other.example.com"));
+        request.setAllowedScopes(List.of("openid"));
+
+        assertThatThrownBy(() -> oAuthClientService.createClient(request))
+                .isInstanceOf(InvalidRequestException.class)
+                .hasMessageContaining("redirect URI host");
     }
 
     @Test
@@ -234,5 +253,50 @@ class OAuthClientServiceTest {
         assertThat(oAuthClientService.validateClientCredentials(null)).isFalse();
         assertThat(oAuthClientService.validateClientCredentials("Bearer token")).isFalse();
         assertThat(oAuthClientService.validateClientCredentials("Basic !!!not-base64!!!")).isFalse();
+    }
+
+    @Test
+    @DisplayName("isRegisteredClient returns true when client exists")
+    void isRegisteredClient_shouldReturnTrue_whenClientExists() {
+        when(oauthClientRepository.findBy_idAndAudit_DeletedAtIsNull(testClientId))
+                .thenReturn(Optional.of(testClient));
+
+        assertThat(oAuthClientService.isRegisteredClient(testClientId.toHexString())).isTrue();
+    }
+
+    @Test
+    @DisplayName("isAllowedHost returns true when Origin matches allowed host")
+    void isAllowedHost_shouldReturnTrue_whenOriginMatches() {
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.addHeader("Origin", "https://app.example.com");
+
+        when(oauthClientRepository.findBy_idAndAudit_DeletedAtIsNull(testClientId))
+                .thenReturn(Optional.of(testClient));
+
+        assertThat(oAuthClientService.isAllowedHost(testClientId.toHexString(), request)).isTrue();
+    }
+
+    @Test
+    @DisplayName("isAllowedHost returns true when Referer matches allowed host")
+    void isAllowedHost_shouldReturnTrue_whenRefererMatches() {
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.addHeader("Referer", "https://app.example.com/login");
+
+        when(oauthClientRepository.findBy_idAndAudit_DeletedAtIsNull(testClientId))
+                .thenReturn(Optional.of(testClient));
+
+        assertThat(oAuthClientService.isAllowedHost(testClientId.toHexString(), request)).isTrue();
+    }
+
+    @Test
+    @DisplayName("isAllowedHost returns false when host is not allowed")
+    void isAllowedHost_shouldReturnFalse_whenOriginDoesNotMatch() {
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.addHeader("Origin", "https://evil.example.com");
+
+        when(oauthClientRepository.findBy_idAndAudit_DeletedAtIsNull(testClientId))
+                .thenReturn(Optional.of(testClient));
+
+        assertThat(oAuthClientService.isAllowedHost(testClientId.toHexString(), request)).isFalse();
     }
 }
