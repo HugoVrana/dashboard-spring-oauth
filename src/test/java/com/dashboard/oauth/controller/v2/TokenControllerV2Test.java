@@ -131,7 +131,7 @@ class TokenControllerV2Test {
     void authorize_get_success() throws Exception {
         AuthorizationRequest request = buildAuthorizationRequest(null);
         when(authorizationService.createAuthorizationRequest(
-                eq(CLIENT_ID), eq(REDIRECT_URI), eq(CODE_CHALLENGE), eq("S256"), any(), any()))
+                eq(CLIENT_ID), eq(REDIRECT_URI), eq(CODE_CHALLENGE), eq("S256"), any(), any(), any()))
                 .thenReturn(request);
 
         mockMvc.perform(get("/v2/oauth2/authorize")
@@ -162,7 +162,7 @@ class TokenControllerV2Test {
     @Test
     @DisplayName("GET /v2/oauth2/authorize with unknown client → 302 error redirect")
     void authorize_get_unknownClient() throws Exception {
-        when(authorizationService.createAuthorizationRequest(any(), any(), any(), any(), any(), any()))
+        when(authorizationService.createAuthorizationRequest(any(), any(), any(), any(), any(), any(), any()))
                 .thenThrow(new InvalidRequestException("Unknown client_id"));
 
         mockMvc.perform(get("/v2/oauth2/authorize")

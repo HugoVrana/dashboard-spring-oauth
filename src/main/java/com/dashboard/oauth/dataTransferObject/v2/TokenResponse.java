@@ -1,9 +1,11 @@
 package com.dashboard.oauth.dataTransferObject.v2;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 @Data
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class TokenResponse {
 
     @JsonProperty("access_token")
@@ -17,4 +19,7 @@ public class TokenResponse {
 
     @JsonProperty("refresh_token")
     private String refreshToken;
+
+    @JsonProperty("id_token")
+    private String idToken;
 }

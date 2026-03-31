@@ -72,6 +72,7 @@ public class TokenController {
             @Parameter(description = "Must be `S256`", required = true) @RequestParam("code_challenge_method") String codeChallengeMethod,
             @Parameter(description = "Space-separated list of requested scopes") @RequestParam(value = "scope", required = false) String scope,
             @Parameter(description = "Opaque value for CSRF protection, echoed back on redirect") @RequestParam(value = "state", required = false) String state,
+            @Parameter(description = "OpenID Connect nonce for id_token replay protection") @RequestParam(value = "nonce", required = false) String nonce,
             HttpServletRequest httpRequest) {
 
         if (!"code".equals(responseType)) {
@@ -91,7 +92,7 @@ public class TokenController {
 
         try {
             AuthorizationRequest request = authorizationService.createAuthorizationRequest(
-                    clientId, redirectUri, codeChallenge, codeChallengeMethod, scope, state);
+                    clientId, redirectUri, codeChallenge, codeChallengeMethod, scope, state, nonce);
 
             String loginUrl = oauth2Properties.getLoginUrl()
                     + "?request_id=" + request.getId().toHexString();

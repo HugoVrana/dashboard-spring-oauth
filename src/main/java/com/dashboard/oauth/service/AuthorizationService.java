@@ -78,7 +78,8 @@ public class AuthorizationService implements IAuthorizationService {
             String codeChallenge,
             String codeChallengeMethod,
             String scope,
-            String state) {
+            String state,
+            String nonce) {
 
         OAuthClient client = clientRepository.findBy_idAndAudit_DeletedAtIsNull(new org.bson.types.ObjectId(clientId))
                 .orElseThrow(() -> new InvalidRequestException("Unknown client_id"));
@@ -114,6 +115,7 @@ public class AuthorizationService implements IAuthorizationService {
                 .codeChallengeMethod(codeChallengeMethod)
                 .scope(scope)
                 .state(state)
+                .nonce(nonce)
                 .used(false)
                 .expiryDate(Instant.now().plusSeconds(AUTH_REQUEST_TTL_SECONDS))
                 .audit(audit)
@@ -148,6 +150,7 @@ public class AuthorizationService implements IAuthorizationService {
                 .codeChallengeMethod(request.getCodeChallengeMethod())
                 .scope(request.getScope())
                 .state(request.getState())
+                .nonce(request.getNonce())
                 .used(false)
                 .expiryDate(Instant.now().plusSeconds(AUTH_CODE_TTL_SECONDS))
                 .audit(audit)
@@ -239,11 +242,18 @@ public class AuthorizationService implements IAuthorizationService {
                 .build();
         refreshTokenRepository.save(refreshToken);
 
+        String idToken = null;
+        String scope = authCode.getScope();
+        if (scope != null && List.of(scope.split(" ")).contains("openid")) {
+            idToken = jwtService.generateIdToken(userInfo, authCode.getClientId(), authCode.getNonce());
+        }
+
         AuthResponse response = new AuthResponse();
         response.setUser(userInfoMapper.toRead(userInfo));
         response.setAccessToken(accessToken);
         response.setRefreshToken(refreshTokenId.toHexString());
         response.setExpiresIn(jwtProperties.getExpiration());
+        response.setIdToken(idToken);
         return response;
     }
 

@@ -1,7 +1,10 @@
 package com.dashboard.oauth.service;
 
+import com.dashboard.oauth.config.RsaKeyPair;
 import com.dashboard.oauth.environment.JWTProperties;
+import com.dashboard.oauth.environment.OidcProperties;
 import com.dashboard.oauth.model.UserInfo;
+import com.dashboard.oauth.repository.IServerKeyRepository;
 import com.dashboard.oauth.model.entities.Grant;
 import com.dashboard.oauth.model.entities.Role;
 import io.jsonwebtoken.Claims;
@@ -16,6 +19,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @DisplayName("JWT Service")
 class JwtServiceTest {
@@ -25,11 +30,15 @@ class JwtServiceTest {
     private static final Long TEST_EXPIRATION = 86400000L; // 24 hours
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws Exception {
         JWTProperties jwtProperties = new JWTProperties();
         jwtProperties.setSecret(TEST_SECRET);
         jwtProperties.setExpiration(TEST_EXPIRATION);
-        jwtService = new JwtService(jwtProperties);
+        OidcProperties oidcProperties = new OidcProperties();
+        oidcProperties.setIssuer("http://localhost:8081");
+        IServerKeyRepository repo = mock(IServerKeyRepository.class);
+        when(repo.findAll()).thenReturn(List.of());
+        jwtService = new JwtService(jwtProperties, oidcProperties, new RsaKeyPair(repo));
     }
 
     @Test
@@ -127,12 +136,16 @@ class JwtServiceTest {
 
     @Test
     @DisplayName("Should validate JWT token")
-    void validateToken_shouldReturnFalseForExpiredToken() {
+    void validateToken_shouldReturnFalseForExpiredToken() throws Exception {
         // Create a new JwtService with a very short expiration
         JWTProperties shortExpirationProps = new JWTProperties();
         shortExpirationProps.setSecret(TEST_SECRET);
         shortExpirationProps.setExpiration(1L); // 1ms
-        JwtService shortExpirationJwtService = new JwtService(shortExpirationProps);
+        OidcProperties oidcProperties = new OidcProperties();
+        oidcProperties.setIssuer("http://localhost:8081");
+        IServerKeyRepository repo = mock(IServerKeyRepository.class);
+        when(repo.findAll()).thenReturn(List.of());
+        JwtService shortExpirationJwtService = new JwtService(shortExpirationProps, oidcProperties, new RsaKeyPair(repo));
 
         UserInfo userInfo = createTestUserInfo();
         String token = shortExpirationJwtService.generateToken(userInfo);

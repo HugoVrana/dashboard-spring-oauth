@@ -28,6 +28,7 @@ public class AuthorizationCode {
     private String codeChallengeMethod;
     private String scope;
     private String state;
+    private String nonce;
     private boolean used;
 
     @Indexed(expireAfter = "0")
