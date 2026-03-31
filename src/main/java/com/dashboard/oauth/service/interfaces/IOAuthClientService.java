@@ -11,6 +11,8 @@ public interface IOAuthClientService {
 
     OAuthClientCreated createClient(OAuthClientCreate client);
 
+    OAuthClientCreated createClient(OAuthClientCreate client, String rawSecret);
+
     void deleteClient(ObjectId clientId);
 
     OAuthClientCreated rotateSecret(ObjectId clientId);

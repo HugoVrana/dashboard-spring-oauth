@@ -48,7 +48,11 @@ public class OAuthClientService implements IOAuthClientService {
 
     @Override
     public OAuthClientCreated createClient(OAuthClientCreate request) {
-        String rawSecret = UUID.randomUUID().toString();
+        return createClient(request, UUID.randomUUID().toString());
+    }
+
+    @Override
+    public OAuthClientCreated createClient(OAuthClientCreate request, String rawSecret) {
 
         Instant now = Instant.now();
         Audit audit = new Audit();
