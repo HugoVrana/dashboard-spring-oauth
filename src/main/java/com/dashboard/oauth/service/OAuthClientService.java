@@ -152,8 +152,13 @@ public class OAuthClientService implements IOAuthClientService {
 
     @Override
     public boolean isAllowedHost(String clientId, HttpServletRequest request) {
-        Optional<OAuthClient> client = getActiveClient(clientId);
-        if (client.isEmpty()) {
+        Optional<OAuthClient> optionalOAuthClient = getActiveClient(clientId);
+        if (optionalOAuthClient.isEmpty()) {
+            return false;
+        }
+        OAuthClient client = optionalOAuthClient.get();
+
+        if (client.getAllowedHosts() == null || client.getAllowedHosts().isEmpty()) {
             return false;
         }
 
@@ -162,8 +167,8 @@ public class OAuthClientService implements IOAuthClientService {
             return false;
         }
 
-        return client.get().getAllowedHosts() != null
-                && client.get().getAllowedHosts().contains(callerHost);
+
+        return  client.getAllowedHosts().contains(callerHost);
     }
 
     private void publishActivityEvent(ActivityEventType type, OAuthClient client) {

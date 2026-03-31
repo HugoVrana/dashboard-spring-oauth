@@ -3,15 +3,18 @@ package com.dashboard.oauth.startup;
 import com.dashboard.oauth.dataTransferObject.grant.GrantCreate;
 import com.dashboard.oauth.dataTransferObject.oauthClient.OAuthClientCreate;
 import com.dashboard.oauth.dataTransferObject.oauthClient.OAuthClientCreated;
+import com.dashboard.oauth.dataTransferObject.oauthClient.OAuthClientRead;
 import com.dashboard.oauth.repository.IOauthClientRepository;
 import com.dashboard.oauth.service.interfaces.IGrantService;
 import com.dashboard.oauth.service.interfaces.IOAuthClientService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.bson.types.ObjectId;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.List;
 
@@ -62,10 +65,18 @@ public class OAuthGrantSeeder implements ApplicationRunner {
             log.info("Seeded {} missing OAuth grant(s).", grantsCreated);
         }
 
-        String frontendRedirectUri = "http://localhost:3000/api/auth/callback";
-        if (!clientRepository.existsByRedirectUrisContainingAndAudit_DeletedAtIsNull(frontendRedirectUri)) {
+        final List<String> frontendRedirectUris = List.of(
+                "http://localhost:3000/api/auth/callback",
+                "http://localhost:3000/api/auth/callback/dashboard-oauth"
+        );
+        boolean allUrlsExists = true;
+        for (String frontendRedirectUri : frontendRedirectUris) {
+            boolean exists = clientRepository.existsByRedirectUrisContainingAndAudit_DeletedAtIsNull(frontendRedirectUri);
+            allUrlsExists = allUrlsExists && exists;
+        }
+        if (!allUrlsExists) {
             OAuthClientCreate oauthClientCreate = new OAuthClientCreate();
-            oauthClientCreate.setRedirectUris(List.of(frontendRedirectUri));
+            oauthClientCreate.setRedirectUris(frontendRedirectUris);
             oauthClientCreate.setAllowedScopes(List.of("openid", "profile"));
             oauthClientCreate.setAllowedHosts(List.of("http://localhost:3000"));
             OAuthClientCreated clientCreated = clientService.createClient(oauthClientCreate);

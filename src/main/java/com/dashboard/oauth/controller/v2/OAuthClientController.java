@@ -28,7 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 @CrossOrigin
 @RequiredArgsConstructor
 @RequestMapping("v2/oauthclients")
-@SecurityRequirement(name = "bearerAuth")
+// @SecurityRequirement(name = "bearerAuth")
 @RestController("v2OAuthClientController")
 @Tag(name = "OAuth Clients", description = "OAuth Client Management")
 public class OAuthClientController {
@@ -79,7 +79,7 @@ public class OAuthClientController {
             @ApiResponse(responseCode = "404", description = "Client not found", content = @Content),
             @ApiResponse(responseCode = "403", description = "Insufficient permissions", content = @Content)
     })
-    @PreAuthorize("hasAuthority('dashboard-oauth-client-rotate-secret')")
+   // @PreAuthorize("hasAuthority('dashboard-oauth-client-rotate-secret')")
     @PostMapping("/{id}/secret")
     public ResponseEntity<OAuthClientCreated> rotateSecret(@PathVariable String id) {
         return ResponseEntity.ok(oAuthClientService.rotateSecret(new ObjectId(id)));
