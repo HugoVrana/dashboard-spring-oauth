@@ -10,7 +10,6 @@ import com.dashboard.oauth.dataTransferObject.auth.TokenValidationResponse;
 import com.dashboard.oauth.dataTransferObject.role.AddRoleRequest;
 import com.dashboard.oauth.dataTransferObject.user.UserInfoRead;
 import com.dashboard.oauth.service.interfaces.IAuthenticationService;
-import com.dashboard.oauth.service.interfaces.IOAuthClientService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -31,10 +30,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
-import jakarta.servlet.http.HttpServletRequest;
 import java.net.URI;
-import org.springframework.http.HttpStatus;
 
 @CrossOrigin
 @RestController
@@ -44,7 +40,6 @@ import org.springframework.http.HttpStatus;
 public class AuthenticationController {
 
     private final IAuthenticationService authService;
-    private final IOAuthClientService oAuthClientService;
 
     @Operation(summary = "Register a new user", description = "Creates a new user account with email, password, and role")
     @ApiResponses({
@@ -54,8 +49,7 @@ public class AuthenticationController {
             @ApiResponse(responseCode = "409", description = "User with this email already exists")
     })
     @PostMapping("/register")
-    public ResponseEntity<UserInfoRead> register(@Valid @RequestBody RegisterRequest request, HttpServletRequest httpRequest) {
-        validateClientAccess(httpRequest);
+    public ResponseEntity<UserInfoRead> register(@Valid @RequestBody RegisterRequest request) {
         UserInfoRead response = authService.register(request);
         URI location = URI.create("/api/auth/register");
         return ResponseEntity.created(location).body(response);
@@ -69,8 +63,7 @@ public class AuthenticationController {
             @ApiResponse(responseCode = "423", description = "Account is locked")
     })
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request, HttpServletRequest httpRequest) {
-        validateClientAccess(httpRequest);
+    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
         return ResponseEntity.ok(authService.login(request));
     }
 
@@ -81,8 +74,7 @@ public class AuthenticationController {
             @ApiResponse(responseCode = "400", description = "Invalid or expired refresh token")
     })
     @PostMapping("/refresh")
-    public ResponseEntity<AuthResponse> refresh(@Valid @RequestBody RefreshTokenRequest request, HttpServletRequest httpRequest) {
-        validateClientAccess(httpRequest);
+    public ResponseEntity<AuthResponse> refresh(@Valid @RequestBody RefreshTokenRequest request) {
         return ResponseEntity.ok(authService.refreshToken(request.getRefreshToken()));
     }
 
@@ -95,9 +87,7 @@ public class AuthenticationController {
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(
             @Parameter(description = "Bearer token", required = true)
-            @RequestHeader("Authorization") String authHeader,
-            HttpServletRequest httpRequest) {
-        validateClientAccess(httpRequest);
+            @RequestHeader("Authorization") String authHeader) {
         authService.logout(authHeader);
         return ResponseEntity.ok().build();
     }
@@ -110,9 +100,7 @@ public class AuthenticationController {
     @PostMapping("/verify-email")
     public ResponseEntity<Void> verifyEmail(
             @Parameter(description = "Email verification token", required = true)
-            @RequestParam String token,
-            HttpServletRequest httpRequest) {
-        validateClientAccess(httpRequest);
+            @RequestParam String token) {
         authService.verifyEmail(token);
         return ResponseEntity.ok().build();
     }
@@ -122,8 +110,7 @@ public class AuthenticationController {
             @ApiResponse(responseCode = "200", description = "Password reset email sent if account exists")
     })
     @PostMapping("/forgot-password")
-    public ResponseEntity<Void> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request, HttpServletRequest httpRequest) {
-        validateClientAccess(httpRequest);
+    public ResponseEntity<Void> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
         authService.forgotPassword(request.getEmail());
         return ResponseEntity.ok().build();
     }
@@ -134,8 +121,7 @@ public class AuthenticationController {
             @ApiResponse(responseCode = "400", description = "Invalid or expired reset token")
     })
     @PostMapping("/reset-password")
-    public ResponseEntity<Void> resetPassword(@Valid @RequestBody ResetPasswordRequest request, HttpServletRequest httpRequest) {
-        validateClientAccess(httpRequest);
+    public ResponseEntity<Void> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
         authService.resetPassword(request.getToken(), request.getNewPassword());
         return ResponseEntity.ok().build();
     }
@@ -150,9 +136,7 @@ public class AuthenticationController {
     @GetMapping("/validate-reset-token")
     public ResponseEntity<TokenValidationResponse> validateResetToken(
             @Parameter(description = "Password reset token", required = true)
-            @RequestParam String token,
-            HttpServletRequest httpRequest) {
-        validateClientAccess(httpRequest);
+            @RequestParam String token) {
         boolean isValid = authService.validatePasswordResetToken(token);
         if (isValid) {
             return ResponseEntity.ok(TokenValidationResponse.valid());
@@ -170,8 +154,7 @@ public class AuthenticationController {
             @ApiResponse(responseCode = "409", description = "User already has this role")
     })
     @PostMapping("/user/role")
-    public ResponseEntity<AuthResponse> addUserRole(@Valid @RequestBody AddRoleRequest request, HttpServletRequest httpRequest) {
-        validateClientAccess(httpRequest);
+    public ResponseEntity<AuthResponse> addUserRole(@Valid @RequestBody AddRoleRequest request) {
         return ResponseEntity.ok(authService.addUserRole(request));
     }
 
@@ -183,18 +166,8 @@ public class AuthenticationController {
             @ApiResponse(responseCode = "401", description = "Unauthorized")
     })
     @GetMapping("/me")
-    public ResponseEntity<UserInfoRead> getCurrentUser(Authentication authentication, HttpServletRequest httpRequest) {
-        validateClientAccess(httpRequest);
+    public ResponseEntity<UserInfoRead> getCurrentUser(Authentication authentication) {
         return ResponseEntity.ok(authService.getCurrentUser(authentication));
     }
 
-    private void validateClientAccess(HttpServletRequest request) {
-        String clientId = request.getHeader("X-Client-Id");
-        if (!oAuthClientService.isRegisteredClient(clientId)) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "A registered X-Client-Id header is required");
-        }
-        if (!oAuthClientService.isAllowedHost(clientId, request)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "The request origin is not allowed for this client");
-        }
-    }
 }
