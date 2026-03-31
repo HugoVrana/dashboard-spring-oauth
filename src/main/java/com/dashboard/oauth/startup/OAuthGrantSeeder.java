@@ -3,18 +3,14 @@ package com.dashboard.oauth.startup;
 import com.dashboard.oauth.dataTransferObject.grant.GrantCreate;
 import com.dashboard.oauth.dataTransferObject.oauthClient.OAuthClientCreate;
 import com.dashboard.oauth.dataTransferObject.oauthClient.OAuthClientCreated;
-import com.dashboard.oauth.dataTransferObject.oauthClient.OAuthClientRead;
 import com.dashboard.oauth.repository.IOauthClientRepository;
 import com.dashboard.oauth.service.interfaces.IGrantService;
 import com.dashboard.oauth.service.interfaces.IOAuthClientService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.bson.types.ObjectId;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
-
-import java.util.ArrayList;
 import java.util.Map;
 import java.util.List;
 
