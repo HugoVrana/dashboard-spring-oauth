@@ -167,3 +167,4 @@ Key properties in `application.properties`:
 - Map entities to DTOs through mapper interfaces
 - Global exception handling via GlobalExceptionHandler with ProblemDetail responses
 - Check for soft-deleted entities (deletedAt != null) in queries
+- Instead of using @Getter and @Setter annotations both at once, use @Data

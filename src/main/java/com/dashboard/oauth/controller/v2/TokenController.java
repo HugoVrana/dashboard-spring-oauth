@@ -2,6 +2,7 @@ package com.dashboard.oauth.controller.v2;
 
 import com.dashboard.common.model.exception.InvalidRequestException;
 import com.dashboard.oauth.dataTransferObject.auth.AuthResponse;
+import com.dashboard.oauth.dataTransferObject.v2.AuthorizeRequest;
 import com.dashboard.oauth.dataTransferObject.v2.IntrospectionResponse;
 import com.dashboard.oauth.dataTransferObject.v2.MfaRequiredResponse;
 import com.dashboard.oauth.dataTransferObject.v2.OAuth2ErrorResponse;
@@ -64,48 +65,36 @@ public class TokenController {
                     headers = @Header(name = "Location", description = "Login URL with request_id, or redirect_uri with error params"))
     })
     @GetMapping("/authorize")
-    public ResponseEntity<?> authorize(
-            @Parameter(description = "Must be `code`", required = true) @RequestParam("response_type") String responseType,
-            @Parameter(description = "Client identifier", required = true) @RequestParam("client_id") String clientId,
-            @Parameter(description = "Registered redirect URI", required = true) @RequestParam("redirect_uri") String redirectUri,
-            @Parameter(description = "PKCE code challenge (RFC 7636)", required = true) @RequestParam("code_challenge") String codeChallenge,
-            @Parameter(description = "Must be `S256`", required = true) @RequestParam("code_challenge_method") String codeChallengeMethod,
-            @Parameter(description = "Space-separated list of requested scopes") @RequestParam(value = "scope", required = false) String scope,
-            @Parameter(description = "Opaque value for CSRF protection, echoed back on redirect") @RequestParam(value = "state", required = false) String state,
-            @Parameter(description = "OpenID Connect nonce for id_token replay protection") @RequestParam(value = "nonce", required = false) String nonce,
-            HttpServletRequest httpRequest) {
+    public ResponseEntity<?> authorize(AuthorizeRequest req, HttpServletRequest httpRequest) {
 
-        if (!"code".equals(responseType)) {
-            return buildErrorRedirect(redirectUri, "unsupported_response_type",
-                    "Only response_type=code is supported", state);
+        if (!"code".equals(req.getResponse_type())) {
+            return buildErrorRedirect(req.getRedirect_uri(), "unsupported_response_type",
+                    "Only response_type=code is supported", req.getState());
         }
 
-        if (!oAuthClientService.isRegisteredClient(clientId)) {
-            return buildErrorRedirect(redirectUri, "unauthorized_client",
-                    "Unknown client_id", state);
+        if (!oAuthClientService.isRegisteredClient(req.getClient_id())) {
+            return buildErrorRedirect(req.getRedirect_uri(), "unauthorized_client",
+                    "Unknown client_id", req.getState());
         }
 
-        if (!oAuthClientService.isAllowedHost(clientId, httpRequest)) {
-            return buildErrorRedirect(redirectUri, "access_denied",
-                    "The request origin is not allowed for this client", state);
+        if (!oAuthClientService.isAllowedHost(req.getClient_id(), httpRequest)) {
+            return buildErrorRedirect(req.getRedirect_uri(), "access_denied",
+                    "The request origin is not allowed for this client", req.getState());
         }
 
         try {
             AuthorizationRequest request = authorizationService.createAuthorizationRequest(
-                    clientId, redirectUri, codeChallenge, codeChallengeMethod, scope, state, nonce);
+                    req.getClient_id(), req.getRedirect_uri(), req.getCode_challenge(),
+                    req.getCode_challenge_method(), req.getScope(), req.getState(), req.getNonce());
 
-            String loginUrl = oauth2Properties.getLoginUrl()
-                    + "?request_id=" + request.getId().toHexString();
-            if (state != null) {
-                loginUrl += "&state=" + state;
-            }
+            URI loginUrl = UriComponentsBuilder.fromUriString(oauth2Properties.getLoginUrl())
+                    .queryParam("request_id", request.getId().toHexString())
+                    .queryParamIfPresent("state", java.util.Optional.ofNullable(req.getState()))
+                    .build().toUri();
 
-            return ResponseEntity.status(HttpStatus.FOUND)
-                    .location(URI.create(loginUrl))
-                    .build();
-
+            return ResponseEntity.status(HttpStatus.FOUND).location(loginUrl).build();
         } catch (InvalidRequestException e) {
-            return buildErrorRedirect(redirectUri, "invalid_request", e.getMessage(), state);
+            return buildErrorRedirect(req.getRedirect_uri(), "invalid_request", e.getMessage(), req.getState());
         }
     }
 

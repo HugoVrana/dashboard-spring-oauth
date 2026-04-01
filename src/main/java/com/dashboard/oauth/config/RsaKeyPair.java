@@ -2,9 +2,9 @@ package com.dashboard.oauth.config;
 
 import com.dashboard.oauth.model.entities.ServerKey;
 import com.dashboard.oauth.repository.IServerKeyRepository;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-
 import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -15,6 +15,7 @@ import java.security.spec.X509EncodedKeySpec;
 import java.util.List;
 import java.util.UUID;
 
+@Getter
 @Slf4j
 @Component
 public class RsaKeyPair {
@@ -50,8 +51,4 @@ public class RsaKeyPair {
             log.info("Generated and persisted new RSA key pair (kid={})", this.kid);
         }
     }
-
-    public RSAPrivateKey getPrivateKey() { return privateKey; }
-    public RSAPublicKey getPublicKey() { return publicKey; }
-    public String getKid() { return kid; }
 }
