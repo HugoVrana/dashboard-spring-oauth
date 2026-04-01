@@ -19,7 +19,8 @@ public interface IAuthorizationService {
             String codeChallenge,
             String codeChallengeMethod,
             String scope,
-            String state
+            String state,
+            String nonce
     );
 
     /**

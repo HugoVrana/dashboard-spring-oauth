@@ -46,6 +46,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/test/**").permitAll()
                         .requestMatchers("/ws/**", "/ws-sockjs/**", "/api/v1/activity/test").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/user/*/profilePicture").permitAll()
+                        .requestMatchers("/.well-known/**").permitAll()
                         .requestMatchers("/", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .anyRequest().authenticated()
                 )

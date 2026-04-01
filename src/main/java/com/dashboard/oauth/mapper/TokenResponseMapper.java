@@ -13,6 +13,7 @@ public class TokenResponseMapper implements ITokenResponseMapper {
         tokenResponse.setAccessToken(authResponse.getAccessToken());
         tokenResponse.setExpiresIn(authResponse.getExpiresIn() / 1000);
         tokenResponse.setRefreshToken(authResponse.getRefreshToken());
+        tokenResponse.setIdToken(authResponse.getIdToken());
         return tokenResponse;
     }
 }

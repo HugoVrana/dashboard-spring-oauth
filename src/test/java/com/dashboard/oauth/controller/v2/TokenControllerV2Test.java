@@ -131,15 +131,15 @@ class TokenControllerV2Test {
     void authorize_get_success() throws Exception {
         AuthorizationRequest request = buildAuthorizationRequest(null);
         when(authorizationService.createAuthorizationRequest(
-                eq(CLIENT_ID), eq(REDIRECT_URI), eq(CODE_CHALLENGE), eq("S256"), any(), any()))
+                eq(CLIENT_ID), eq(REDIRECT_URI), eq(CODE_CHALLENGE), eq("S256"), any(), any(), any()))
                 .thenReturn(request);
 
         mockMvc.perform(get("/v2/oauth2/authorize")
-                        .param("response_type", "code")
-                        .param("client_id", CLIENT_ID)
-                        .param("redirect_uri", REDIRECT_URI)
-                        .param("code_challenge", CODE_CHALLENGE)
-                        .param("code_challenge_method", "S256"))
+                        .param("responseType", "code")
+                        .param("clientId", CLIENT_ID)
+                        .param("redirectUri", REDIRECT_URI)
+                        .param("codeChallenge", CODE_CHALLENGE)
+                        .param("codeChallengeMethod", "S256"))
                 .andExpect(status().isFound())
                 .andExpect(header().string("Location",
                         LOGIN_URL + "?request_id=" + request.getId().toHexString()));
@@ -149,11 +149,11 @@ class TokenControllerV2Test {
     @DisplayName("GET /v2/oauth2/authorize with unsupported response_type → 302 error redirect")
     void authorize_get_unsupportedResponseType() throws Exception {
         mockMvc.perform(get("/v2/oauth2/authorize")
-                        .param("response_type", "token")
-                        .param("client_id", CLIENT_ID)
-                        .param("redirect_uri", REDIRECT_URI)
-                        .param("code_challenge", CODE_CHALLENGE)
-                        .param("code_challenge_method", "S256"))
+                        .param("responseType", "token")
+                        .param("clientId", CLIENT_ID)
+                        .param("redirectUri", REDIRECT_URI)
+                        .param("codeChallenge", CODE_CHALLENGE)
+                        .param("codeChallengeMethod", "S256"))
                 .andExpect(status().isFound())
                 .andExpect(header().string("Location",
                         org.hamcrest.Matchers.containsString("error=unsupported_response_type")));
@@ -162,15 +162,15 @@ class TokenControllerV2Test {
     @Test
     @DisplayName("GET /v2/oauth2/authorize with unknown client → 302 error redirect")
     void authorize_get_unknownClient() throws Exception {
-        when(authorizationService.createAuthorizationRequest(any(), any(), any(), any(), any(), any()))
+        when(authorizationService.createAuthorizationRequest(any(), any(), any(), any(), any(), any(), any()))
                 .thenThrow(new InvalidRequestException("Unknown client_id"));
 
         mockMvc.perform(get("/v2/oauth2/authorize")
-                        .param("response_type", "code")
-                        .param("client_id", "unknown")
-                        .param("redirect_uri", REDIRECT_URI)
-                        .param("code_challenge", CODE_CHALLENGE)
-                        .param("code_challenge_method", "S256"))
+                        .param("responseType", "code")
+                        .param("clientId", "unknown")
+                        .param("redirectUri", REDIRECT_URI)
+                        .param("codeChallenge", CODE_CHALLENGE)
+                        .param("codeChallengeMethod", "S256"))
                 .andExpect(status().isFound())
                 .andExpect(header().string("Location",
                         org.hamcrest.Matchers.containsString("error=invalid_request")));
@@ -182,11 +182,11 @@ class TokenControllerV2Test {
         when(oAuthClientService.isAllowedHost(eq(CLIENT_ID), any())).thenReturn(false);
 
         mockMvc.perform(get("/v2/oauth2/authorize")
-                        .param("response_type", "code")
-                        .param("client_id", CLIENT_ID)
-                        .param("redirect_uri", REDIRECT_URI)
-                        .param("code_challenge", CODE_CHALLENGE)
-                        .param("code_challenge_method", "S256"))
+                        .param("responseType", "code")
+                        .param("clientId", CLIENT_ID)
+                        .param("redirectUri", REDIRECT_URI)
+                        .param("codeChallenge", CODE_CHALLENGE)
+                        .param("codeChallengeMethod", "S256"))
                 .andExpect(status().isFound())
                 .andExpect(header().string("Location",
                         org.hamcrest.Matchers.containsString("error=access_denied")));
