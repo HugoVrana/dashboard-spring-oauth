@@ -164,7 +164,7 @@ class JwtServiceTest {
                 .build();
 
         // Should throw ExpiredJwtException when trying to validate
-        assertThrows(ExpiredJwtException.class, () -> jwtService.validateToken(token, userDetails));
+        assertThrows(ExpiredJwtException.class, () -> shortExpirationJwtService.validateToken(token, userDetails));
     }
 
     @Test
