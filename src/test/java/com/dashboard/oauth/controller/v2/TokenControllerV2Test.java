@@ -49,6 +49,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -526,7 +527,6 @@ class TokenControllerV2Test {
 
     @Test
     @DisplayName("GET /v2/oauth2/userinfo authenticated → 200 with user info")
-    @org.springframework.security.test.context.support.WithMockUser(username = "user@example.com")
     void userinfo_authenticated() throws Exception {
         UserInfoRead userInfo = new UserInfoRead();
         userInfo.setId(testUserId.toHexString());
@@ -534,7 +534,8 @@ class TokenControllerV2Test {
 
         when(authenticationService.getCurrentUser(any())).thenReturn(userInfo);
 
-        mockMvc.perform(get("/v2/oauth2/userinfo"))
+        mockMvc.perform(get("/v2/oauth2/userinfo")
+                        .with(user("user@example.com")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.email").value("user@example.com"))
                 .andExpect(jsonPath("$.id").value(testUserId.toHexString()));
