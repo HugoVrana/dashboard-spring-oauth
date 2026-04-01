@@ -7,19 +7,19 @@ import lombok.Data;
 public class AuthorizeRequest {
 
     @Parameter(description = "Must be `code`", required = true)
-    private String response_type;
+    private String responseType;
 
     @Parameter(description = "Client identifier", required = true)
-    private String client_id;
+    private String clientId;
 
     @Parameter(description = "Registered redirect URI", required = true)
-    private String redirect_uri;
+    private String redirectUri;
 
     @Parameter(description = "PKCE code challenge (RFC 7636)", required = true)
-    private String code_challenge;
+    private String codeChallenge;
 
     @Parameter(description = "Must be `S256`", required = true)
-    private String code_challenge_method;
+    private String codeChallengeMethod;
 
     @Parameter(description = "Space-separated list of requested scopes")
     private String scope;

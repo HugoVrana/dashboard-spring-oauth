@@ -67,25 +67,25 @@ public class TokenController {
     @GetMapping("/authorize")
     public ResponseEntity<?> authorize(AuthorizeRequest req, HttpServletRequest httpRequest) {
 
-        if (!"code".equals(req.getResponse_type())) {
-            return buildErrorRedirect(req.getRedirect_uri(), "unsupported_response_type",
+        if (!"code".equals(req.getResponseType())) {
+            return buildErrorRedirect(req.getRedirectUri(), "unsupported_response_type",
                     "Only response_type=code is supported", req.getState());
         }
 
-        if (!oAuthClientService.isRegisteredClient(req.getClient_id())) {
-            return buildErrorRedirect(req.getRedirect_uri(), "unauthorized_client",
+        if (!oAuthClientService.isRegisteredClient(req.getClientId())) {
+            return buildErrorRedirect(req.getRedirectUri(), "unauthorized_client",
                     "Unknown client_id", req.getState());
         }
 
-        if (!oAuthClientService.isAllowedHost(req.getClient_id(), httpRequest)) {
-            return buildErrorRedirect(req.getRedirect_uri(), "access_denied",
+        if (!oAuthClientService.isAllowedHost(req.getClientId(), httpRequest)) {
+            return buildErrorRedirect(req.getRedirectUri(), "access_denied",
                     "The request origin is not allowed for this client", req.getState());
         }
 
         try {
             AuthorizationRequest request = authorizationService.createAuthorizationRequest(
-                    req.getClient_id(), req.getRedirect_uri(), req.getCode_challenge(),
-                    req.getCode_challenge_method(), req.getScope(), req.getState(), req.getNonce());
+                    req.getClientId(), req.getRedirectUri(), req.getCodeChallenge(),
+                    req.getCodeChallengeMethod(), req.getScope(), req.getState(), req.getNonce());
 
             URI loginUrl = UriComponentsBuilder.fromUriString(oauth2Properties.getLoginUrl())
                     .queryParam("request_id", request.getId().toHexString())
@@ -94,7 +94,7 @@ public class TokenController {
 
             return ResponseEntity.status(HttpStatus.FOUND).location(loginUrl).build();
         } catch (InvalidRequestException e) {
-            return buildErrorRedirect(req.getRedirect_uri(), "invalid_request", e.getMessage(), req.getState());
+            return buildErrorRedirect(req.getRedirectUri(), "invalid_request", e.getMessage(), req.getState());
         }
     }
 
