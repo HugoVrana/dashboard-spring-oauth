@@ -32,6 +32,7 @@ public class WellKnownController {
         config.put("issuer", issuer);
         config.put("authorization_endpoint", issuer + "/v2/oauth2/authorize");
         config.put("token_endpoint", issuer + "/v2/oauth2/token");
+        config.put("userinfo_endpoint", issuer + "/v2/oauth2/userinfo");
         config.put("jwks_uri", issuer + "/.well-known/jwks.json");
         config.put("response_types_supported", List.of("code"));
         config.put("subject_types_supported", List.of("public"));

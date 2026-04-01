@@ -11,6 +11,7 @@ import com.dashboard.oauth.dataTransferObject.v2.TokenResponse;
 import com.dashboard.oauth.environment.Oauth2Properties;
 import com.dashboard.oauth.mapper.interfaces.ITokenResponseMapper;
 import com.dashboard.oauth.model.entities.AuthorizationRequest;
+import com.dashboard.oauth.dataTransferObject.user.UserInfoRead;
 import com.dashboard.oauth.service.interfaces.IAuthorizationService;
 import com.dashboard.oauth.service.interfaces.IAuthenticationService;
 import com.dashboard.oauth.service.interfaces.IOAuthClientService;
@@ -27,6 +28,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -264,6 +266,26 @@ public class TokenController {
         }
 
         return ResponseEntity.ok(authorizationService.introspect(token));
+    }
+
+    // -------------------------------------------------------------------------
+    // GET /v2/oauth2/userinfo  (OIDC Core §5.3)
+    // -------------------------------------------------------------------------
+    @Operation(
+            summary = "UserInfo endpoint (OIDC Core §5.3)",
+            description = "Returns claims about the authenticated user. Requires a valid Bearer access token."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "User claims",
+                    content = @Content(schema = @Schema(implementation = UserInfoRead.class))),
+            @ApiResponse(responseCode = "401", description = "Missing or invalid Bearer token", content = @Content)
+    })
+    @GetMapping("/userinfo")
+    public ResponseEntity<UserInfoRead> userinfo(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        return ResponseEntity.ok(authenticationService.getCurrentUser(authentication));
     }
 
     // -------------------------------------------------------------------------
