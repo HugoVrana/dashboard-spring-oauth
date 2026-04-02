@@ -4,7 +4,7 @@ import com.dashboard.oauth.dataTransferObject.user.UserAdminRead;
 import com.dashboard.oauth.dataTransferObject.user.UserAdminUpdate;
 import com.dashboard.oauth.dataTransferObject.user.UserSelfRead;
 import com.dashboard.oauth.dataTransferObject.user.UserSelfUpdate;
-import com.dashboard.oauth.model.entities.User;
+import com.dashboard.oauth.model.entities.user.User;
 import org.bson.types.ObjectId;
 
 import java.util.List;

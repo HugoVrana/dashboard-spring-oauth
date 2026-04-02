@@ -1,6 +1,6 @@
 package com.dashboard.oauth.service.interfaces;
 
-import com.dashboard.oauth.model.entities.User;
+import com.dashboard.oauth.model.entities.user.User;
 
 public interface ITokenService {
     String createEmailVerificationToken(User user);

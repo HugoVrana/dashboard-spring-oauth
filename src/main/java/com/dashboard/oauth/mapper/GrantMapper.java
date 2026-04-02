@@ -3,7 +3,7 @@ package com.dashboard.oauth.mapper;
 import com.dashboard.oauth.dataTransferObject.grant.GrantCreate;
 import com.dashboard.oauth.dataTransferObject.grant.GrantRead;
 import com.dashboard.oauth.mapper.interfaces.IGrantMapper;
-import com.dashboard.oauth.model.entities.Grant;
+import com.dashboard.oauth.model.entities.auth.Grant;
 import org.springframework.stereotype.Service;
 
 @Service

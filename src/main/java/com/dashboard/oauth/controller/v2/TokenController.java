@@ -9,7 +9,7 @@ import com.dashboard.oauth.dataTransferObject.v2.SubmitAuthorizeResult;
 import com.dashboard.oauth.dataTransferObject.v2.TokenResponse;
 import com.dashboard.oauth.environment.Oauth2Properties;
 import com.dashboard.oauth.mapper.interfaces.ITokenResponseMapper;
-import com.dashboard.oauth.model.entities.AuthorizationRequest;
+import com.dashboard.oauth.model.entities.oauth.AuthorizationRequest;
 import com.dashboard.oauth.dataTransferObject.user.UserInfoRead;
 import com.dashboard.oauth.service.interfaces.IAuthorizationService;
 import com.dashboard.oauth.service.interfaces.IAuthenticationService;

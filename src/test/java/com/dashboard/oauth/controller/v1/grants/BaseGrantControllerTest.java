@@ -5,7 +5,7 @@ import com.dashboard.common.model.Audit;
 import com.dashboard.oauth.controller.v1.OldGrantController;
 import com.dashboard.oauth.filter.JwtAuthFilter;
 import com.dashboard.oauth.mapper.interfaces.IGrantMapper;
-import com.dashboard.oauth.model.entities.Grant;
+import com.dashboard.oauth.model.entities.auth.Grant;
 import com.dashboard.oauth.service.interfaces.IActivityFeedService;
 import com.dashboard.oauth.service.interfaces.IGrantService;
 import com.fasterxml.jackson.databind.ObjectMapper;

@@ -6,7 +6,7 @@ import com.dashboard.common.model.exception.ResourceNotFoundException;
 import com.dashboard.oauth.dataTransferObject.role.CreateRole;
 import com.dashboard.oauth.dataTransferObject.role.RoleRead;
 import com.dashboard.oauth.mapper.interfaces.IRoleMapper;
-import com.dashboard.oauth.model.entities.Role;
+import com.dashboard.oauth.model.entities.auth.Role;
 import com.dashboard.oauth.repository.IRoleRepository;
 import com.dashboard.oauth.service.interfaces.IRoleService;
 import lombok.RequiredArgsConstructor;

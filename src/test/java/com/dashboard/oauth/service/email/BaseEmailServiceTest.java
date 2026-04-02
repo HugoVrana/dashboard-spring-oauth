@@ -2,8 +2,8 @@ package com.dashboard.oauth.service.email;
 
 import com.dashboard.common.model.Audit;
 import com.dashboard.oauth.environment.EmailProperties;
-import com.dashboard.oauth.model.entities.User;
-import com.dashboard.oauth.model.entities.VerificationToken;
+import com.dashboard.oauth.model.entities.user.User;
+import com.dashboard.oauth.model.entities.user.VerificationToken;
 import com.dashboard.oauth.repository.IEmailSendAttemptRepository;
 import com.dashboard.oauth.repository.IUserRepository;
 import com.dashboard.oauth.service.EmailService;
@@ -54,7 +54,9 @@ public abstract class BaseEmailServiceTest {
         VerificationToken token = new VerificationToken();
         token.set_id(ObjectId.get());
         token.setExpiryDate(Instant.now().plusSeconds(86400));
-        token.setCreatedAt(Instant.now());
+        Audit audit = new Audit();
+        audit.setCreatedAt(Instant.now());
+        token.setAudit(audit);
         token.setUsed(false);
         return token;
     }

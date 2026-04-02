@@ -1,6 +1,6 @@
 package com.dashboard.oauth.service;
 
-import com.dashboard.oauth.model.entities.User;
+import com.dashboard.oauth.model.entities.user.User;
 import com.dashboard.oauth.repository.IUserRepository;
 import com.dashboard.oauth.service.interfaces.IDashboardUserDetailService;
 import lombok.RequiredArgsConstructor;

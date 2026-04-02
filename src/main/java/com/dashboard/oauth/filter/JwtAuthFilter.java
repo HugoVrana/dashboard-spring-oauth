@@ -1,9 +1,9 @@
 package com.dashboard.oauth.filter;
 
 import com.dashboard.oauth.authentication.GrantsAuthentication;
-import com.dashboard.oauth.model.entities.Grant;
-import com.dashboard.oauth.model.entities.Role;
-import com.dashboard.oauth.model.entities.User;
+import com.dashboard.oauth.model.entities.auth.Grant;
+import com.dashboard.oauth.model.entities.auth.Role;
+import com.dashboard.oauth.model.entities.user.User;
 import com.dashboard.oauth.service.JwtService;
 import com.dashboard.oauth.service.UserDetailsImpl;
 import jakarta.servlet.FilterChain;

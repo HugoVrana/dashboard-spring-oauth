@@ -2,7 +2,7 @@ package com.dashboard.oauth.mapper;
 
 import com.dashboard.oauth.dataTransferObject.oauthClient.OAuthClientRead;
 import com.dashboard.oauth.mapper.interfaces.IOAuthClientMapper;
-import com.dashboard.oauth.model.entities.OAuthClient;
+import com.dashboard.oauth.model.entities.oauth.OAuthClient;
 import org.springframework.stereotype.Service;
 
 @Service

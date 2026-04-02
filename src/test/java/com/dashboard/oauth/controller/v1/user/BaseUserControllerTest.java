@@ -6,7 +6,7 @@ import com.dashboard.oauth.controller.v1.UserController;
 import com.dashboard.oauth.controller.v1.config.TestConfig;
 import com.dashboard.oauth.environment.R2Properties;
 import com.dashboard.oauth.filter.JwtAuthFilter;
-import com.dashboard.oauth.model.entities.User;
+import com.dashboard.oauth.model.entities.user.User;
 import com.dashboard.oauth.service.UserDetailsImpl;
 import com.dashboard.oauth.service.interfaces.IR2Service;
 import com.dashboard.oauth.service.interfaces.IUserService;

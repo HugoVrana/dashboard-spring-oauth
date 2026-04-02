@@ -1,7 +1,7 @@
 package com.dashboard.oauth.controller.v1.auth;
 
 import com.dashboard.oauth.dataTransferObject.user.UserInfoRead;
-import com.dashboard.oauth.model.entities.User;
+import com.dashboard.oauth.model.entities.user.User;
 import com.dashboard.oauth.service.UserDetailsImpl;
 import io.qameta.allure.Story;
 import org.junit.jupiter.api.DisplayName;

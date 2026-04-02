@@ -10,7 +10,8 @@
       "Bash(./mvnw test:*)",
       "Bash(git log:*)",
       "Bash(xargs basename:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(./mvnw clean:*)"
     ]
   }
 }

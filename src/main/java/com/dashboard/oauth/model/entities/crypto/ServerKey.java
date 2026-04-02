@@ -1,9 +1,10 @@
-package com.dashboard.oauth.model.entities;
+package com.dashboard.oauth.model.entities.crypto;
 
 import lombok.Builder;
 import lombok.Data;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Data
@@ -16,5 +17,7 @@ public class ServerKey {
 
     private byte[] privateKeyDer;
     private byte[] publicKeyDer;
+
+    @Indexed(unique = true)
     private String kid;
 }

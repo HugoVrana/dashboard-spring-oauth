@@ -12,10 +12,10 @@ import com.dashboard.oauth.dataTransferObject.v2.TokenResponse;
 import com.dashboard.oauth.environment.Oauth2Properties;
 import com.dashboard.oauth.filter.JwtAuthFilter;
 import com.dashboard.oauth.mapper.interfaces.ITokenResponseMapper;
-import com.dashboard.oauth.model.entities.AuthorizationCode;
-import com.dashboard.oauth.model.entities.AuthorizationRequest;
-import com.dashboard.oauth.model.entities.TotpConfig;
-import com.dashboard.oauth.model.entities.User;
+import com.dashboard.oauth.model.entities.oauth.AuthorizationCode;
+import com.dashboard.oauth.model.entities.oauth.AuthorizationRequest;
+import com.dashboard.oauth.model.entities.mfa.TotpConfig;
+import com.dashboard.oauth.model.entities.user.User;
 import com.dashboard.oauth.service.interfaces.IActivityFeedService;
 import com.dashboard.oauth.service.interfaces.IAuthenticationService;
 import com.dashboard.oauth.service.interfaces.IAuthorizationService;
@@ -588,7 +588,7 @@ class TokenControllerV2Test {
                 .id(new ObjectId())
                 .code(code)
                 .clientId(CLIENT_ID)
-                .userId(testUserId.toHexString())
+                .userId(testUserId)
                 .redirectUri(REDIRECT_URI)
                 .codeChallenge(CODE_CHALLENGE)
                 .codeChallengeMethod("S256")

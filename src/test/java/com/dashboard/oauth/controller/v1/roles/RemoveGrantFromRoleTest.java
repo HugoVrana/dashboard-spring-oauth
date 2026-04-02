@@ -1,8 +1,8 @@
 package com.dashboard.oauth.controller.v1.roles;
 
 import com.dashboard.oauth.dataTransferObject.role.RoleGrantRequest;
-import com.dashboard.oauth.model.entities.Grant;
-import com.dashboard.oauth.model.entities.Role;
+import com.dashboard.oauth.model.entities.auth.Grant;
+import com.dashboard.oauth.model.entities.auth.Role;
 import io.qameta.allure.Story;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

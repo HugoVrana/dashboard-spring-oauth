@@ -1,7 +1,7 @@
 package com.dashboard.oauth.service;
 
 import com.dashboard.oauth.environment.LoginProperties;
-import com.dashboard.oauth.model.entities.User;
+import com.dashboard.oauth.model.entities.user.User;
 import com.dashboard.oauth.repository.IUserRepository;
 import io.qameta.allure.Epic;
 import io.qameta.allure.Feature;
@@ -64,10 +64,10 @@ class LoginAttemptServiceTest {
     }
 
     @Test
-    @DisplayName("Should not throw when locked is null")
-    void checkLocked_shouldNotThrowWhenLockedIsNull() {
+    @DisplayName("Should not throw when user is not locked")
+    void checkLocked_shouldNotThrowWhenNotLocked() {
         User user = createTestUser();
-        user.setLocked(null);
+        user.setLocked(false);
 
         assertDoesNotThrow(() -> loginAttemptService.checkLocked(user));
     }

@@ -1,6 +1,7 @@
-package com.dashboard.oauth.model.entities;
+package com.dashboard.oauth.model.entities.oauth;
 
 import com.dashboard.common.model.Audit;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Builder;
 import lombok.Data;
 import org.bson.types.ObjectId;
@@ -12,17 +13,35 @@ import java.time.Instant;
 
 @Data
 @Builder
-@Document(collection = "mfa_tokens")
-public class MfaToken {
+@Document(collection = "authorization_codes")
+public class AuthorizationCode {
 
     @Id
     private ObjectId id;
 
     @Indexed(unique = true)
-    private String token;
+    private String code;
 
-    private String userId;
-    private ObjectId authorizationRequestId;
+    @NotBlank
+    private String clientId;
+
+    private ObjectId userId;
+
+    @NotBlank
+    private String redirectUri;
+
+    @NotBlank
+    private String codeChallenge;
+
+    @NotBlank
+    private String codeChallengeMethod;
+
+    private String scope;
+
+    private String state;
+
+    private String nonce;
+
     private boolean used;
 
     @Indexed(expireAfter = "0")

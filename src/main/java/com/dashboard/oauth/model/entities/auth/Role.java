@@ -1,22 +1,26 @@
-package com.dashboard.oauth.model.entities;
+package com.dashboard.oauth.model.entities.auth;
 
 import com.dashboard.common.model.Audit;
 import lombok.Data;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
-@Document(collection = "grants")
-public class Grant {
+@Document(collection = "roles")
+public class Role {
     @Id
     private ObjectId _id;
 
     @Indexed(unique = true)
     private String name;
 
-    private String description;
-
     private Audit audit;
+
+    @DBRef
+    private List<Grant> grants = new ArrayList<>();
 }

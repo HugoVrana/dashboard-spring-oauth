@@ -1,28 +1,26 @@
-package com.dashboard.oauth.model.entities;
+package com.dashboard.oauth.model.entities.auth;
 
 import com.dashboard.common.model.Audit;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
-import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
-import java.time.Instant;
 
 @Data
-@Document(collection = "oauth_tokens")
-public class OAuthToken {
+@Document(collection = "grants")
+public class Grant {
     @Id
     private ObjectId _id;
 
+    @NotNull
+    @NotBlank
     @Indexed(unique = true)
-    private String token;
+    private String name;
 
-    @DBRef
-    private User user;
-
-    @Indexed(expireAfter = "0")
-    private Instant expiryDate;
+    private String description;
 
     private Audit audit;
 }

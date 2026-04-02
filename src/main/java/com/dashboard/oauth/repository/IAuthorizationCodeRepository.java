@@ -1,6 +1,6 @@
 package com.dashboard.oauth.repository;
 
-import com.dashboard.oauth.model.entities.AuthorizationCode;
+import com.dashboard.oauth.model.entities.oauth.AuthorizationCode;
 import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.repository.MongoRepository;
 

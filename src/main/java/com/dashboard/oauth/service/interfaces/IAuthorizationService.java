@@ -3,8 +3,9 @@ package com.dashboard.oauth.service.interfaces;
 import com.dashboard.oauth.dataTransferObject.auth.AuthResponse;
 import com.dashboard.oauth.dataTransferObject.v2.IntrospectionResponse;
 import com.dashboard.oauth.dataTransferObject.v2.SubmitAuthorizeResult;
-import com.dashboard.oauth.model.entities.AuthorizationCode;
-import com.dashboard.oauth.model.entities.AuthorizationRequest;
+import com.dashboard.oauth.model.entities.oauth.AuthorizationCode;
+import com.dashboard.oauth.model.entities.oauth.AuthorizationRequest;
+import org.bson.types.ObjectId;
 
 public interface IAuthorizationService {
 
@@ -33,13 +34,13 @@ public interface IAuthorizationService {
      * Generates a one-time AuthorizationCode for the given user and marks the
      * AuthorizationRequest as used.
      */
-    AuthorizationCode createAuthorizationCode(AuthorizationRequest request, String userId);
+    AuthorizationCode createAuthorizationCode(AuthorizationRequest request, ObjectId userId);
 
     /**
      * Creates a short-lived MFA token that ties a validated user identity to a
      * pending AuthorizationRequest. Returned to the client when 2FA is required.
      */
-    String createMfaToken(String userId, AuthorizationRequest request);
+    String createMfaToken(ObjectId userId, AuthorizationRequest request);
 
     /**
      * Verifies the TOTP code against the user referenced by the MFA token. Only

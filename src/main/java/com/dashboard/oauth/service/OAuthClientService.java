@@ -10,7 +10,7 @@ import com.dashboard.oauth.dataTransferObject.oauthClient.OAuthClientCreated;
 import com.dashboard.oauth.dataTransferObject.oauthClient.OAuthClientRead;
 import jakarta.servlet.http.HttpServletRequest;
 import com.dashboard.oauth.mapper.interfaces.IOAuthClientMapper;
-import com.dashboard.oauth.model.entities.OAuthClient;
+import com.dashboard.oauth.model.entities.oauth.OAuthClient;
 import com.dashboard.oauth.model.enums.ActivityEventType;
 import com.dashboard.oauth.repository.IOauthClientRepository;
 import com.dashboard.oauth.service.interfaces.IActivityFeedService;

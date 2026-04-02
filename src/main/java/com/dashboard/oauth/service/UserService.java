@@ -1,5 +1,6 @@
 package com.dashboard.oauth.service;
 
+import com.dashboard.common.model.Audit;
 import com.dashboard.common.model.exception.ConflictException;
 import com.dashboard.common.model.exception.InvalidRequestException;
 import com.dashboard.common.model.exception.ResourceNotFoundException;
@@ -9,8 +10,8 @@ import com.dashboard.oauth.dataTransferObject.user.UserSelfRead;
 import com.dashboard.oauth.dataTransferObject.user.UserSelfUpdate;
 import com.dashboard.oauth.environment.EmailProperties;
 import com.dashboard.oauth.mapper.interfaces.IUserInfoMapper;
-import com.dashboard.oauth.model.entities.User;
-import com.dashboard.oauth.model.entities.VerificationToken;
+import com.dashboard.oauth.model.entities.user.User;
+import com.dashboard.oauth.model.entities.user.VerificationToken;
 import com.dashboard.oauth.repository.IRefreshTokenRepository;
 import com.dashboard.oauth.repository.IUserRepository;
 import com.dashboard.oauth.service.interfaces.IUserService;
@@ -123,7 +124,7 @@ public class UserService implements IUserService {
 
         user.getAudit().setDeletedAt(Instant.now());
         userRepository.save(user);
-        refreshTokenRepository.deleteByUserId(id.toHexString());
+        refreshTokenRepository.deleteByUserId(id);
     }
 
     @Override
@@ -131,7 +132,7 @@ public class UserService implements IUserService {
         User user = userRepository.getUserBy_idAndAudit_DeletedAtIsNull(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        if (Boolean.TRUE.equals(user.getLocked())) {
+        if (user.isLocked()) {
             throw new ConflictException("User is already blocked");
         }
 
@@ -143,7 +144,7 @@ public class UserService implements IUserService {
         User user = userRepository.getUserBy_idAndAudit_DeletedAtIsNull(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        if (!Boolean.TRUE.equals(user.getLocked())) {
+        if (!user.isLocked()) {
             throw new ConflictException("User is not blocked");
         }
 
@@ -160,13 +161,15 @@ public class UserService implements IUserService {
         User user = userRepository.getUserBy_idAndAudit_DeletedAtIsNull(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        if (Boolean.TRUE.equals(user.getEmailVerified())) {
+        if (user.isEmailVerified()) {
             throw new ConflictException("User email is already verified");
         }
 
         VerificationToken token = new VerificationToken();
         token.set_id(new ObjectId());
-        token.setCreatedAt(Instant.now());
+        Audit a = new Audit();
+        a.setCreatedAt(Instant.now());
+        token.setAudit(a);
         token.setExpiryDate(Instant.now().plusMillis(emailProperties.getVerificationTokenExpirationMs()));
         token.setUsed(false);
 
@@ -181,7 +184,9 @@ public class UserService implements IUserService {
 
         VerificationToken resetToken = new VerificationToken();
         resetToken.set_id(new ObjectId());
-        resetToken.setCreatedAt(Instant.now());
+        Audit a = new Audit();
+        a.setCreatedAt(Instant.now());
+        resetToken.setAudit(a);
         resetToken.setExpiryDate(Instant.now().plusMillis(emailProperties.getPasswordResetTokenExpirationMs()));
         resetToken.setUsed(false);
 

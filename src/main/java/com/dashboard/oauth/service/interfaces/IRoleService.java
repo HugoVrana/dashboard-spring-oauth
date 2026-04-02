@@ -2,7 +2,7 @@ package com.dashboard.oauth.service.interfaces;
 
 import com.dashboard.oauth.dataTransferObject.role.CreateRole;
 import com.dashboard.oauth.dataTransferObject.role.RoleRead;
-import com.dashboard.oauth.model.entities.Role;
+import com.dashboard.oauth.model.entities.auth.Role;
 import org.bson.types.ObjectId;
 import java.util.List;
 import java.util.Optional;

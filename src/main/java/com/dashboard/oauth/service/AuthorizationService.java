@@ -10,13 +10,13 @@ import com.dashboard.oauth.environment.JWTProperties;
 import com.dashboard.oauth.environment.Oauth2Properties;
 import com.dashboard.oauth.mapper.interfaces.IUserInfoMapper;
 import com.dashboard.oauth.model.UserInfo;
-import com.dashboard.oauth.model.entities.AuthorizationCode;
-import com.dashboard.oauth.model.entities.AuthorizationRequest;
-import com.dashboard.oauth.model.entities.Grant;
-import com.dashboard.oauth.model.entities.MfaToken;
-import com.dashboard.oauth.model.entities.OAuthClient;
-import com.dashboard.oauth.model.entities.RefreshToken;
-import com.dashboard.oauth.model.entities.User;
+import com.dashboard.oauth.model.entities.oauth.AuthorizationCode;
+import com.dashboard.oauth.model.entities.oauth.AuthorizationRequest;
+import com.dashboard.oauth.model.entities.auth.Grant;
+import com.dashboard.oauth.model.entities.mfa.MfaToken;
+import com.dashboard.oauth.model.entities.oauth.OAuthClient;
+import com.dashboard.oauth.model.entities.oauth.RefreshToken;
+import com.dashboard.oauth.model.entities.user.User;
 import com.dashboard.oauth.repository.IAuthorizationCodeRepository;
 import com.dashboard.oauth.repository.IAuthorizationRequestRepository;
 import com.dashboard.oauth.repository.IMfaTokenRepository;
@@ -134,7 +134,7 @@ public class AuthorizationService implements IAuthorizationService {
     }
 
     @Override
-    public AuthorizationCode createAuthorizationCode(AuthorizationRequest request, String userId) {
+    public AuthorizationCode createAuthorizationCode(AuthorizationRequest request, ObjectId userId) {
         request.setUsed(true);
         authRequestRepository.save(request);
 
@@ -160,7 +160,7 @@ public class AuthorizationService implements IAuthorizationService {
     }
 
     @Override
-    public String createMfaToken(String userId, AuthorizationRequest request) {
+    public String createMfaToken(ObjectId userId, AuthorizationRequest request) {
         Audit audit = new Audit();
         audit.setCreatedAt(Instant.now());
 
@@ -182,7 +182,7 @@ public class AuthorizationService implements IAuthorizationService {
                 .orElseThrow(() -> new InvalidRequestException("Invalid or expired MFA token"));
 
         // Verify TOTP before consuming the token so a wrong code allows a retry
-        if (!totpService.verifyTotp(token.getUserId(), totpCode)) {
+        if (!totpService.verifyTotp(token.getUserId().toHexString(), totpCode)) {
             return null;
         }
 
@@ -227,7 +227,7 @@ public class AuthorizationService implements IAuthorizationService {
         authCode.setUsed(true);
         authCodeRepository.save(authCode);
 
-        User user = userRepository.findById(new ObjectId(authCode.getUserId()))
+        User user = userRepository.findById(authCode.getUserId())
                 .orElseThrow(() -> new InvalidRequestException("User not found"));
 
         UserInfo userInfo = userInfoMapper.toUserInfo(user);
@@ -268,12 +268,12 @@ public class AuthorizationService implements IAuthorizationService {
         loginRequest.setPassword(password);
         authenticationService.login(loginRequest);
 
-        if (user.getTwoFactorConfig() != null && Boolean.TRUE.equals(user.getTwoFactorConfig().getEnabled())) {
-            String mfaToken = createMfaToken(user.get_id().toHexString(), authRequest);
+        if (user.getTwoFactorConfig() != null && user.getTwoFactorConfig().isEnabled()) {
+            String mfaToken = createMfaToken(user.get_id(), authRequest);
             return new SubmitAuthorizeResult(true, mfaToken, null);
         }
 
-        AuthorizationCode authCode = createAuthorizationCode(authRequest, user.get_id().toHexString());
+        AuthorizationCode authCode = createAuthorizationCode(authRequest, user.get_id());
         return new SubmitAuthorizeResult(false, null, authCode);
     }
 
