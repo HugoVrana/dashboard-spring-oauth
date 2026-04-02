@@ -2,7 +2,6 @@ package com.dashboard.oauth.controller.v2;
 
 import com.dashboard.common.model.exception.InvalidRequestException;
 import com.dashboard.oauth.dataTransferObject.auth.AuthResponse;
-import com.dashboard.oauth.dataTransferObject.v2.AuthorizeRequest;
 import com.dashboard.oauth.dataTransferObject.v2.IntrospectionResponse;
 import com.dashboard.oauth.dataTransferObject.v2.MfaRequiredResponse;
 import com.dashboard.oauth.dataTransferObject.v2.OAuth2ErrorResponse;
@@ -67,36 +66,45 @@ public class TokenController {
                     headers = @Header(name = "Location", description = "Login URL with request_id, or redirect_uri with error params"))
     })
     @GetMapping("/authorize")
-    public ResponseEntity<?> authorize(AuthorizeRequest req, HttpServletRequest httpRequest) {
+    public ResponseEntity<?> authorize(
+            @RequestParam("response_type") String responseType,
+            @RequestParam("client_id") String clientId,
+            @RequestParam("redirect_uri") String redirectUri,
+            @RequestParam("code_challenge") String codeChallenge,
+            @RequestParam("code_challenge_method") String codeChallengeMethod,
+            @RequestParam(value = "scope", required = false) String scope,
+            @RequestParam(value = "state", required = false) String state,
+            @RequestParam(value = "nonce", required = false) String nonce,
+            HttpServletRequest httpRequest) {
 
-        if (!"code".equals(req.getResponseType())) {
-            return buildErrorRedirect(req.getRedirectUri(), "unsupported_response_type",
-                    "Only response_type=code is supported", req.getState());
+        if (!"code".equals(responseType)) {
+            return buildErrorRedirect(redirectUri, "unsupported_response_type",
+                    "Only response_type=code is supported", state);
         }
 
-        if (!oAuthClientService.isRegisteredClient(req.getClientId())) {
-            return buildErrorRedirect(req.getRedirectUri(), "unauthorized_client",
-                    "Unknown client_id", req.getState());
+        if (!oAuthClientService.isRegisteredClient(clientId)) {
+            return buildErrorRedirect(redirectUri, "unauthorized_client",
+                    "Unknown client_id", state);
         }
 
-        if (!oAuthClientService.isAllowedHost(req.getClientId(), httpRequest)) {
-            return buildErrorRedirect(req.getRedirectUri(), "access_denied",
-                    "The request origin is not allowed for this client", req.getState());
+        if (!oAuthClientService.isAllowedHost(clientId, httpRequest)) {
+            return buildErrorRedirect(redirectUri, "access_denied",
+                    "The request origin is not allowed for this client", state);
         }
 
         try {
             AuthorizationRequest request = authorizationService.createAuthorizationRequest(
-                    req.getClientId(), req.getRedirectUri(), req.getCodeChallenge(),
-                    req.getCodeChallengeMethod(), req.getScope(), req.getState(), req.getNonce());
+                    clientId, redirectUri, codeChallenge, codeChallengeMethod, scope, state, nonce);
 
             URI loginUrl = UriComponentsBuilder.fromUriString(oauth2Properties.getLoginUrl())
                     .queryParam("request_id", request.getId().toHexString())
-                    .queryParamIfPresent("state", java.util.Optional.ofNullable(req.getState()))
+                    .queryParam("redirect_uri", request.getRedirectUri())
+                    .queryParamIfPresent("state", java.util.Optional.ofNullable(state))
                     .build().toUri();
 
             return ResponseEntity.status(HttpStatus.FOUND).location(loginUrl).build();
         } catch (InvalidRequestException e) {
-            return buildErrorRedirect(req.getRedirectUri(), "invalid_request", e.getMessage(), req.getState());
+            return buildErrorRedirect(redirectUri, "invalid_request", e.getMessage(), state);
         }
     }
 
