@@ -12,11 +12,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@RestController
 @CrossOrigin
-@RequestMapping("/api/v1/grant")
-@Deprecated(since = "April 5th 2026" , forRemoval = true)
+@RestController
 @RequiredArgsConstructor
+@RequestMapping("/api/v1/grant")
+@Deprecated(since = "April 5th 2026", forRemoval = true)
 public class OldGrantController {
 
     private final IGrantService grantService;

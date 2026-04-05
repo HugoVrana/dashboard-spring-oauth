@@ -28,11 +28,11 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Optional;
 
-@RestController
 @CrossOrigin
-@RequestMapping("/api/v1/user")
-@Deprecated(since = "April 5th 2026" , forRemoval = true)
+@RestController
 @RequiredArgsConstructor
+@RequestMapping("/api/v1/user")
+@Deprecated(since = "April 5th 2026", forRemoval = true)
 public class UserController {
 
     private final IUserService userService;

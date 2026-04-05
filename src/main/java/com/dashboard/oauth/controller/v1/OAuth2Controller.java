@@ -30,7 +30,7 @@ import java.util.Optional;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/oauth2")
-@Deprecated(since = "April 5th 2026" , forRemoval = true)
+@Deprecated(since = "April 5th 2026", forRemoval = true)
 
 public class OAuth2Controller {
 

@@ -33,11 +33,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-@RestController
 @CrossOrigin
-@RequestMapping("/api/v1/role")
-@Deprecated(since = "April 5th 2026" , forRemoval = true)
+@RestController
 @RequiredArgsConstructor
+@RequestMapping("/api/v1/role")
+@Deprecated(since = "April 5th 2026", forRemoval = true)
 public class RoleController {
 
     private final IRoleService roleService;
