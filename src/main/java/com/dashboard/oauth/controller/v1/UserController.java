@@ -31,6 +31,7 @@ import java.util.Optional;
 @RestController
 @CrossOrigin
 @RequestMapping("/api/v1/user")
+@Deprecated(since = "April 5th 2026" , forRemoval = true)
 @RequiredArgsConstructor
 public class UserController {
 

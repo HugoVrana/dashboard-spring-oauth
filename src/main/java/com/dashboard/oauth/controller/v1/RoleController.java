@@ -36,6 +36,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin
 @RequestMapping("/api/v1/role")
+@Deprecated(since = "April 5th 2026" , forRemoval = true)
 @RequiredArgsConstructor
 public class RoleController {
 
