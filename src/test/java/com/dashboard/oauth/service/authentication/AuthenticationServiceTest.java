@@ -102,7 +102,7 @@ class AuthenticationServiceTest extends BaseAuthenticationServiceTest {
         when(userRepository.findByEmailAndAudit_DeletedAtIsNull("test@example.com"))
                 .thenReturn(Optional.of(user));
         when(userInfoMapper.toUserInfo(any(User.class))).thenReturn(userInfo);
-        when(jwtService.generateToken(any(UserInfo.class), any())).thenReturn("access-token");
+        when(jwtService.generateToken(any(UserInfo.class), any(), any())).thenReturn("access-token");
         when(userInfoMapper.toRead(any(UserInfo.class))).thenReturn(userInfoRead);
 
         AuthResponse response = authenticationService.login(request);
@@ -171,7 +171,7 @@ class AuthenticationServiceTest extends BaseAuthenticationServiceTest {
         when(userRepository.findByEmailAndAudit_DeletedAtIsNull("test@example.com"))
                 .thenReturn(Optional.of(user));
         when(userInfoMapper.toUserInfo(any(User.class))).thenReturn(userInfo);
-        when(jwtService.generateToken(any(UserInfo.class), any())).thenReturn("access-token");
+        when(jwtService.generateToken(any(UserInfo.class), any(), any())).thenReturn("access-token");
         when(userInfoMapper.toRead(any(UserInfo.class))).thenReturn(userInfoRead);
 
         authenticationService.login(request);
@@ -200,7 +200,7 @@ class AuthenticationServiceTest extends BaseAuthenticationServiceTest {
         when(refreshTokenRepository.findByToken(refreshTokenId)).thenReturn(Optional.of(refreshToken));
         when(userRepository.findById(user.get_id())).thenReturn(Optional.of(user));
         when(userInfoMapper.toUserInfo(any(User.class))).thenReturn(new UserInfo());
-        when(jwtService.generateToken(any(UserInfo.class), any())).thenReturn("new-access-token");
+        when(jwtService.generateToken(any(UserInfo.class), any(), any())).thenReturn("new-access-token");
         when(userInfoMapper.toRead(any(UserInfo.class))).thenReturn(userInfoRead);
 
         AuthResponse response = authenticationService.refreshToken(refreshTokenStr);
@@ -357,7 +357,7 @@ class AuthenticationServiceTest extends BaseAuthenticationServiceTest {
         when(userRepository.findByEmailAndAudit_DeletedAtIsNull("test@example.com"))
                 .thenReturn(Optional.of(user));
         when(userInfoMapper.toUserInfo(any(User.class))).thenReturn(userInfo);
-        when(jwtService.generateToken(any(UserInfo.class), any())).thenReturn("access-token");
+        when(jwtService.generateToken(any(UserInfo.class), any(), any())).thenReturn("access-token");
         when(userInfoMapper.toRead(any(UserInfo.class))).thenReturn(userInfoRead);
 
         Instant beforeLogin = Instant.now();
@@ -390,7 +390,7 @@ class AuthenticationServiceTest extends BaseAuthenticationServiceTest {
         when(userRepository.findByEmailAndAudit_DeletedAtIsNull("test@example.com"))
                 .thenReturn(Optional.of(user));
         when(userInfoMapper.toUserInfo(any(User.class))).thenReturn(userInfo);
-        when(jwtService.generateToken(any(UserInfo.class), any())).thenReturn("access-token");
+        when(jwtService.generateToken(any(UserInfo.class), any(), any())).thenReturn("access-token");
         when(userInfoMapper.toRead(any(UserInfo.class))).thenReturn(new UserInfoRead());
 
         authenticationService.login(request);
@@ -456,7 +456,7 @@ class AuthenticationServiceTest extends BaseAuthenticationServiceTest {
         when(userRepository.findByEmailAndAudit_DeletedAtIsNull("test@example.com"))
                 .thenReturn(Optional.of(user));
         when(userInfoMapper.toUserInfo(any(User.class))).thenReturn(userInfo);
-        when(jwtService.generateToken(any(UserInfo.class), any())).thenReturn("access-token");
+        when(jwtService.generateToken(any(UserInfo.class), any(), any())).thenReturn("access-token");
         when(userInfoMapper.toRead(any(UserInfo.class))).thenReturn(new UserInfoRead());
 
         authenticationService.login(request);
@@ -478,7 +478,7 @@ class AuthenticationServiceTest extends BaseAuthenticationServiceTest {
         when(userRepository.findByEmailAndAudit_DeletedAtIsNull("test@example.com"))
                 .thenReturn(Optional.of(user));
         when(userInfoMapper.toUserInfo(any(User.class))).thenReturn(userInfo);
-        when(jwtService.generateToken(any(UserInfo.class), any())).thenReturn("access-token");
+        when(jwtService.generateToken(any(UserInfo.class), any(), any())).thenReturn("access-token");
         when(userInfoMapper.toRead(any(UserInfo.class))).thenReturn(new UserInfoRead());
 
         authenticationService.login(request);

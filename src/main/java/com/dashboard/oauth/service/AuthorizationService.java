@@ -231,7 +231,7 @@ public class AuthorizationService implements IAuthorizationService {
 
         UserInfo userInfo = userInfoMapper.toUserInfo(user);
         List<Grant> allowedGrants = client != null ? client.getAllowedGrants() : null;
-        String accessToken = jwtService.generateToken(userInfo, allowedGrants);
+        String accessToken = jwtService.generateToken(userInfo, allowedGrants, clientId);
 
         refreshTokenRepository.deleteByUserId(authCode.getUserId());
         ObjectId refreshTokenId = new ObjectId();
@@ -288,7 +288,15 @@ public class AuthorizationService implements IAuthorizationService {
             List<String> grantNames = jwtService.extractClaim(token, c ->
                     ((List<?>) c.get("grants")).stream().map(String::valueOf).toList());
             String email = jwtService.extractUsername(token);
+            String subject = jwtService.extractClaim(token, Claims::getSubject);
+            String issuer = jwtService.extractClaim(token, Claims::getIssuer);
             Date expiration = jwtService.extractClaim(token, Claims::getExpiration);
+            Date issuedAt = jwtService.extractClaim(token, Claims::getIssuedAt);
+            String audience = jwtService.extractClaim(token, c -> {
+                java.util.Set<String> aud = c.getAudience();
+                return aud != null && !aud.isEmpty() ? aud.iterator().next() : null;
+            });
+            String clientIdClaim = jwtService.extractClaim(token, c -> c.get("client_id", String.class));
 
             Optional<User> optionalUser = userService.getUserByEmail(email);
             if (optionalUser.isEmpty() || optionalUser.get().getAudit().getDeletedAt() != null) {
@@ -306,8 +314,13 @@ public class AuthorizationService implements IAuthorizationService {
 
             IntrospectionResponse response = new IntrospectionResponse();
             response.setActive(true);
-            response.setSub(email);
+            response.setTokenType("Bearer");
+            response.setSub(subject);
+            response.setIss(issuer);
+            response.setAud(audience);
+            response.setClientId(clientIdClaim);
             response.setExp(expiration.toInstant().getEpochSecond());
+            response.setIat(issuedAt.toInstant().getEpochSecond());
             response.setScope(String.join(" ", activeGrants));
             return response;
 

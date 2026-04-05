@@ -137,7 +137,7 @@ public class AuthenticationService implements IAuthenticationService {
 
         UserInfo userInfo = userInfoMapper.toUserInfo(user);
         UserInfoRead userInfoRead = userInfoMapper.toRead(userInfo);
-        String accessToken = jwtService.generateToken(userInfo, null);
+        String accessToken = jwtService.generateToken(userInfo, null, null);
 
         refreshTokenRepository.deleteByUserId(user.get_id());
 
@@ -185,7 +185,7 @@ public class AuthenticationService implements IAuthenticationService {
         }
 
         UserInfo info = userInfoMapper.toUserInfo(user);
-        String accessToken = jwtService.generateToken(info, allowedGrants);
+        String accessToken = jwtService.generateToken(info, allowedGrants, refreshToken.getClientId());
 
         UserInfoRead userInfoRead = userInfoMapper.toRead(info);
 
@@ -411,7 +411,9 @@ public class AuthenticationService implements IAuthenticationService {
             user = userRepository.findById(new ObjectId(grantsAuth.getUserId()))
                     .orElseThrow(() -> new ResourceNotFoundException("User not found"));
         } else {
-            UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+            if (!(authentication.getPrincipal() instanceof UserDetailsImpl userDetails)) {
+                throw new InvalidRequestException("Unsupported authentication type");
+            }
             user = userDetails.getUser();
         }
         UserInfo userInfo = userInfoMapper.toUserInfo(user);

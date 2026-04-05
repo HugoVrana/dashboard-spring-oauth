@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.function.Function;
 
 public interface IJwtService {
-     String generateToken(UserInfo userDetails, List<Grant> allowedGrants);
+     String generateToken(UserInfo userDetails, List<Grant> allowedGrants, String clientId);
 
      String generateIdToken(UserInfo userInfo, String clientId, String nonce);
 
