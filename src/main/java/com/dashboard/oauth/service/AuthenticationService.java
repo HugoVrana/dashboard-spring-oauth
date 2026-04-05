@@ -19,11 +19,14 @@ import com.dashboard.oauth.environment.EmailProperties;
 import com.dashboard.oauth.environment.JWTProperties;
 import com.dashboard.oauth.mapper.interfaces.IUserInfoMapper;
 import com.dashboard.oauth.model.UserInfo;
-import com.dashboard.oauth.model.entities.oauth.RefreshToken;
+import com.dashboard.oauth.model.entities.auth.Grant;
 import com.dashboard.oauth.model.entities.auth.Role;
+import com.dashboard.oauth.model.entities.oauth.OAuthClient;
+import com.dashboard.oauth.model.entities.oauth.RefreshToken;
 import com.dashboard.oauth.model.entities.user.User;
 import com.dashboard.oauth.model.entities.user.VerificationToken;
 import com.dashboard.oauth.model.enums.ActivityEventType;
+import com.dashboard.oauth.repository.IOauthClientRepository;
 import com.dashboard.oauth.repository.IRefreshTokenRepository;
 import com.dashboard.oauth.repository.IUserRepository;
 import com.dashboard.oauth.service.interfaces.IActivityFeedService;
@@ -43,6 +46,7 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -53,6 +57,7 @@ public class AuthenticationService implements IAuthenticationService {
 
     private final IUserRepository userRepository;
     private final IRefreshTokenRepository refreshTokenRepository;
+    private final IOauthClientRepository oauthClientRepository;
     private final IRoleService roleService;
     private final ILoginAttemptService loginAttemptService;
     private final IJwtService jwtService;
@@ -132,7 +137,7 @@ public class AuthenticationService implements IAuthenticationService {
 
         UserInfo userInfo = userInfoMapper.toUserInfo(user);
         UserInfoRead userInfoRead = userInfoMapper.toRead(userInfo);
-        String accessToken = jwtService.generateToken(userInfo);
+        String accessToken = jwtService.generateToken(userInfo, null);
 
         refreshTokenRepository.deleteByUserId(user.get_id());
 
@@ -171,8 +176,16 @@ public class AuthenticationService implements IAuthenticationService {
         User user = userRepository.findById(refreshToken.getUserId())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
+        List<Grant> allowedGrants = null;
+        if (refreshToken.getClientId() != null && ObjectId.isValid(refreshToken.getClientId())) {
+            allowedGrants = oauthClientRepository
+                    .findBy_idAndAudit_DeletedAtIsNull(new ObjectId(refreshToken.getClientId()))
+                    .map(OAuthClient::getAllowedGrants)
+                    .orElse(null);
+        }
+
         UserInfo info = userInfoMapper.toUserInfo(user);
-        String accessToken = jwtService.generateToken(info);
+        String accessToken = jwtService.generateToken(info, allowedGrants);
 
         UserInfoRead userInfoRead = userInfoMapper.toRead(info);
 

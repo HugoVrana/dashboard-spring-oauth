@@ -3,6 +3,7 @@ package com.dashboard.oauth.service.authentication;
 import com.dashboard.oauth.environment.EmailProperties;
 import com.dashboard.oauth.environment.JWTProperties;
 import com.dashboard.oauth.mapper.interfaces.IUserInfoMapper;
+import com.dashboard.oauth.repository.IOauthClientRepository;
 import com.dashboard.oauth.repository.IRefreshTokenRepository;
 import com.dashboard.oauth.repository.IUserRepository;
 import com.dashboard.oauth.service.AuthenticationService;
@@ -31,6 +32,9 @@ public abstract class BaseAuthenticationServiceTest {
 
     @Mock
     protected IRefreshTokenRepository refreshTokenRepository;
+
+    @Mock
+    protected IOauthClientRepository oauthClientRepository;
 
     @Mock
     protected PasswordEncoder passwordEncoder;
@@ -69,6 +73,7 @@ public abstract class BaseAuthenticationServiceTest {
         authenticationService = new AuthenticationService(
                 userRepository,
                 refreshTokenRepository,
+                oauthClientRepository,
                 roleService,
                 loginAttemptService,
                 jwtService,

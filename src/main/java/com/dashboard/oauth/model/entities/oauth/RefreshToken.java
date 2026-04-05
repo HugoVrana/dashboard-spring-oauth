@@ -23,6 +23,9 @@ public class RefreshToken {
     @Field("user_id")
     private ObjectId userId;
 
+    @Field("client_id")
+    private String clientId;
+
     @Indexed(expireAfter = "0")
     private Instant expiryDate;
 

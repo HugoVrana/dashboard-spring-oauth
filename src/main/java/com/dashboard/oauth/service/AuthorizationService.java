@@ -1,7 +1,7 @@
 package com.dashboard.oauth.service;
 
-import com.dashboard.common.model.exception.InvalidRequestException;
 import com.dashboard.common.model.Audit;
+import com.dashboard.common.model.exception.InvalidRequestException;
 import com.dashboard.oauth.dataTransferObject.auth.AuthResponse;
 import com.dashboard.oauth.dataTransferObject.auth.LoginRequest;
 import com.dashboard.oauth.dataTransferObject.v2.IntrospectionResponse;
@@ -10,10 +10,10 @@ import com.dashboard.oauth.environment.JWTProperties;
 import com.dashboard.oauth.environment.Oauth2Properties;
 import com.dashboard.oauth.mapper.interfaces.IUserInfoMapper;
 import com.dashboard.oauth.model.UserInfo;
-import com.dashboard.oauth.model.entities.oauth.AuthorizationCode;
-import com.dashboard.oauth.model.entities.oauth.AuthorizationRequest;
 import com.dashboard.oauth.model.entities.auth.Grant;
 import com.dashboard.oauth.model.entities.mfa.MfaToken;
+import com.dashboard.oauth.model.entities.oauth.AuthorizationCode;
+import com.dashboard.oauth.model.entities.oauth.AuthorizationRequest;
 import com.dashboard.oauth.model.entities.oauth.OAuthClient;
 import com.dashboard.oauth.model.entities.oauth.RefreshToken;
 import com.dashboard.oauth.model.entities.user.User;
@@ -33,9 +33,8 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
-import org.springframework.stereotype.Service;
-
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.stereotype.Service;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -209,15 +208,15 @@ public class AuthorizationService implements IAuthorizationService {
             throw new InvalidRequestException("redirect_uri mismatch");
         }
 
+        OAuthClient client = null;
         if (org.bson.types.ObjectId.isValid(clientId)) {
-            clientRepository.findBy_idAndAudit_DeletedAtIsNull(new org.bson.types.ObjectId(clientId))
-                    .ifPresent(client -> {
-                        if (client.getClientSecret() != null) {
-                            if (clientSecret == null || !passwordEncoder.matches(clientSecret, client.getClientSecret())) {
-                                throw new InvalidRequestException("Invalid client credentials");
-                            }
-                        }
-                    });
+            client = clientRepository.findBy_idAndAudit_DeletedAtIsNull(new org.bson.types.ObjectId(clientId))
+                    .orElse(null);
+            if (client != null && client.getClientSecret() != null) {
+                if (clientSecret == null || !passwordEncoder.matches(clientSecret, client.getClientSecret())) {
+                    throw new InvalidRequestException("Invalid client credentials");
+                }
+            }
         }
 
         if (!verifyPkce(codeVerifier, authCode.getCodeChallenge())) {
@@ -231,13 +230,15 @@ public class AuthorizationService implements IAuthorizationService {
                 .orElseThrow(() -> new InvalidRequestException("User not found"));
 
         UserInfo userInfo = userInfoMapper.toUserInfo(user);
-        String accessToken = jwtService.generateToken(userInfo);
+        List<Grant> allowedGrants = client != null ? client.getAllowedGrants() : null;
+        String accessToken = jwtService.generateToken(userInfo, allowedGrants);
 
         refreshTokenRepository.deleteByUserId(authCode.getUserId());
         ObjectId refreshTokenId = new ObjectId();
         RefreshToken refreshToken = RefreshToken.builder()
                 .token(refreshTokenId)
                 .userId(authCode.getUserId())
+                .clientId(authCode.getClientId())
                 .expiryDate(Instant.now().plusMillis(jwtProperties.getExpiration()))
                 .build();
         refreshTokenRepository.save(refreshToken);

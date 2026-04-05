@@ -13,4 +13,6 @@ public class OAuthClientCreate {
     private List<String> allowedScopes;
     @NotEmpty
     private List<String> allowedHosts;
+
+    private List<String> allowedGrants;
 }

@@ -1,7 +1,6 @@
 package com.dashboard.oauth.dataTransferObject.oauthClient;
 
 import lombok.Data;
-
 import java.util.List;
 
 @Data
@@ -10,4 +9,5 @@ public class OAuthClientRead {
     private List<String> redirectUris;
     private List<String> allowedHosts;
     private List<String> allowedScopes;
+    private List<String> allowedGrants;
 }
