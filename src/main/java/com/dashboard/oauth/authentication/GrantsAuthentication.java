@@ -74,6 +74,6 @@ public class GrantsAuthentication implements Authentication {
     }
 
     public String getProfileImageUrlOrEmpty() {
-        return profileImageUrl != null && !profileImageUrl.isEmpty() ? profileImageUrl : "";
+        return profileImageUrl != null && !profileImageUrl.isEmpty() ? profileImageUrl : null;
     }
 }
