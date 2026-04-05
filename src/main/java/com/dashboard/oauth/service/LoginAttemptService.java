@@ -5,11 +5,13 @@ import com.dashboard.oauth.model.entities.user.User;
 import com.dashboard.oauth.repository.IUserRepository;
 import com.dashboard.oauth.service.interfaces.ILoginAttemptService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Scope;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.stereotype.Service;
 import java.time.Instant;
 
 @Service
+@Scope("singleton")
 @RequiredArgsConstructor
 public class LoginAttemptService implements ILoginAttemptService {
 

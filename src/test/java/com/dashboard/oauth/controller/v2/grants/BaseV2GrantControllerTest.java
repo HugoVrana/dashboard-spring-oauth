@@ -33,7 +33,7 @@ import org.springframework.test.web.servlet.MockMvc;
 @Import(TestConfig.class)
 @Execution(ExecutionMode.SAME_THREAD)
 @ResourceLock("spring-context")
-@WithMockUser(authorities = {"dashboard-oauth-grant-create", "dashboard-oauth-grant-delete"})
+@WithMockUser(authorities = {"dashboard-oauth-grant-create", "dashboard-oauth-grant-delete", "dashboard-oauth-grant-update"})
 public abstract class BaseV2GrantControllerTest {
 
     @Autowired

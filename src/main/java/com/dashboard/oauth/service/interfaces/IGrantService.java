@@ -3,6 +3,7 @@ package com.dashboard.oauth.service.interfaces;
 import com.dashboard.oauth.dataTransferObject.grant.EnsureGrantsResponse;
 import com.dashboard.oauth.dataTransferObject.grant.GrantCreate;
 import com.dashboard.oauth.dataTransferObject.grant.GrantRead;
+import com.dashboard.oauth.dataTransferObject.grant.GrantUpdate;
 import com.dashboard.oauth.model.entities.auth.Grant;
 import org.bson.types.ObjectId;
 import java.util.List;
@@ -18,6 +19,8 @@ public interface IGrantService {
     GrantRead getGrantReadById(ObjectId id);
 
     GrantRead createGrant(GrantCreate grant);
+
+    GrantRead updateGrant(ObjectId id, GrantUpdate update);
 
     void deleteGrant(ObjectId id);
 

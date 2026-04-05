@@ -1,24 +1,19 @@
 package com.dashboard.oauth.controller.v1.roles;
 
-import com.dashboard.oauth.dataTransferObject.grant.GrantRead;
+import com.dashboard.common.model.exception.ConflictException;
+import com.dashboard.common.model.exception.ResourceNotFoundException;
 import com.dashboard.oauth.dataTransferObject.role.RoleGrantRequest;
 import com.dashboard.oauth.dataTransferObject.role.RoleRead;
-import com.dashboard.oauth.model.entities.auth.Grant;
-import com.dashboard.oauth.model.entities.auth.Role;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import static org.mockito.ArgumentMatchers.any;
+
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @DisplayName("POST api/role/grant")
 class AddGrantToRoleTest extends BaseRoleControllerTest {
-
 
     @Test
     @DisplayName("Should return 200 when successful")
@@ -27,25 +22,10 @@ class AddGrantToRoleTest extends BaseRoleControllerTest {
         request.setRoleId(testRoleId.toHexString());
         request.setGrantId(testGrantId.toHexString());
 
-        Role role = createTestRole();
-        role.setGrants(new ArrayList<>());
-
-        Grant grant = createTestGrant();
-
-        Role updatedRole = createTestRole();
-        updatedRole.setGrants(List.of(grant));
-
         RoleRead roleRead = new RoleRead();
         roleRead.setName(testRoleName);
 
-        GrantRead grantRead = new GrantRead();
-        grantRead.setName(testGrantName);
-
-        when(roleService.getRoleById(testRoleId)).thenReturn(Optional.of(role));
-        when(grantService.getGrantById(testGrantId)).thenReturn(Optional.of(grant));
-        when(roleService.updateRole(any(Role.class))).thenReturn(updatedRole);
-        when(roleMapper.toRead(any(Role.class))).thenReturn(roleRead);
-        when(grantMapper.toRead(any(Grant.class))).thenReturn(grantRead);
+        when(roleService.addGrantToRole(testRoleId, testGrantId)).thenReturn(roleRead);
 
         mockMvc.perform(post("/api/v1/role/grant")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -54,7 +34,7 @@ class AddGrantToRoleTest extends BaseRoleControllerTest {
     }
 
     @Test
-    @DisplayName("Should return 400 when role id or grant id is invalid")
+    @DisplayName("Should return 400 when role id is invalid")
     void addGrant_shouldReturn400WhenRoleIdInvalid() throws Exception {
         RoleGrantRequest request = new RoleGrantRequest();
         request.setRoleId("invalid-id");
@@ -67,15 +47,11 @@ class AddGrantToRoleTest extends BaseRoleControllerTest {
     }
 
     @Test
-    @DisplayName("Should return 400 when role id or grant id is invalid")
+    @DisplayName("Should return 400 when grant id is invalid")
     void addGrant_shouldReturn400WhenGrantIdInvalid() throws Exception {
         RoleGrantRequest request = new RoleGrantRequest();
         request.setRoleId(testRoleId.toHexString());
         request.setGrantId("invalid-id");
-
-        Role role = createTestRole();
-
-        when(roleService.getRoleById(testRoleId)).thenReturn(Optional.of(role));
 
         mockMvc.perform(post("/api/v1/role/grant")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -90,7 +66,8 @@ class AddGrantToRoleTest extends BaseRoleControllerTest {
         request.setRoleId(testRoleId.toHexString());
         request.setGrantId(testGrantId.toHexString());
 
-        when(roleService.getRoleById(testRoleId)).thenReturn(Optional.empty());
+        when(roleService.addGrantToRole(testRoleId, testGrantId))
+                .thenThrow(new ResourceNotFoundException("Role not found"));
 
         mockMvc.perform(post("/api/v1/role/grant")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -105,10 +82,8 @@ class AddGrantToRoleTest extends BaseRoleControllerTest {
         request.setRoleId(testRoleId.toHexString());
         request.setGrantId(testGrantId.toHexString());
 
-        Role role = createTestRole();
-
-        when(roleService.getRoleById(testRoleId)).thenReturn(Optional.of(role));
-        when(grantService.getGrantById(testGrantId)).thenReturn(Optional.empty());
+        when(roleService.addGrantToRole(testRoleId, testGrantId))
+                .thenThrow(new ResourceNotFoundException("Grant not found"));
 
         mockMvc.perform(post("/api/v1/role/grant")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -123,12 +98,8 @@ class AddGrantToRoleTest extends BaseRoleControllerTest {
         request.setRoleId(testRoleId.toHexString());
         request.setGrantId(testGrantId.toHexString());
 
-        Grant grant = createTestGrant();
-        Role role = createTestRole();
-        role.setGrants(new ArrayList<>(List.of(grant)));
-
-        when(roleService.getRoleById(testRoleId)).thenReturn(Optional.of(role));
-        when(grantService.getGrantById(testGrantId)).thenReturn(Optional.of(grant));
+        when(roleService.addGrantToRole(testRoleId, testGrantId))
+                .thenThrow(new ConflictException("Grant is already assigned to this role"));
 
         mockMvc.perform(post("/api/v1/role/grant")
                         .contentType(MediaType.APPLICATION_JSON)

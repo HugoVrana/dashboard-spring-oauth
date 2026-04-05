@@ -5,11 +5,13 @@ import com.dashboard.oauth.repository.IUserRepository;
 import com.dashboard.oauth.service.interfaces.IDashboardUserDetailService;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NonNull;
+import org.springframework.context.annotation.Scope;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 @Service
+@Scope("singleton")
 @RequiredArgsConstructor
 public class UserDetailsServiceImpl implements IDashboardUserDetailService {
 

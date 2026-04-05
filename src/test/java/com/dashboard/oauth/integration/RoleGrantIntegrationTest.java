@@ -237,8 +237,8 @@ class RoleGrantIntegrationTest extends BaseIntegrationTest {
 
     @Test
     @Order(8)
-    @DisplayName("Return 0 when removing non-existent grant from role")
-    void shouldReturn0WhenRemovingNonExistentGrantFromRole() throws Exception {
+    @DisplayName("Return 404 when removing non-existent grant from role")
+    void shouldReturn404WhenRemovingNonExistentGrantFromRole() throws Exception {
         RoleGrantRequest request = new RoleGrantRequest();
         request.setRoleId(testRoleId);
         request.setGrantId(testGrantId);
@@ -247,7 +247,6 @@ class RoleGrantIntegrationTest extends BaseIntegrationTest {
                         .header("Authorization", "Bearer " + accessToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk())
-                .andExpect(content().string("0"));
+                .andExpect(status().isNotFound());
     }
 }

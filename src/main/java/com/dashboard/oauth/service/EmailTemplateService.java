@@ -2,11 +2,13 @@ package com.dashboard.oauth.service;
 
 import com.dashboard.oauth.service.interfaces.IEmailTemplateService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
 @Service
+@Scope("singleton")
 @RequiredArgsConstructor
 public class EmailTemplateService implements IEmailTemplateService {
 

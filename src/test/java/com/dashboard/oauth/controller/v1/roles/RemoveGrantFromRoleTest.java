@@ -1,16 +1,13 @@
 package com.dashboard.oauth.controller.v1.roles;
 
+import com.dashboard.common.model.exception.ResourceNotFoundException;
 import com.dashboard.oauth.dataTransferObject.role.RoleGrantRequest;
-import com.dashboard.oauth.model.entities.auth.Grant;
-import com.dashboard.oauth.model.entities.auth.Role;
+import com.dashboard.oauth.dataTransferObject.role.RoleRead;
 import io.qameta.allure.Story;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import static org.mockito.ArgumentMatchers.any;
+
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -19,6 +16,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Story("Remove grant from role flow")
 @DisplayName("DELETE api/role/grant")
 class RemoveGrantFromRoleTest extends BaseRoleControllerTest {
+
     @Test
     @DisplayName("Should return 200 with count affected")
     void removeGrant_shouldReturn200WithCountAffected() throws Exception {
@@ -26,16 +24,10 @@ class RemoveGrantFromRoleTest extends BaseRoleControllerTest {
         request.setRoleId(testRoleId.toHexString());
         request.setGrantId(testGrantId.toHexString());
 
-        Grant grant = createTestGrant();
-        Role role = createTestRole();
-        role.setGrants(new ArrayList<>(List.of(grant)));
+        RoleRead roleRead = new RoleRead();
+        roleRead.setName(testRoleName);
 
-        Role updatedRole = createTestRole();
-        updatedRole.setGrants(new ArrayList<>());
-
-        when(roleService.getRoleById(testRoleId)).thenReturn(Optional.of(role));
-        when(grantService.getGrantById(testGrantId)).thenReturn(Optional.of(grant));
-        when(roleService.updateRole(any(Role.class))).thenReturn(updatedRole);
+        when(roleService.removeGrantFromRole(testRoleId, testGrantId)).thenReturn(roleRead);
 
         mockMvc.perform(delete("/api/v1/role/grant")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -51,7 +43,8 @@ class RemoveGrantFromRoleTest extends BaseRoleControllerTest {
         request.setRoleId(testRoleId.toHexString());
         request.setGrantId(testGrantId.toHexString());
 
-        when(roleService.getRoleById(testRoleId)).thenReturn(Optional.empty());
+        when(roleService.removeGrantFromRole(testRoleId, testGrantId))
+                .thenThrow(new ResourceNotFoundException("Role not found"));
 
         mockMvc.perform(delete("/api/v1/role/grant")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -60,17 +53,14 @@ class RemoveGrantFromRoleTest extends BaseRoleControllerTest {
     }
 
     @Test
-    @DisplayName("Should return 404 when grant not found")
-    void removeGrant_shouldReturn404WhenGrantNotFound() throws Exception {
+    @DisplayName("Should return 404 when grant not assigned to role")
+    void removeGrant_shouldReturn404WhenGrantNotAssigned() throws Exception {
         RoleGrantRequest request = new RoleGrantRequest();
         request.setRoleId(testRoleId.toHexString());
         request.setGrantId(testGrantId.toHexString());
 
-        Role role = createTestRole();
-        role.setGrants(new ArrayList<>());
-
-        when(roleService.getRoleById(testRoleId)).thenReturn(Optional.of(role));
-        when(grantService.getGrantById(testGrantId)).thenReturn(Optional.empty());
+        when(roleService.removeGrantFromRole(testRoleId, testGrantId))
+                .thenThrow(new ResourceNotFoundException("Grant is not assigned to this role"));
 
         mockMvc.perform(delete("/api/v1/role/grant")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -79,30 +69,7 @@ class RemoveGrantFromRoleTest extends BaseRoleControllerTest {
     }
 
     @Test
-    @DisplayName("Should return 0 when grant not in role")
-    void removeGrant_shouldReturn0WhenGrantNotInRole() throws Exception {
-        RoleGrantRequest request = new RoleGrantRequest();
-        request.setRoleId(testRoleId.toHexString());
-        request.setGrantId(testGrantId.toHexString());
-
-        Role role = createTestRole();
-        role.setGrants(new ArrayList<>());
-
-        Grant grant = createTestGrant();
-
-        when(roleService.getRoleById(testRoleId)).thenReturn(Optional.of(role));
-        when(grantService.getGrantById(testGrantId)).thenReturn(Optional.of(grant));
-        when(roleService.updateRole(any(Role.class))).thenReturn(role);
-
-        mockMvc.perform(delete("/api/v1/role/grant")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk())
-                .andExpect(content().string("0"));
-    }
-
-    @Test
-    @DisplayName("Should return 400 when role id or grant id is invalid")
+    @DisplayName("Should return 400 when role id is invalid")
     void removeGrant_shouldReturn400WhenRoleIdInvalid() throws Exception {
         RoleGrantRequest request = new RoleGrantRequest();
         request.setRoleId("invalid-id");
@@ -120,11 +87,6 @@ class RemoveGrantFromRoleTest extends BaseRoleControllerTest {
         RoleGrantRequest request = new RoleGrantRequest();
         request.setRoleId(testRoleId.toHexString());
         request.setGrantId("invalid-id");
-
-        Role role = createTestRole();
-        role.setGrants(new ArrayList<>());
-
-        when(roleService.getRoleById(testRoleId)).thenReturn(Optional.of(role));
 
         mockMvc.perform(delete("/api/v1/role/grant")
                         .contentType(MediaType.APPLICATION_JSON)

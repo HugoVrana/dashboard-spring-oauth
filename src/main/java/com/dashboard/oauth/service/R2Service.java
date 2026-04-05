@@ -4,6 +4,7 @@ import com.dashboard.oauth.environment.R2Properties;
 import com.dashboard.oauth.service.interfaces.IR2Service;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -13,6 +14,7 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import java.io.IOException;
 
 @Service
+@Scope("singleton")
 @RequiredArgsConstructor
 public class R2Service implements IR2Service {
 

@@ -2,6 +2,7 @@ package com.dashboard.oauth.service.interfaces;
 
 import com.dashboard.oauth.dataTransferObject.role.CreateRole;
 import com.dashboard.oauth.dataTransferObject.role.RoleRead;
+import com.dashboard.oauth.dataTransferObject.role.RoleUpdate;
 import com.dashboard.oauth.model.entities.auth.Role;
 import org.bson.types.ObjectId;
 import java.util.List;
@@ -20,7 +21,11 @@ public interface IRoleService {
 
     RoleRead createRole(CreateRole createRole);
 
-    Role updateRole(Role role);
+    RoleRead updateRole(ObjectId id, RoleUpdate update);
+
+    RoleRead addGrantToRole(ObjectId roleId, ObjectId grantId);
+
+    RoleRead removeGrantFromRole(ObjectId roleId, ObjectId grantId);
 
     void deleteRole(ObjectId id);
 }

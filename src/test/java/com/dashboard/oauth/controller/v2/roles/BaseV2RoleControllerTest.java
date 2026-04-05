@@ -33,7 +33,7 @@ import org.springframework.test.web.servlet.MockMvc;
 @Import(TestConfig.class)
 @Execution(ExecutionMode.SAME_THREAD)
 @ResourceLock("spring-context")
-@WithMockUser(authorities = {"dashboard-oauth-role-create", "dashboard-oauth-role-delete"})
+@WithMockUser(authorities = {"dashboard-oauth-role-create", "dashboard-oauth-role-delete", "dashboard-oauth-role-update", "dashboard-oauth-role-manage-grants"})
 public abstract class BaseV2RoleControllerTest {
 
     @Autowired
