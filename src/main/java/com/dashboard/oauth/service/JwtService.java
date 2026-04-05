@@ -28,13 +28,16 @@ public class JwtService implements IJwtService {
     private final RsaKeyPair rsaKeyPair;
 
     @Override
-    public String generateToken(UserInfo userDetails, List<Grant> allowedGrants) {
+    public String generateToken(UserInfo userDetails, List<Grant> allowedGrants, String clientId) {
         Set<String> allowedGrantNames = allowedGrants == null ? null : allowedGrants.stream()
                 .map(Grant::getName)
                 .collect(java.util.stream.Collectors.toSet());
 
         Map<String, Object> claims = new HashMap<>();
         claims.put("email", userDetails.getEmail());
+        if (clientId != null) {
+            claims.put("client_id", clientId);
+        }
         claims.put("grants", userDetails.getRole().stream()
                 .flatMap(role -> role.getGrants().stream())
                 .map(Grant::getName)
