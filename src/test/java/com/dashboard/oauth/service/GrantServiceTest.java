@@ -72,24 +72,24 @@ class GrantServiceTest {
     @Test
     @DisplayName("Get existing Grant by Name")
     void getGrantByName_shouldReturnGrant_whenGrantExists() {
-        when(grantRepository.findByName(testGrantName)).thenReturn(Optional.of(testGrant));
+        when(grantRepository.getGrantByNameAndAudit_DeletedAtIsNull(testGrantName)).thenReturn(Optional.of(testGrant));
 
         Optional<Grant> result = grantService.getGrantByName(testGrantName);
 
         assertThat(result).isPresent();
         assertThat(result.get().getName()).isEqualTo(testGrantName);
-        verify(grantRepository).findByName(testGrantName);
+        verify(grantRepository).getGrantByNameAndAudit_DeletedAtIsNull(testGrantName);
     }
 
     @Test
     @DisplayName("Get nonexistent Grant by Name")
     void getGrantByName_shouldReturnEmpty_whenGrantNotFound() {
-        when(grantRepository.findByName(testGrantName)).thenReturn(Optional.empty());
+        when(grantRepository.getGrantByNameAndAudit_DeletedAtIsNull(testGrantName)).thenReturn(Optional.empty());
 
         Optional<Grant> result = grantService.getGrantByName(testGrantName);
 
         assertThat(result).isEmpty();
-        verify(grantRepository).findByName(testGrantName);
+        verify(grantRepository).getGrantByNameAndAudit_DeletedAtIsNull(testGrantName);
     }
 
     @Test
@@ -126,7 +126,7 @@ class GrantServiceTest {
         expectedRead.setName(testGrantName);
         expectedRead.setDescription(testGrant.getDescription());
 
-        when(grantRepository.findByName(testGrantName)).thenReturn(Optional.empty());
+        when(grantRepository.getGrantByNameAndAudit_DeletedAtIsNull(testGrantName)).thenReturn(Optional.empty());
         when(grantMapper.toModel(any(GrantCreate.class))).thenReturn(testGrant);
         when(grantRepository.save(any(Grant.class))).thenReturn(testGrant);
         when(grantMapper.toRead(any(Grant.class))).thenReturn(expectedRead);
@@ -151,7 +151,7 @@ class GrantServiceTest {
         List<GrantRead> result = grantService.getGrants();
 
         assertThat(result).hasSize(1);
-        assertThat(result.get(0).getName()).isEqualTo(testGrantName);
+        assertThat(result.getFirst().getName()).isEqualTo(testGrantName);
     }
 
     @Test
@@ -209,8 +209,8 @@ class GrantServiceTest {
         GrantRead newGrantRead = new GrantRead();
         newGrantRead.setName("new-grant");
 
-        when(grantRepository.findByName(testGrantName)).thenReturn(Optional.of(testGrant));
-        when(grantRepository.findByName("new-grant")).thenReturn(Optional.empty());
+        when(grantRepository.getGrantByNameAndAudit_DeletedAtIsNull(testGrantName)).thenReturn(Optional.of(testGrant));
+        when(grantRepository.getGrantByNameAndAudit_DeletedAtIsNull("new-grant")).thenReturn(Optional.empty());
         when(grantMapper.toModel(any(GrantCreate.class))).thenReturn(testGrant);
         when(grantRepository.save(any())).thenReturn(testGrant);
         when(grantMapper.toRead(any())).thenReturn(newGrantRead);
@@ -227,7 +227,7 @@ class GrantServiceTest {
         GrantCreate existing = new GrantCreate();
         existing.setName(testGrantName);
 
-        when(grantRepository.findByName(testGrantName)).thenReturn(Optional.of(testGrant));
+        when(grantRepository.getGrantByNameAndAudit_DeletedAtIsNull(testGrantName)).thenReturn(Optional.of(testGrant));
 
         EnsureGrantsResponse result = grantService.ensureGrants(List.of(existing));
 
@@ -246,7 +246,7 @@ class GrantServiceTest {
         GrantRead read = new GrantRead();
         read.setName("grant-one");
 
-        when(grantRepository.findByName(any())).thenReturn(Optional.empty());
+        when(grantRepository.getGrantByNameAndAudit_DeletedAtIsNull(any())).thenReturn(Optional.empty());
         when(grantMapper.toModel(any())).thenReturn(testGrant);
         when(grantRepository.save(any())).thenReturn(testGrant);
         when(grantMapper.toRead(any())).thenReturn(read);
