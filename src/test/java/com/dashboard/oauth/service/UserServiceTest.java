@@ -9,7 +9,7 @@ import com.dashboard.oauth.dataTransferObject.user.UserSelfRead;
 import com.dashboard.oauth.dataTransferObject.user.UserSelfUpdate;
 import com.dashboard.oauth.environment.EmailProperties;
 import com.dashboard.oauth.mapper.interfaces.IUserInfoMapper;
-import com.dashboard.oauth.model.entities.User;
+import com.dashboard.oauth.model.entities.user.User;
 import com.dashboard.oauth.repository.IRefreshTokenRepository;
 import com.dashboard.oauth.repository.IUserRepository;
 import net.datafaker.Faker;
@@ -356,7 +356,7 @@ class UserServiceTest {
         ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
         verify(userRepository).save(captor.capture());
         assertThat(captor.getValue().getAudit().getDeletedAt()).isNotNull();
-        verify(refreshTokenRepository).deleteByUserId(testUserId.toHexString());
+        verify(refreshTokenRepository).deleteByUserId(testUserId);
     }
 
     @Test
@@ -405,7 +405,7 @@ class UserServiceTest {
         ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
         verify(userRepository).save(captor.capture());
         User saved = captor.getValue();
-        assertThat(saved.getLocked()).isFalse();
+        assertThat(saved.isLocked()).isFalse();
     }
 
     @Test

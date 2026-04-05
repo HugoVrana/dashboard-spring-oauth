@@ -1,4 +1,4 @@
-package com.dashboard.oauth.model.entities;
+package com.dashboard.oauth.model.entities.oauth;
 
 import com.dashboard.common.model.Audit;
 import lombok.Builder;
@@ -21,7 +21,7 @@ public class RefreshToken {
     private ObjectId token;
 
     @Field("user_id")
-    private String userId;
+    private ObjectId userId;
 
     @Indexed(expireAfter = "0")
     private Instant expiryDate;

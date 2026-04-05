@@ -1,7 +1,7 @@
 package com.dashboard.oauth.filter;
 
 import com.dashboard.common.model.Audit;
-import com.dashboard.oauth.model.entities.User;
+import com.dashboard.oauth.model.entities.user.User;
 import com.dashboard.oauth.service.JwtService;
 import com.dashboard.oauth.service.UserDetailsImpl;
 import io.qameta.allure.Story;

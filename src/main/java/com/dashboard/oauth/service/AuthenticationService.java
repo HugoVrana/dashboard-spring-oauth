@@ -19,10 +19,10 @@ import com.dashboard.oauth.environment.EmailProperties;
 import com.dashboard.oauth.environment.JWTProperties;
 import com.dashboard.oauth.mapper.interfaces.IUserInfoMapper;
 import com.dashboard.oauth.model.UserInfo;
-import com.dashboard.oauth.model.entities.RefreshToken;
-import com.dashboard.oauth.model.entities.Role;
-import com.dashboard.oauth.model.entities.User;
-import com.dashboard.oauth.model.entities.VerificationToken;
+import com.dashboard.oauth.model.entities.oauth.RefreshToken;
+import com.dashboard.oauth.model.entities.auth.Role;
+import com.dashboard.oauth.model.entities.user.User;
+import com.dashboard.oauth.model.entities.user.VerificationToken;
 import com.dashboard.oauth.model.enums.ActivityEventType;
 import com.dashboard.oauth.repository.IRefreshTokenRepository;
 import com.dashboard.oauth.repository.IUserRepository;
@@ -85,13 +85,13 @@ public class AuthenticationService implements IAuthenticationService {
 
         VerificationToken verificationToken = new VerificationToken();
         verificationToken.set_id(new ObjectId());
-        verificationToken.setCreatedAt(Instant.now());
+        Audit audit = new Audit();
+        audit.setCreatedAt(Instant.now());
+        verificationToken.setAudit(audit);
         verificationToken.setExpiryDate(Instant.now().plusMillis(emailProperties.getVerificationTokenExpirationMs()));
         verificationToken.setUsed(false);
         user.setEmailVerificationToken(verificationToken);
 
-        Audit audit = new Audit();
-        audit.setCreatedAt(Instant.now());
         user.setAudit(audit);
 
         user = userRepository.save(user);
@@ -134,12 +134,12 @@ public class AuthenticationService implements IAuthenticationService {
         UserInfoRead userInfoRead = userInfoMapper.toRead(userInfo);
         String accessToken = jwtService.generateToken(userInfo);
 
-        refreshTokenRepository.deleteByUserId(user.get_id().toHexString());
+        refreshTokenRepository.deleteByUserId(user.get_id());
 
         ObjectId refreshTokenId = new ObjectId();
         RefreshToken refreshToken = RefreshToken.builder()
                 .token(refreshTokenId)
-                .userId(user.get_id().toHexString())
+                .userId(user.get_id())
                 .expiryDate(Instant.now().plusMillis(jwtProperties.getExpiration()))
                 .build();
         refreshTokenRepository.save(refreshToken);
@@ -168,7 +168,7 @@ public class AuthenticationService implements IAuthenticationService {
             throw new RuntimeException("Refresh token expired");
         }
 
-        User user = userRepository.findById(new ObjectId(refreshToken.getUserId()))
+        User user = userRepository.findById(refreshToken.getUserId())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         UserInfo info = userInfoMapper.toUserInfo(user);
@@ -194,7 +194,7 @@ public class AuthenticationService implements IAuthenticationService {
         User user = userRepository.findByEmailAndAudit_DeletedAtIsNull(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        refreshTokenRepository.deleteByUserId(user.get_id().toHexString());
+        refreshTokenRepository.deleteByUserId(user.get_id());
 
         publishActivityEvent(ActivityEventType.USER_LOGGED_OUT, user);
     }
@@ -211,7 +211,7 @@ public class AuthenticationService implements IAuthenticationService {
                 String email = jwtService.extractUsername(token);
                 userRepository.findByEmailAndAudit_DeletedAtIsNull(email)
                         .ifPresent(user -> {
-                            refreshTokenRepository.deleteByUserId(user.get_id().toHexString());
+                            refreshTokenRepository.deleteByUserId(user.get_id());
                             publishActivityEvent(ActivityEventType.USER_LOGGED_OUT, user);
                         });
             } catch (Exception ignored) {
@@ -314,7 +314,7 @@ public class AuthenticationService implements IAuthenticationService {
 
         VerificationToken resetToken = new VerificationToken();
         resetToken.set_id(new ObjectId());
-        resetToken.setCreatedAt(Instant.now());
+        resetToken.getAudit().setCreatedAt(Instant.now());
         resetToken.setExpiryDate(Instant.now().plusMillis(emailProperties.getPasswordResetTokenExpirationMs()));
         resetToken.setUsed(false);
 
@@ -439,9 +439,9 @@ public class AuthenticationService implements IAuthenticationService {
         User copy = new User();
         copy.set_id(user.get_id());
         copy.setEmail(user.getEmail());
-        copy.setEmailVerified(user.getEmailVerified());
+        copy.setEmailVerified(user.isEmailVerified());
         copy.setRoles(new ArrayList<>(user.getRoles()));
-        copy.setLocked(user.getLocked());
+        copy.setLocked(user.isLocked());
         copy.setFailedLoginAttempts(user.getFailedLoginAttempts());
         return copy;
     }

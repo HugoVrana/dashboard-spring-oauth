@@ -1,4 +1,4 @@
-package com.dashboard.oauth.model.entities;
+package com.dashboard.oauth.model.entities.oauth;
 
 import com.dashboard.common.model.Audit;
 import lombok.Builder;

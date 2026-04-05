@@ -1,4 +1,4 @@
-package com.dashboard.oauth.model.entities;
+package com.dashboard.oauth.model.entities.mfa;
 
 import com.dashboard.common.model.Audit;
 import lombok.Builder;
@@ -12,19 +12,17 @@ import java.time.Instant;
 
 @Data
 @Builder
-@Document(collection = "authorization_requests")
-public class AuthorizationRequest {
+@Document(collection = "mfa_tokens")
+public class MfaToken {
 
     @Id
     private ObjectId id;
 
-    private String clientId;
-    private String redirectUri;
-    private String codeChallenge;
-    private String codeChallengeMethod;
-    private String scope;
-    private String state;
-    private String nonce;
+    @Indexed(unique = true)
+    private String token;
+
+    private ObjectId userId;
+    private ObjectId authorizationRequestId;
     private boolean used;
 
     @Indexed(expireAfter = "0")

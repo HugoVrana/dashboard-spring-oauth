@@ -1,8 +1,8 @@
 package com.dashboard.oauth.service;
 
 import com.dashboard.common.model.Audit;
-import com.dashboard.oauth.model.entities.User;
-import com.dashboard.oauth.model.entities.VerificationToken;
+import com.dashboard.oauth.model.entities.user.User;
+import com.dashboard.oauth.model.entities.user.VerificationToken;
 import com.dashboard.oauth.repository.IUserRepository;
 import com.dashboard.oauth.service.interfaces.ITokenService;
 import org.bson.types.ObjectId;
@@ -26,7 +26,9 @@ public class TokenService implements ITokenService {
         VerificationToken token = new VerificationToken();
         token.set_id(new ObjectId());
         token.setExpiryDate(Instant.now().plus(Duration.ofDays(1)));
-        token.setCreatedAt(Instant.now());
+        Audit audit = new Audit();
+        audit.setCreatedAt(Instant.now());
+        token.setAudit(audit);
         token.setUsed(false);
         user.setEmailVerificationToken(token);
         userRepository.save(user);
@@ -46,8 +48,11 @@ public class TokenService implements ITokenService {
 
         VerificationToken token = new VerificationToken();
         token.set_id(id);
-        token.setExpiryDate(now.plus(hour)); // Shorter for security
-        token.setCreatedAt(now);
+        token.setExpiryDate(now.plus(hour));
+
+        Audit a = new Audit();
+        a.setCreatedAt(Instant.now());
+        token.setAudit(a);
         token.setUsed(false);
 
         user.setPasswordResetToken(token);

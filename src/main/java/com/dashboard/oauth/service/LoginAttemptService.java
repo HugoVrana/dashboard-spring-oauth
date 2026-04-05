@@ -1,7 +1,7 @@
 package com.dashboard.oauth.service;
 
 import com.dashboard.oauth.environment.LoginProperties;
-import com.dashboard.oauth.model.entities.User;
+import com.dashboard.oauth.model.entities.user.User;
 import com.dashboard.oauth.repository.IUserRepository;
 import com.dashboard.oauth.service.interfaces.ILoginAttemptService;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +18,7 @@ public class LoginAttemptService implements ILoginAttemptService {
 
     @Override
     public void checkLocked(User user) {
-        if (Boolean.TRUE.equals(user.getLocked())) {
+        if (user.isLocked()) {
             throw new LockedException("User account is locked");
         }
     }

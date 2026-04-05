@@ -2,9 +2,9 @@ package com.dashboard.oauth.service;
 
 import com.dashboard.common.model.Audit;
 import com.dashboard.oauth.environment.EmailProperties;
-import com.dashboard.oauth.model.entities.EmailSendAttempt;
-import com.dashboard.oauth.model.entities.User;
-import com.dashboard.oauth.model.entities.VerificationToken;
+import com.dashboard.oauth.model.entities.email.EmailSendAttempt;
+import com.dashboard.oauth.model.entities.user.User;
+import com.dashboard.oauth.model.entities.user.VerificationToken;
 import com.dashboard.oauth.model.enums.EmailSendStatus;
 import com.dashboard.oauth.model.enums.EmailType;
 import com.dashboard.oauth.repository.IEmailSendAttemptRepository;

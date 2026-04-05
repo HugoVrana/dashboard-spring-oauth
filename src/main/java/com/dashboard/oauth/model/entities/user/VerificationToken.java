@@ -1,5 +1,7 @@
-package com.dashboard.oauth.model.entities;
+package com.dashboard.oauth.model.entities.user;
 
+import com.dashboard.common.model.Audit;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -14,15 +16,16 @@ public final class VerificationToken {
     @Id
     private ObjectId _id;
 
+    @NotNull
     private Instant expiryDate;
 
-    private Boolean used = false;
+    private boolean used;
 
     private Instant usedAt;
 
     private Instant emailSentAt;
 
-    private Instant createdAt;
+    private Audit audit;
 
     public boolean isExpired() {
         return Instant.now().isAfter(expiryDate);

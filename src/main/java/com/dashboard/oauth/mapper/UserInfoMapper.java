@@ -8,9 +8,9 @@ import com.dashboard.oauth.dataTransferObject.user.UserSelfRead;
 import com.dashboard.oauth.environment.R2Properties;
 import com.dashboard.oauth.mapper.interfaces.IUserInfoMapper;
 import com.dashboard.oauth.model.UserInfo;
-import com.dashboard.oauth.model.entities.Grant;
-import com.dashboard.oauth.model.entities.Role;
-import com.dashboard.oauth.model.entities.User;
+import com.dashboard.oauth.model.entities.auth.Grant;
+import com.dashboard.oauth.model.entities.auth.Role;
+import com.dashboard.oauth.model.entities.user.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -62,13 +62,13 @@ public final class UserInfoMapper implements IUserInfoMapper {
         UserSelfRead userSelfRead = new UserSelfRead();
         userSelfRead.setId(userInfo.get_id().toHexString());
         userSelfRead.setEmail(userInfo.getEmail());
-        userSelfRead.setEmailVerified(userInfo.getEmailVerified());
+        userSelfRead.setEmailVerified(userInfo.isEmailVerified());
         userSelfRead.setEmailVerifiedAt(userInfo.getEmailVerifiedAt());
         if (userInfo.getProfileImageId() != null) {
             String imageUrl = r2Properties.buildPublicUrl(userInfo.get_id(), userInfo.getProfileImageId());
             userSelfRead.setProfileImageUrl(imageUrl);
         }
-        userSelfRead.setLocked(userInfo.getLocked());
+        userSelfRead.setLocked(userInfo.isLocked());
         return userSelfRead;
     }
 
@@ -77,9 +77,9 @@ public final class UserInfoMapper implements IUserInfoMapper {
         UserAdminRead read = new UserAdminRead();
         read.setId(user.get_id().toHexString());
         read.setEmail(user.getEmail());
-        read.setEmailVerified(user.getEmailVerified());
+        read.setEmailVerified(user.isEmailVerified());
         read.setEmailVerifiedAt(user.getEmailVerifiedAt());
-        read.setLocked(user.getLocked());
+        read.setLocked(user.isLocked());
         read.setFailedLoginAttempts(user.getFailedLoginAttempts());
         if (user.getProfileImageId() != null) {
             read.setProfileImageUrl(r2Properties.buildPublicUrl(user.get_id(), user.getProfileImageId()));

@@ -1,6 +1,6 @@
 package com.dashboard.oauth.config;
 
-import com.dashboard.oauth.model.entities.ServerKey;
+import com.dashboard.oauth.model.entities.crypto.ServerKey;
 import com.dashboard.oauth.repository.IServerKeyRepository;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;

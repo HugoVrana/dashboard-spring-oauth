@@ -6,7 +6,7 @@ import com.dashboard.oauth.dataTransferObject.grant.EnsureGrantsResponse;
 import com.dashboard.oauth.dataTransferObject.grant.GrantCreate;
 import com.dashboard.oauth.dataTransferObject.grant.GrantRead;
 import com.dashboard.oauth.mapper.interfaces.IGrantMapper;
-import com.dashboard.oauth.model.entities.Grant;
+import com.dashboard.oauth.model.entities.auth.Grant;
 import com.dashboard.oauth.repository.IGrantRepository;
 import com.dashboard.oauth.service.interfaces.IActivityFeedService;
 import net.datafaker.Faker;

@@ -2,7 +2,7 @@ package com.dashboard.oauth.controller.v1.roles;
 
 import com.dashboard.oauth.dataTransferObject.role.CreateRole;
 import com.dashboard.oauth.dataTransferObject.role.RoleRead;
-import com.dashboard.oauth.model.entities.Role;
+import com.dashboard.oauth.model.entities.auth.Role;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;

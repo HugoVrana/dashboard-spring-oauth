@@ -3,8 +3,8 @@ package com.dashboard.oauth.service;
 import com.dashboard.common.model.Audit;
 import com.dashboard.common.model.exception.ResourceNotFoundException;
 import com.dashboard.oauth.dataTransferObject.totp.TotpSetupResponse;
-import com.dashboard.oauth.model.entities.TotpConfig;
-import com.dashboard.oauth.model.entities.User;
+import com.dashboard.oauth.model.entities.mfa.TotpConfig;
+import com.dashboard.oauth.model.entities.user.User;
 import com.dashboard.oauth.service.interfaces.ITotpService;
 import com.dashboard.oauth.service.interfaces.IUserService;
 import com.dashboard.common.model.exception.InvalidRequestException;
@@ -83,7 +83,7 @@ public class TotpService implements ITotpService {
 
         boolean isValid = verifier.isValidCode(secret, code);
 
-        if (isValid && !Boolean.TRUE.equals(totpConfig.getEnabled())) {
+        if (isValid && !totpConfig.isEnabled()) {
             totpConfig.setEnabled(true);
             Audit audit = totpConfig.getAudit();
             audit.setUpdatedAt(Instant.now());

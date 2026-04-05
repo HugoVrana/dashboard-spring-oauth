@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Diagram>
+  <ID>JAVA</ID>
+  <OriginalElement>com.dashboard.oauth.model</OriginalElement>
+  <nodes>
+    <node x="277.1756200358123" y="861.3812484129659">com.dashboard.oauth.model.entities.mfa.TotpConfig</node>
+    <node x="51.51347897923418" y="860.9595147410846">com.dashboard.oauth.model.entities.oauth.OAuthToken</node>
+    <node x="201.50842776474917" y="-13.928173685597528">com.dashboard.oauth.model.entities.oauth.RefreshToken</node>
+    <node x="477.73089503452024" y="853.5126641883746">com.dashboard.oauth.model.entities.mfa.BaseTwoFactorConfig</node>
+    <node x="451.03291212816134" y="186.95379837924273">com.dashboard.oauth.model.entities.mfa.MfaToken</node>
+    <node x="-193.35329756374608" y="822.2106901961614">com.dashboard.oauth.model.UserInfo</node>
+    <node x="-123.83980868325693" y="131.52845014885986">com.dashboard.oauth.model.entities.oauth.OAuthClient</node>
+    <node x="763.1893728762076" y="810.2394998954479">com.dashboard.oauth.model.entities.crypto.ServerKey</node>
+    <node x="-135.36751878020937" y="606.9437314308266">com.dashboard.oauth.model.entities.auth.Role</node>
+    <node x="366.2662921219394" y="1000.9824451334669">com.dashboard.oauth.model.entities.oauth.AuthorizationRequest</node>
+    <node x="451.3210151830872" y="487.36676032956393">com.dashboard.oauth.model.entities.email.EmailSendAttempt</node>
+    <node x="159.5169497515899" y="205.28749238050204">com.dashboard.oauth.model.entities.oauth.AuthorizationCode</node>
+    <node x="-69.73564984201403" y="398.0740155066735">com.dashboard.oauth.model.entities.auth.Grant</node>
+    <node x="92.15475988794739" y="616.6859886259689">com.dashboard.oauth.model.entities.user.VerificationToken</node>
+    <node x="-18.522347305367077" y="1080.5998994980837">com.dashboard.oauth.model.entities.user.User</node>
+  </nodes>
+  <notes />
+  <edges>
+    <edge source="com.dashboard.oauth.model.entities.user.User" target="com.dashboard.oauth.model.entities.mfa.BaseTwoFactorConfig" relationship="TO_ONE">
+      <point x="152.0" y="65.38254563538305" />
+      <point x="614.7662921219394" y="1321.4824451334669" />
+      <point x="25.035397087419142" y="43.5" />
+    </edge>
+    <edge source="com.dashboard.oauth.model.UserInfo" target="com.dashboard.oauth.model.entities.auth.Role" relationship="TO_MANY">
+      <point x="92.00029756374607" y="3.09803838604239E-4" />
+      <point x="22.0" y="889.711" />
+      <point x="22.0" y="804.711" />
+      <point x="-51.867999999999995" y="804.711" />
+      <point x="-4.812197906289839E-4" y="67.5002685691735" />
+    </edge>
+    <edge source="com.dashboard.oauth.model.entities.auth.Role" target="com.dashboard.oauth.model.entities.auth.Grant" relationship="TO_MANY">
+      <point x="61.63186893819534" y="-67.5" />
+      <point x="0.0" y="67.5" />
+    </edge>
+    <edge source="com.dashboard.oauth.model.entities.oauth.OAuthToken" target="com.dashboard.oauth.model.entities.user.User" relationship="TO_ONE">
+      <point x="15.964521020765815" y="79.5" />
+      <point x="15.000347305367072" y="-175.5" />
+    </edge>
+    <edge source="com.dashboard.oauth.model.entities.user.User" target="com.dashboard.oauth.model.entities.user.VerificationToken" relationship="TO_ONE">
+      <point x="97.53582628460126" y="-175.5" />
+      <point x="44.85871909128679" y="91.5" />
+    </edge>
+    <edge source="com.dashboard.oauth.model.entities.user.User" target="com.dashboard.oauth.model.entities.auth.Role" relationship="TO_MANY">
+      <point x="3.473053670717263E-4" y="-175.49989949808378" />
+      <point x="133.478" y="1037.46" />
+      <point x="22.0" y="1037.46" />
+      <point x="22.0" y="804.711" />
+      <point x="-51.867999999999995" y="804.711" />
+      <point x="-4.812197906289839E-4" y="67.5002685691735" />
+    </edge>
+    <edge source="com.dashboard.oauth.model.entities.mfa.TotpConfig" target="com.dashboard.oauth.model.entities.mfa.BaseTwoFactorConfig" relationship="GENERALIZATION">
+      <point x="70.0" y="4.131415775408755" />
+      <point x="-112.0" y="0.0" />
+    </edge>
+  </edges>
+  <settings layout="Hierarchic Compact" zoom="1.2403542803547065" showDependencies="true" x="337.51000644468263" y="361.29600000000005" />
+  <SelectedNodes />
+  <Categories>
+    <Category>Fields</Category>
+  </Categories>
+  <SCOPE>All</SCOPE>
+  <VISIBILITY>private</VISIBILITY>
+</Diagram>
+

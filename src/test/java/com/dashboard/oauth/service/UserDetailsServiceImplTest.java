@@ -1,7 +1,7 @@
 package com.dashboard.oauth.service;
 
 import com.dashboard.common.model.Audit;
-import com.dashboard.oauth.model.entities.User;
+import com.dashboard.oauth.model.entities.user.User;
 import com.dashboard.oauth.repository.IUserRepository;
 import net.datafaker.Faker;
 import org.bson.types.ObjectId;

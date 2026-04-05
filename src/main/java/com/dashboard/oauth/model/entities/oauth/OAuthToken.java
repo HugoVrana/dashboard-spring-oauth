@@ -1,26 +1,29 @@
-package com.dashboard.oauth.model.entities;
+package com.dashboard.oauth.model.entities.oauth;
 
 import com.dashboard.common.model.Audit;
+import com.dashboard.oauth.model.entities.user.User;
 import lombok.Data;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
-import java.util.ArrayList;
-import java.util.List;
+import java.time.Instant;
 
 @Data
-@Document(collection = "roles")
-public class Role {
+@Document(collection = "oauth_tokens")
+public class OAuthToken {
     @Id
     private ObjectId _id;
 
     @Indexed(unique = true)
-    private String name;
-
-    private Audit audit;
+    private String token;
 
     @DBRef
-    private List<Grant> grants = new ArrayList<>();
+    private User user;
+
+    @Indexed(expireAfter = "0")
+    private Instant expiryDate;
+
+    private Audit audit;
 }

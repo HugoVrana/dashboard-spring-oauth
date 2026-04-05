@@ -5,7 +5,7 @@ import com.dashboard.oauth.authentication.GrantsAuthentication;
 import com.dashboard.oauth.dataTransferObject.user.UserSelfRead;
 import com.dashboard.oauth.dataTransferObject.user.UserSelfUpdate;
 import com.dashboard.oauth.environment.R2Properties;
-import com.dashboard.oauth.model.entities.User;
+import com.dashboard.oauth.model.entities.user.User;
 import com.dashboard.oauth.service.interfaces.IR2Service;
 import com.dashboard.oauth.service.interfaces.IUserService;
 import jakarta.validation.Valid;

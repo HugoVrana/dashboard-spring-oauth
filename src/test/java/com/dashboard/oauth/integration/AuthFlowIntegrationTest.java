@@ -5,7 +5,7 @@ import com.dashboard.oauth.dataTransferObject.auth.AuthResponse;
 import com.dashboard.oauth.dataTransferObject.auth.LoginRequest;
 import com.dashboard.oauth.dataTransferObject.auth.RefreshTokenRequest;
 import com.dashboard.oauth.dataTransferObject.auth.RegisterRequest;
-import com.dashboard.oauth.model.entities.Role;
+import com.dashboard.oauth.model.entities.auth.Role;
 import com.dashboard.oauth.repository.IRefreshTokenRepository;
 import com.dashboard.oauth.repository.IRoleRepository;
 import com.dashboard.oauth.repository.IUserRepository;
@@ -63,7 +63,7 @@ class AuthFlowIntegrationTest extends BaseIntegrationTest {
     void cleanUp() {
         // Only delete what this test created - avoid affecting other tests
         if (testUserId != null) {
-            refreshTokenRepository.deleteByUserId(testUserId);
+            refreshTokenRepository.deleteByUserId(new org.bson.types.ObjectId(testUserId));
             userRepository.deleteById(new org.bson.types.ObjectId(testUserId));
         }
         if (testRoleId != null) {

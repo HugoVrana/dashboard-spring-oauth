@@ -4,7 +4,7 @@ import com.dashboard.oauth.config.RsaKeyPair;
 import com.dashboard.oauth.environment.JWTProperties;
 import com.dashboard.oauth.environment.OidcProperties;
 import com.dashboard.oauth.model.UserInfo;
-import com.dashboard.oauth.model.entities.Grant;
+import com.dashboard.oauth.model.entities.auth.Grant;
 import com.dashboard.oauth.service.interfaces.IJwtService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;

@@ -7,10 +7,10 @@ import com.dashboard.oauth.dataTransferObject.auth.LoginRequest;
 import com.dashboard.oauth.dataTransferObject.auth.RegisterRequest;
 import com.dashboard.oauth.dataTransferObject.user.UserInfoRead;
 import com.dashboard.oauth.model.UserInfo;
-import com.dashboard.oauth.model.entities.RefreshToken;
-import com.dashboard.oauth.model.entities.Role;
-import com.dashboard.oauth.model.entities.User;
-import com.dashboard.oauth.model.entities.VerificationToken;
+import com.dashboard.oauth.model.entities.oauth.RefreshToken;
+import com.dashboard.oauth.model.entities.auth.Role;
+import com.dashboard.oauth.model.entities.user.User;
+import com.dashboard.oauth.model.entities.user.VerificationToken;
 import org.bson.types.ObjectId;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -111,7 +111,7 @@ class AuthenticationServiceTest extends BaseAuthenticationServiceTest {
         assertEquals("access-token", response.getAccessToken());
         assertNotNull(response.getRefreshToken());
         assertEquals(jwtProperties.getExpiration(), response.getExpiresIn());
-        verify(refreshTokenRepository).deleteByUserId(anyString());
+        verify(refreshTokenRepository).deleteByUserId(any(ObjectId.class));
         verify(refreshTokenRepository).save(any(RefreshToken.class));
     }
 
@@ -178,7 +178,7 @@ class AuthenticationServiceTest extends BaseAuthenticationServiceTest {
 
         // Verify delete is called before save
         var inOrder = inOrder(refreshTokenRepository);
-        inOrder.verify(refreshTokenRepository).deleteByUserId(user.get_id().toHexString());
+        inOrder.verify(refreshTokenRepository).deleteByUserId(user.get_id());
         inOrder.verify(refreshTokenRepository).save(any(RefreshToken.class));
     }
 
@@ -190,7 +190,7 @@ class AuthenticationServiceTest extends BaseAuthenticationServiceTest {
         User user = createTestUser();
         RefreshToken refreshToken = RefreshToken.builder()
                 .token(refreshTokenId)
-                .userId(user.get_id().toHexString())
+                .userId(user.get_id())
                 .expiryDate(Instant.now().plusMillis(jwtProperties.getExpiration()))
                 .build();
 
@@ -248,7 +248,7 @@ class AuthenticationServiceTest extends BaseAuthenticationServiceTest {
         String refreshTokenStr = refreshTokenId.toHexString();
         RefreshToken refreshToken = RefreshToken.builder()
                 .token(refreshTokenId)
-                .userId(new ObjectId().toHexString())
+                .userId(new ObjectId())
                 .expiryDate(Instant.now().minusMillis(1000)) // Expired
                 .build();
 
@@ -271,7 +271,7 @@ class AuthenticationServiceTest extends BaseAuthenticationServiceTest {
         ObjectId userId = new ObjectId();
         RefreshToken refreshToken = RefreshToken.builder()
                 .token(refreshTokenId)
-                .userId(userId.toHexString())
+                .userId(userId)
                 .expiryDate(Instant.now().plusMillis(jwtProperties.getExpiration()))
                 .build();
 
@@ -303,7 +303,7 @@ class AuthenticationServiceTest extends BaseAuthenticationServiceTest {
 
         authenticationService.logout(authHeader);
 
-        verify(refreshTokenRepository).deleteByUserId(userId.toHexString());
+        verify(refreshTokenRepository).deleteByUserId(userId);
     }
 
     @Test
@@ -369,7 +369,7 @@ class AuthenticationServiceTest extends BaseAuthenticationServiceTest {
 
         RefreshToken savedToken = tokenCaptor.getValue();
         assertNotNull(savedToken.getToken());
-        assertEquals(user.get_id().toHexString(), savedToken.getUserId());
+        assertEquals(user.get_id(), savedToken.getUserId());
 
         // Check expiry is roughly JWT_EXPIRATION in the future
         assertTrue(savedToken.getExpiryDate().isAfter(beforeLogin.plusMillis(jwtProperties.getExpiration() - 1000)));
@@ -516,7 +516,7 @@ class AuthenticationServiceTest extends BaseAuthenticationServiceTest {
 
         User savedUser = userCaptor.getValue();
         assertEquals(0, savedUser.getFailedLoginAttempts());
-        assertFalse(savedUser.getLocked());
+        assertFalse(savedUser.isLocked());
         assertEquals("encodedNewPassword", savedUser.getPassword());
     }
 

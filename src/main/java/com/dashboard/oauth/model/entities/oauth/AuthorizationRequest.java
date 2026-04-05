@@ -1,6 +1,7 @@
-package com.dashboard.oauth.model.entities;
+package com.dashboard.oauth.model.entities.oauth;
 
 import com.dashboard.common.model.Audit;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Builder;
 import lombok.Data;
 import org.bson.types.ObjectId;
@@ -12,19 +13,19 @@ import java.time.Instant;
 
 @Data
 @Builder
-@Document(collection = "authorization_codes")
-public class AuthorizationCode {
+@Document(collection = "authorization_requests")
+public class AuthorizationRequest {
 
     @Id
     private ObjectId id;
 
-    @Indexed(unique = true)
-    private String code;
-
+    @NotBlank
     private String clientId;
-    private String userId;
+    @NotBlank
     private String redirectUri;
+    @NotBlank
     private String codeChallenge;
+    @NotBlank
     private String codeChallengeMethod;
     private String scope;
     private String state;

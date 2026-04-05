@@ -1,7 +1,7 @@
 package com.dashboard.oauth.service.email;
 
-import com.dashboard.oauth.model.entities.EmailSendAttempt;
-import com.dashboard.oauth.model.entities.User;
+import com.dashboard.oauth.model.entities.email.EmailSendAttempt;
+import com.dashboard.oauth.model.entities.user.User;
 import com.dashboard.oauth.model.enums.EmailSendStatus;
 import com.dashboard.oauth.model.enums.EmailType;
 import com.resend.core.exception.ResendException;
