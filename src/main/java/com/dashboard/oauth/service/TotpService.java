@@ -20,12 +20,14 @@ import dev.samstevens.totp.secret.SecretGenerator;
 import dev.samstevens.totp.time.SystemTimeProvider;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.Base64;
 
 @Service
+@Scope("singleton")
 @RequiredArgsConstructor
 public class TotpService implements ITotpService {
 

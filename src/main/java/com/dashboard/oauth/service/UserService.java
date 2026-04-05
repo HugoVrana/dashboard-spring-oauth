@@ -17,6 +17,7 @@ import com.dashboard.oauth.repository.IUserRepository;
 import com.dashboard.oauth.service.interfaces.IUserService;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
+import org.springframework.context.annotation.Scope;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -25,6 +26,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
+@Scope("singleton")
 @RequiredArgsConstructor
 public class UserService implements IUserService {
 

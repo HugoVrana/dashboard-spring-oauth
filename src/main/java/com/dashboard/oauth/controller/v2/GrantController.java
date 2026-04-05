@@ -2,6 +2,7 @@ package com.dashboard.oauth.controller.v2;
 
 import com.dashboard.oauth.dataTransferObject.grant.GrantCreate;
 import com.dashboard.oauth.dataTransferObject.grant.GrantRead;
+import com.dashboard.oauth.dataTransferObject.grant.GrantUpdate;
 import com.dashboard.oauth.service.GrantService;
 import jakarta.validation.Valid;
 import io.swagger.v3.oas.annotations.Operation;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -67,6 +69,21 @@ public class GrantController {
     @PostMapping("/")
     public ResponseEntity<GrantRead> createGrant(@Valid @RequestBody GrantCreate grantCreate) {
         return ResponseEntity.ok(grantService.createGrant(grantCreate));
+    }
+
+    @Operation(summary = "Update a grant")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Grant updated",
+                    content = @Content(schema = @Schema(implementation = GrantRead.class))),
+            @ApiResponse(responseCode = "404", description = "Grant not found", content = @Content),
+            @ApiResponse(responseCode = "409", description = "Grant with this name already exists", content = @Content)
+    })
+    @PreAuthorize("hasAuthority('dashboard-oauth-grant-update')")
+    @PutMapping("/{id}")
+    public ResponseEntity<GrantRead> updateGrant(
+            @Parameter(description = "Grant ID", required = true) @PathVariable String id,
+            @Valid @RequestBody GrantUpdate update) {
+        return ResponseEntity.ok(grantService.updateGrant(new ObjectId(id), update));
     }
 
     @Operation(summary = "Delete a grant")

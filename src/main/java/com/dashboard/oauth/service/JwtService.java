@@ -9,6 +9,7 @@ import com.dashboard.oauth.service.interfaces.IJwtService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Scope;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import java.time.Instant;
@@ -20,6 +21,7 @@ import java.util.Set;
 import java.util.function.Function;
 
 @Service
+@Scope("singleton")
 @RequiredArgsConstructor
 public class JwtService implements IJwtService {
 

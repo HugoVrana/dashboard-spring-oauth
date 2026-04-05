@@ -19,6 +19,7 @@ import com.dashboard.oauth.service.interfaces.IOAuthClientService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
+import org.springframework.context.annotation.Scope;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.net.URI;
@@ -33,6 +34,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Service
+@Scope("singleton")
 @RequiredArgsConstructor
 public class OAuthClientService implements IOAuthClientService {
 

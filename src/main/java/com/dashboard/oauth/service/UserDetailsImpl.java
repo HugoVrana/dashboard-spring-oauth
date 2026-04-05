@@ -3,6 +3,8 @@ package com.dashboard.oauth.service;
 import com.dashboard.oauth.model.entities.user.User;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.jspecify.annotations.NonNull;
+import org.springframework.context.annotation.Scope;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -11,13 +13,14 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Getter
+@Scope("singleton")
 @RequiredArgsConstructor
 public class UserDetailsImpl implements UserDetails {
 
     private final User user;
 
     @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
+    public @NonNull Collection<? extends GrantedAuthority> getAuthorities() {
         if (user.getRoles() == null || user.getRoles().isEmpty()) {
             return List.of(); // or return default role
         }
@@ -33,7 +36,7 @@ public class UserDetailsImpl implements UserDetails {
     }
 
     @Override
-    public String getUsername() {
+    public @NonNull String getUsername() {
         return user.getEmail();
     }
 

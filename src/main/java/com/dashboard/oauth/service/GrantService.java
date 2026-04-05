@@ -11,6 +11,7 @@ import com.dashboard.oauth.context.DiffContext;
 import com.dashboard.oauth.dataTransferObject.grant.EnsureGrantsResponse;
 import com.dashboard.oauth.dataTransferObject.grant.GrantCreate;
 import com.dashboard.oauth.dataTransferObject.grant.GrantRead;
+import com.dashboard.oauth.dataTransferObject.grant.GrantUpdate;
 import com.dashboard.oauth.mapper.interfaces.IGrantMapper;
 import com.dashboard.oauth.model.entities.auth.Grant;
 import com.dashboard.oauth.model.enums.ActivityEventType;
@@ -106,6 +107,23 @@ public class GrantService implements IGrantService {
         }
 
         return new EnsureGrantsResponse(created, alreadyExisted);
+    }
+
+    @Override
+    public GrantRead updateGrant(ObjectId id, GrantUpdate update) {
+        Grant grant = grantRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Grant not found"));
+
+        if (!grant.getName().equals(update.getName()) && getGrantByName(update.getName()).isPresent()) {
+            throw new ConflictException("Grant with this name already exists");
+        }
+
+        grant.setName(update.getName());
+        grant.setDescription(update.getDescription());
+        grant.getAudit().setUpdatedAt(Instant.now());
+        grant = grantRepository.save(grant);
+
+        return grantMapper.toRead(grant);
     }
 
     @Override

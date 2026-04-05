@@ -5,8 +5,9 @@ import com.dashboard.oauth.model.entities.user.User;
 import com.dashboard.oauth.model.entities.user.VerificationToken;
 import com.dashboard.oauth.repository.IUserRepository;
 import com.dashboard.oauth.service.interfaces.ITokenService;
+import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -17,9 +18,10 @@ import java.time.temporal.TemporalAmount;
 import java.util.Optional;
 
 @Service
+@Scope("singleton")
+@RequiredArgsConstructor
 public class TokenService implements ITokenService {
 
-    @Autowired
     private IUserRepository userRepository;
 
     public String createEmailVerificationToken(User user) {

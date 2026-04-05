@@ -33,6 +33,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
+import org.springframework.context.annotation.Scope;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
 import java.nio.charset.StandardCharsets;
@@ -47,6 +48,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Service
+@Scope("singleton")
 @RequiredArgsConstructor
 public class AuthorizationService implements IAuthorizationService {
 

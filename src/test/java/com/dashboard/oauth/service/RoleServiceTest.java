@@ -7,6 +7,7 @@ import com.dashboard.oauth.dataTransferObject.role.CreateRole;
 import com.dashboard.oauth.dataTransferObject.role.RoleRead;
 import com.dashboard.oauth.mapper.interfaces.IRoleMapper;
 import com.dashboard.oauth.model.entities.auth.Role;
+import com.dashboard.oauth.repository.IGrantRepository;
 import com.dashboard.oauth.repository.IRoleRepository;
 import net.datafaker.Faker;
 import org.bson.types.ObjectId;
@@ -33,6 +34,9 @@ class RoleServiceTest {
 
     @Mock
     private IRoleRepository roleRepository;
+
+    @Mock
+    private IGrantRepository grantRepository;
 
     @Mock
     private IRoleMapper roleMapper;
@@ -69,24 +73,24 @@ class RoleServiceTest {
     @Test
     @DisplayName("Get all roles")
     void getRoleById_shouldReturnRole_whenRoleExists() {
-        when(roleRepository.findById(testRoleId)).thenReturn(Optional.of(testRole));
+        when(roleRepository.findRoleBy_idAndAudit_DeletedAtIsNull(testRoleId)).thenReturn(Optional.of(testRole));
 
         Optional<Role> result = roleService.getRoleById(testRoleId);
 
         assertThat(result).isPresent();
         assertThat(result.get().get_id()).isEqualTo(testRoleId);
-        verify(roleRepository).findById(testRoleId);
+        verify(roleRepository).findRoleBy_idAndAudit_DeletedAtIsNull(testRoleId);
     }
 
     @Test
     @DisplayName("Get nonexistent role")
     void getRoleById_shouldReturnEmpty_whenRoleNotFound() {
-        when(roleRepository.findById(testRoleId)).thenReturn(Optional.empty());
+        when(roleRepository.findRoleBy_idAndAudit_DeletedAtIsNull(testRoleId)).thenReturn(Optional.empty());
 
         Optional<Role> result = roleService.getRoleById(testRoleId);
 
         assertThat(result).isEmpty();
-        verify(roleRepository).findById(testRoleId);
+        verify(roleRepository).findRoleBy_idAndAudit_DeletedAtIsNull(testRoleId);
     }
 
     @Test
@@ -127,31 +131,18 @@ class RoleServiceTest {
     }
 
     @Test
-    @DisplayName("Update role")
-    void updateRole_shouldReturnUpdatedRole() {
-        testRole.setName("UPDATED_ROLE");
-        when(roleRepository.save(any(Role.class))).thenReturn(testRole);
-
-        Role result = roleService.updateRole(testRole);
-
-        assertThat(result).isNotNull();
-        assertThat(result.getName()).isEqualTo("UPDATED_ROLE");
-        verify(roleRepository).save(testRole);
-    }
-
-    @Test
     @DisplayName("Get all roles returns list")
     void getRoles_shouldReturnAllRoles() {
         RoleRead expectedRead = new RoleRead();
         expectedRead.setName(testRoleName);
 
-        when(roleRepository.findAll()).thenReturn(List.of(testRole));
+        when(roleRepository.findByAudit_DeletedAtIsNull()).thenReturn(List.of(testRole));
         when(roleMapper.toRead(testRole)).thenReturn(expectedRead);
 
         List<RoleRead> result = roleService.getRoles();
 
         assertThat(result).hasSize(1);
-        assertThat(result.get(0).getName()).isEqualTo(testRoleName);
+        assertThat(result.getFirst().getName()).isEqualTo(testRoleName);
     }
 
     @Test
@@ -214,7 +205,7 @@ class RoleServiceTest {
     @Test
     @DisplayName("Delete role removes entity when it exists")
     void deleteRole_shouldDeleteRole_whenExists() {
-        when(roleRepository.findById(testRoleId)).thenReturn(Optional.of(testRole));
+        when(roleRepository.findRoleBy_idAndAudit_DeletedAtIsNull(testRoleId)).thenReturn(Optional.of(testRole));
 
         roleService.deleteRole(testRoleId);
 
@@ -224,7 +215,7 @@ class RoleServiceTest {
     @Test
     @DisplayName("Delete role throws ResourceNotFoundException when not found")
     void deleteRole_shouldThrowResourceNotFoundException_whenNotFound() {
-        when(roleRepository.findById(testRoleId)).thenReturn(Optional.empty());
+        when(roleRepository.findRoleBy_idAndAudit_DeletedAtIsNull(testRoleId)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> roleService.deleteRole(testRoleId))
                 .isInstanceOf(ResourceNotFoundException.class);

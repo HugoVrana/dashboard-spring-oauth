@@ -37,6 +37,7 @@ import com.dashboard.oauth.service.interfaces.IRoleService;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.context.annotation.Scope;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -52,6 +53,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Service
+@Scope("singleton")
 @RequiredArgsConstructor
 public class AuthenticationService implements IAuthenticationService {
 
@@ -417,8 +419,7 @@ public class AuthenticationService implements IAuthenticationService {
             user = userDetails.getUser();
         }
         UserInfo userInfo = userInfoMapper.toUserInfo(user);
-        UserInfoRead userInfoRead = userInfoMapper.toRead(userInfo);
-        return userInfoRead;
+        return userInfoMapper.toRead(userInfo);
     }
 
     private void publishActivityEvent(ActivityEventType type, User user) {
