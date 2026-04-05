@@ -10,5 +10,6 @@ public class AuthResponse {
     private String idToken;
     private String tokenType;
     private Long expiresIn;
+    private String scope;
     private UserInfoRead user;
 }

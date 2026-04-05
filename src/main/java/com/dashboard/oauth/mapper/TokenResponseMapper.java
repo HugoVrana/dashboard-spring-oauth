@@ -14,6 +14,7 @@ public class TokenResponseMapper implements ITokenResponseMapper {
         tokenResponse.setExpiresIn(authResponse.getExpiresIn() / 1000);
         tokenResponse.setRefreshToken(authResponse.getRefreshToken());
         tokenResponse.setIdToken(authResponse.getIdToken());
+        tokenResponse.setScope(authResponse.getScope());
         return tokenResponse;
     }
 }
