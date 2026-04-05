@@ -47,7 +47,7 @@ public class GrantService implements IGrantService {
 
     @Override
     public Optional<Grant> getGrantByName(String name) {
-        return grantRepository.findByName(name);
+        return grantRepository.getGrantByNameAndAudit_DeletedAtIsNull(name);
     }
 
     @Override

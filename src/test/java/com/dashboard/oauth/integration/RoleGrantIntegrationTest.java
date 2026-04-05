@@ -159,7 +159,7 @@ class RoleGrantIntegrationTest extends BaseIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value(testGrantName));
 
-        Grant grant = grantRepository.findByName(testGrantName).orElseThrow();
+        Grant grant = grantRepository.getGrantByNameAndAudit_DeletedAtIsNull(testGrantName).orElseThrow();
         testGrantId = grant.get_id().toHexString();
     }
 

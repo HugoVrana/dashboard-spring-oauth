@@ -8,23 +8,25 @@ import com.dashboard.oauth.authentication.GrantsAuthentication;
 import com.dashboard.oauth.dataTransferObject.oauthClient.OAuthClientCreate;
 import com.dashboard.oauth.dataTransferObject.oauthClient.OAuthClientCreated;
 import com.dashboard.oauth.dataTransferObject.oauthClient.OAuthClientRead;
-import jakarta.servlet.http.HttpServletRequest;
 import com.dashboard.oauth.mapper.interfaces.IOAuthClientMapper;
+import com.dashboard.oauth.model.entities.auth.Grant;
 import com.dashboard.oauth.model.entities.oauth.OAuthClient;
 import com.dashboard.oauth.model.enums.ActivityEventType;
+import com.dashboard.oauth.repository.IGrantRepository;
 import com.dashboard.oauth.repository.IOauthClientRepository;
 import com.dashboard.oauth.service.interfaces.IActivityFeedService;
 import com.dashboard.oauth.service.interfaces.IOAuthClientService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Base64;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -35,6 +37,7 @@ import java.util.UUID;
 public class OAuthClientService implements IOAuthClientService {
 
     private final IOauthClientRepository oauthClientRepository;
+    private final IGrantRepository grantRepository;
     private final IOAuthClientMapper oAuthClientMapper;
     private final PasswordEncoder passwordEncoder;
     private final IActivityFeedService activityFeedService;
@@ -66,8 +69,17 @@ public class OAuthClientService implements IOAuthClientService {
                 .distinct()
                 .toList();
 
-        if (!allowedHosts.containsAll(redirectHosts)) {
+        if (!new HashSet<>(allowedHosts).containsAll(redirectHosts)) {
             throw new InvalidRequestException("Every redirect URI host must be included in allowedHosts");
+        }
+
+        List<Grant> allowedGrants = null;
+        if (request.getAllowedGrants() != null && !request.getAllowedGrants().isEmpty()) {
+            allowedGrants = request.getAllowedGrants().stream()
+                    .distinct()
+                    .map(name -> grantRepository.getGrantByNameAndAudit_DeletedAtIsNull(name)
+                            .orElseThrow(() -> new ResourceNotFoundException("Grant " + name + " not found")))
+                    .toList();
         }
 
         OAuthClient client = OAuthClient.builder()
@@ -75,6 +87,7 @@ public class OAuthClientService implements IOAuthClientService {
                 .redirectUris(redirectUris)
                 .allowedHosts(allowedHosts)
                 .allowedScopes(request.getAllowedScopes())
+                .allowedGrants(allowedGrants)
                 .audit(audit)
                 .build();
 
@@ -87,6 +100,9 @@ public class OAuthClientService implements IOAuthClientService {
         created.setRedirectUris(client.getRedirectUris());
         created.setAllowedHosts(client.getAllowedHosts());
         created.setAllowedScopes(client.getAllowedScopes());
+        created.setAllowedGrants(client.getAllowedGrants() != null
+                ? client.getAllowedGrants().stream().map(Grant::getName).toList()
+                : null);
         created.setClientSecret(rawSecret);
         return created;
     }
@@ -117,6 +133,9 @@ public class OAuthClientService implements IOAuthClientService {
         created.setRedirectUris(client.getRedirectUris());
         created.setAllowedHosts(client.getAllowedHosts());
         created.setAllowedScopes(client.getAllowedScopes());
+        created.setAllowedGrants(client.getAllowedGrants() != null
+                ? client.getAllowedGrants().stream().map(Grant::getName).toList()
+                : null);
         created.setClientSecret(rawSecret);
         return created;
     }

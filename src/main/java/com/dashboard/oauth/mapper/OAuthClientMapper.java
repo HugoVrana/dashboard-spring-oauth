@@ -2,6 +2,7 @@ package com.dashboard.oauth.mapper;
 
 import com.dashboard.oauth.dataTransferObject.oauthClient.OAuthClientRead;
 import com.dashboard.oauth.mapper.interfaces.IOAuthClientMapper;
+import com.dashboard.oauth.model.entities.auth.Grant;
 import com.dashboard.oauth.model.entities.oauth.OAuthClient;
 import org.springframework.stereotype.Service;
 
@@ -14,6 +15,11 @@ public final class OAuthClientMapper implements IOAuthClientMapper {
         read.setRedirectUris(oAuthClient.getRedirectUris());
         read.setAllowedHosts(oAuthClient.getAllowedHosts());
         read.setAllowedScopes(oAuthClient.getAllowedScopes());
+        if (oAuthClient.getAllowedGrants() != null) {
+            read.setAllowedGrants(oAuthClient.getAllowedGrants().stream()
+                    .map(Grant::getName)
+                    .toList());
+        }
         return read;
     }
 }

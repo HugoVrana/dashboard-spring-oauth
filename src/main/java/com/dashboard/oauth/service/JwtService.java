@@ -11,11 +11,12 @@ import io.jsonwebtoken.Jwts;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
-
 import java.time.Instant;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 
 @Service
@@ -27,12 +28,17 @@ public class JwtService implements IJwtService {
     private final RsaKeyPair rsaKeyPair;
 
     @Override
-    public String generateToken(UserInfo userDetails) {
+    public String generateToken(UserInfo userDetails, List<Grant> allowedGrants) {
+        Set<String> allowedGrantNames = allowedGrants == null ? null : allowedGrants.stream()
+                .map(Grant::getName)
+                .collect(java.util.stream.Collectors.toSet());
+
         Map<String, Object> claims = new HashMap<>();
         claims.put("userId", userDetails.getId().toHexString());
         claims.put("grants", userDetails.getRole().stream()
                 .flatMap(role -> role.getGrants().stream())
                 .map(Grant::getName)
+                .filter(name -> allowedGrantNames == null || allowedGrantNames.contains(name))
                 .distinct()
                 .toList());
 

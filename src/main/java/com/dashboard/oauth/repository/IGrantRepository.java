@@ -6,5 +6,5 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import java.util.Optional;
 
 public interface IGrantRepository extends MongoRepository<Grant, ObjectId> {
-    Optional<Grant> findByName(String name);
+    Optional<Grant> getGrantByNameAndAudit_DeletedAtIsNull(String name);
 }
