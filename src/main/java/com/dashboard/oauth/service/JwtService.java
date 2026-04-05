@@ -34,7 +34,7 @@ public class JwtService implements IJwtService {
                 .collect(java.util.stream.Collectors.toSet());
 
         Map<String, Object> claims = new HashMap<>();
-        claims.put("userId", userDetails.getId().toHexString());
+        claims.put("email", userDetails.getEmail());
         claims.put("grants", userDetails.getRole().stream()
                 .flatMap(role -> role.getGrants().stream())
                 .map(Grant::getName)
@@ -48,7 +48,9 @@ public class JwtService implements IJwtService {
         return Jwts.builder()
                 .header().add("kid", rsaKeyPair.getKid()).and()
                 .claims(claims)
-                .subject(userDetails.getEmail())
+                .issuer(oidcProperties.getIssuer())
+                .subject(userDetails.getId().toHexString())
+                .audience().add(oidcProperties.getIssuer()).and()
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(expiryInstant))
                 .signWith(rsaKeyPair.getPrivateKey(), Jwts.SIG.RS256)
@@ -78,7 +80,7 @@ public class JwtService implements IJwtService {
 
     @Override
     public String extractUsername(String token) {
-        return extractClaim(token, Claims::getSubject);
+        return extractClaim(token, claims -> claims.get("email", String.class));
     }
 
     @Override

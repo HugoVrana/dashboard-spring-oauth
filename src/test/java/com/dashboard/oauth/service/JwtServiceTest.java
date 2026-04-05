@@ -70,8 +70,7 @@ class JwtServiceTest {
         UserInfo userInfo = createTestUserInfo();
         String token = jwtService.generateToken(userInfo, null);
 
-        // The userId is stored as ObjectId which serializes to a map with $oid
-        Object userId = jwtService.extractClaim(token, claims -> claims.get("userId"));
+        String userId = jwtService.extractClaim(token, Claims::getSubject);
 
         assertNotNull(userId);
     }
