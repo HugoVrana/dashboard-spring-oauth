@@ -31,11 +31,11 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @CrossOrigin
-@RestController("v2UserController")
 @RequiredArgsConstructor
 @RequestMapping("api/v2/user")
-@Tag(name = "Users (Admin)", description = "Admin user management")
+@RestController("v2UserController")
 @SecurityRequirement(name = "bearerAuth")
+@Tag(name = "Users (Admin)", description = "Admin user management")
 public class UserController {
     private final IUserService userService;
 

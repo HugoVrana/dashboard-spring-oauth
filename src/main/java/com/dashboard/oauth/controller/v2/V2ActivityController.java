@@ -1,4 +1,4 @@
-package com.dashboard.oauth.controller.v1;
+package com.dashboard.oauth.controller.v2;
 
 import com.dashboard.common.model.ActivityEvent;
 import com.dashboard.oauth.service.interfaces.IActivityFeedService;
@@ -9,15 +9,13 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
 import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@Deprecated(since = "April 5th 2026", forRemoval = true)
 @Tag(name = "Activity", description = "Activity feed operations")
-@RequestMapping(value = "/api/v1/activity", produces = "application/json")
-public class ActivityController {
+@RequestMapping(value = "/api/v2/activity", produces = "application/json")
+public class V2ActivityController {
 
     private final IActivityFeedService activityFeedService;
 

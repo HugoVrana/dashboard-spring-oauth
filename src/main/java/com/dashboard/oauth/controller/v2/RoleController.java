@@ -29,11 +29,11 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @CrossOrigin
-@RestController("v2RoleController")
 @RequiredArgsConstructor
 @RequestMapping("api/v2/role")
-@Tag(name = "Roles", description = "Role management")
+@RestController("v2RoleController")
 @SecurityRequirement(name = "bearerAuth")
+@Tag(name = "Roles", description = "Role management")
 public class RoleController {
     private final IRoleService roleService;
 

@@ -1,4 +1,4 @@
-package com.dashboard.oauth.controller.v1;
+package com.dashboard.oauth.controller.v2;
 
 import com.dashboard.oauth.authentication.GrantsAuthentication;
 import com.dashboard.oauth.dataTransferObject.totp.TotpSetupResponse;
@@ -14,10 +14,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@RestController
 @CrossOrigin
-@RequestMapping("/api/v1/auth/2fa")
+@RestController
 @RequiredArgsConstructor
+@RequestMapping("/api/v2/auth/2fa")
 public class TotpController {
 
     private final ITotpService totpService;

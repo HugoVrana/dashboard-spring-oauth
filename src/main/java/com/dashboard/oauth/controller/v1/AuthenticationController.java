@@ -35,11 +35,13 @@ import java.net.URI;
 @CrossOrigin
 @RestController
 @RequiredArgsConstructor
+@Deprecated(since = "April 5th 2026", forRemoval = true)
 @RequestMapping(value = "/api/v1/auth", produces = "application/json")
 @Tag(name = "Authentication", description = "Authentication operations")
 public class AuthenticationController {
 
     private final IAuthenticationService authService;
+
 
     @Operation(summary = "Register a new user", description = "Creates a new user account with email, password, and role")
     @ApiResponses({
@@ -55,6 +57,7 @@ public class AuthenticationController {
         return ResponseEntity.created(location).body(response);
     }
 
+
     @Operation(summary = "Login", description = "Authenticates user and returns access and refresh tokens")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Login successful",
@@ -67,6 +70,7 @@ public class AuthenticationController {
         return ResponseEntity.ok(authService.login(request));
     }
 
+
     @Operation(summary = "Refresh token", description = "Exchanges a refresh token for a new access token")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Token refreshed successfully",
@@ -77,6 +81,7 @@ public class AuthenticationController {
     public ResponseEntity<AuthResponse> refresh(@Valid @RequestBody RefreshTokenRequest request) {
         return ResponseEntity.ok(authService.refreshToken(request.getRefreshToken()));
     }
+
 
     @Operation(summary = "Logout", description = "Invalidates the user's refresh token")
     @SecurityRequirement(name = "bearerAuth")
@@ -92,6 +97,7 @@ public class AuthenticationController {
         return ResponseEntity.ok().build();
     }
 
+
     @Operation(summary = "Verify email", description = "Verifies user's email address using the verification token")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Email verified successfully"),
@@ -105,6 +111,7 @@ public class AuthenticationController {
         return ResponseEntity.ok().build();
     }
 
+
     @Operation(summary = "Forgot password", description = "Initiates password reset by sending a reset email")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Password reset email sent if account exists")
@@ -114,6 +121,7 @@ public class AuthenticationController {
         authService.forgotPassword(request.getEmail());
         return ResponseEntity.ok().build();
     }
+
 
     @Operation(summary = "Reset password", description = "Resets user's password using the reset token")
     @ApiResponses({
@@ -125,6 +133,7 @@ public class AuthenticationController {
         authService.resetPassword(request.getToken(), request.getNewPassword());
         return ResponseEntity.ok().build();
     }
+
 
     @Operation(summary = "Validate reset token", description = "Checks if a password reset token is valid")
     @ApiResponses({
@@ -143,7 +152,7 @@ public class AuthenticationController {
         }
         return ResponseEntity.badRequest().body(TokenValidationResponse.invalid("Token is invalid or expired"));
     }
-
+    
     @Operation(summary = "Add role to user", description = "Assigns a role to a user")
     @SecurityRequirement(name = "bearerAuth")
     @ApiResponses({
@@ -157,7 +166,7 @@ public class AuthenticationController {
     public ResponseEntity<AuthResponse> addUserRole(@Valid @RequestBody AddRoleRequest request) {
         return ResponseEntity.ok(authService.addUserRole(request));
     }
-
+    
     @Operation(summary = "Get current user", description = "Returns the authenticated user's information")
     @SecurityRequirement(name = "bearerAuth")
     @ApiResponses({

@@ -26,10 +26,12 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
-@RestController
 @CrossOrigin
-@RequestMapping("/api/v1/oauth2")
+@RestController
 @RequiredArgsConstructor
+@RequestMapping("/api/v1/oauth2")
+@Deprecated(since = "April 5th 2026", forRemoval = true)
+
 public class OAuth2Controller {
 
     private final Oauth2Properties properties;

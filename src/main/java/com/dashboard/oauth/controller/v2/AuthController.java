@@ -25,9 +25,9 @@ import org.springframework.web.server.ResponseStatusException;
 import java.net.URI;
 
 @CrossOrigin
-@RestController("v2AuthController")
 @RequiredArgsConstructor
 @RequestMapping("api/v2/auth")
+@RestController("AuthController")
 @Tag(name = "Authentication (v2)", description = "Authentication operations")
 public class AuthController {
 
