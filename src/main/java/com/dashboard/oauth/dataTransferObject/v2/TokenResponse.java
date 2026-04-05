@@ -22,4 +22,7 @@ public class TokenResponse {
 
     @JsonProperty("id_token")
     private String idToken;
+
+    @JsonProperty("scope")
+    private String scope;
 }

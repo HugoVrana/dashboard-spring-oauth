@@ -255,6 +255,7 @@ public class AuthorizationService implements IAuthorizationService {
         response.setRefreshToken(refreshTokenId.toHexString());
         response.setExpiresIn(jwtProperties.getExpiration());
         response.setIdToken(idToken);
+        response.setScope(scope);
         return response;
     }
 
