@@ -46,7 +46,7 @@ class JwtServiceTest {
     void generateToken_shouldCreateValidToken() {
         UserInfo userInfo = createTestUserInfo();
 
-        String token = jwtService.generateToken(userInfo, null);
+        String token = jwtService.generateToken(userInfo, null, null);
 
         assertNotNull(token);
         assertFalse(token.isEmpty());
@@ -57,7 +57,7 @@ class JwtServiceTest {
     @DisplayName("Should extract username from JWT token")
     void extractUsername_shouldReturnCorrectEmail() {
         UserInfo userInfo = createTestUserInfo();
-        String token = jwtService.generateToken(userInfo, null);
+        String token = jwtService.generateToken(userInfo, null, null);
 
         String extractedUsername = jwtService.extractUsername(token);
 
@@ -68,7 +68,7 @@ class JwtServiceTest {
     @DisplayName("Should extract claims from JWT token")
     void extractClaim_shouldReturnUserId() {
         UserInfo userInfo = createTestUserInfo();
-        String token = jwtService.generateToken(userInfo, null);
+        String token = jwtService.generateToken(userInfo, null, null);
 
         String userId = jwtService.extractClaim(token, Claims::getSubject);
 
@@ -79,7 +79,7 @@ class JwtServiceTest {
     @DisplayName("Should extract claims from JWT token")
     void extractClaim_shouldReturnGrants() {
         UserInfo userInfo = createTestUserInfo();
-        String token = jwtService.generateToken(userInfo, null);
+        String token = jwtService.generateToken(userInfo, null, null);
 
         @SuppressWarnings("unchecked")
         List<String> grants = jwtService.extractClaim(token, claims -> (List<String>) claims.get("grants"));
@@ -93,7 +93,7 @@ class JwtServiceTest {
     @DisplayName("Should extract claims from JWT token")
     void extractClaim_shouldReturnExpiration() {
         UserInfo userInfo = createTestUserInfo();
-        String token = jwtService.generateToken(userInfo, null);
+        String token = jwtService.generateToken(userInfo, null, null);
 
         java.util.Date expiration = jwtService.extractClaim(token, Claims::getExpiration);
 
@@ -105,7 +105,7 @@ class JwtServiceTest {
     @DisplayName("Should validate JWT token")
     void validateToken_shouldReturnTrueForValidToken() {
         UserInfo userInfo = createTestUserInfo();
-        String token = jwtService.generateToken(userInfo, null);
+        String token = jwtService.generateToken(userInfo, null, null);
         UserDetails userDetails = User.builder()
                 .username("test@example.com")
                 .password("password")
@@ -121,7 +121,7 @@ class JwtServiceTest {
     @DisplayName("Should validate JWT token")
     void validateToken_shouldReturnFalseForWrongUsername() {
         UserInfo userInfo = createTestUserInfo();
-        String token = jwtService.generateToken(userInfo, null);
+        String token = jwtService.generateToken(userInfo, null, null);
         UserDetails userDetails = User.builder()
                 .username("wrong@example.com")
                 .password("password")
@@ -147,7 +147,7 @@ class JwtServiceTest {
         JwtService shortExpirationJwtService = new JwtService(shortExpirationProps, oidcProperties, new RsaKeyPair(repo));
 
         UserInfo userInfo = createTestUserInfo();
-        String token = shortExpirationJwtService.generateToken(userInfo, null);
+        String token = shortExpirationJwtService.generateToken(userInfo, null, null);
 
         // Wait for token to expire
         try {
@@ -180,7 +180,7 @@ class JwtServiceTest {
 
         userInfo.setRole(List.of(role));
 
-        String token = jwtService.generateToken(userInfo, null);
+        String token = jwtService.generateToken(userInfo, null, null);
 
         assertNotNull(token);
         @SuppressWarnings("unchecked")
@@ -211,7 +211,7 @@ class JwtServiceTest {
 
         userInfo.setRole(List.of(role1, role2));
 
-        String token = jwtService.generateToken(userInfo, null);
+        String token = jwtService.generateToken(userInfo, null, null);
 
         @SuppressWarnings("unchecked")
         List<String> grants = jwtService.extractClaim(token, claims -> (List<String>) claims.get("grants"));
