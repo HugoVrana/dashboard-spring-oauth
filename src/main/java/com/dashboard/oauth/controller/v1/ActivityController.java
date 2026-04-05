@@ -14,7 +14,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@Deprecated(since = "April 5th 2026" , forRemoval = true)
+@Deprecated(since = "April 5th 2026", forRemoval = true)
 @Tag(name = "Activity", description = "Activity feed operations")
 @RequestMapping(value = "/api/v1/activity", produces = "application/json")
 public class ActivityController {

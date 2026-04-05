@@ -35,7 +35,7 @@ import java.net.URI;
 @CrossOrigin
 @RestController
 @RequiredArgsConstructor
-@Deprecated(since = "April 5th 2026" , forRemoval = true)
+@Deprecated(since = "April 5th 2026", forRemoval = true)
 @RequestMapping(value = "/api/v1/auth", produces = "application/json")
 @Tag(name = "Authentication", description = "Authentication operations")
 public class AuthenticationController {
