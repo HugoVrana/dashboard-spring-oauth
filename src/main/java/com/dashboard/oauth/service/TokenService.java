@@ -48,7 +48,7 @@ public class TokenService implements ITokenService {
 
         VerificationToken token = new VerificationToken();
         token.set_id(id);
-        token.setExpiryDate(now.plus(hour));// Shorter for security
+        token.setExpiryDate(now.plus(hour));
 
         Audit a = new Audit();
         a.setCreatedAt(Instant.now());
