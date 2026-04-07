@@ -50,7 +50,9 @@ public final class UserInfoMapper implements IUserInfoMapper {
             List<GrantRead> grantReads = new ArrayList<>();
             if (role.getGrants() != null) {
                 for (Grant grant : role.getGrants()) {
-                    if (grant != null) grantReads.add(grantMapper.toRead(grant));
+                    if (grant != null) {
+                        grantReads.add(grantMapper.toRead(grant));
+                    }
                 }
             }
             roleRead.setGrants(grantReads);
