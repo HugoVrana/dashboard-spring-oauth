@@ -73,7 +73,9 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     }
 
     private List<String> extractGrants(User user) {
-        if (user.getRoles() == null) return List.of();
+        if (user.getRoles() == null) {
+            return List.of();
+        }
 
         return user.getRoles().stream()
                 .filter(role -> role != null && role.getName() != null)
@@ -85,7 +87,9 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     }
 
     private Stream<String> grantsFromRole(Role role) {
-        if (role.getGrants() == null) return Stream.empty();
+        if (role.getGrants() == null) {
+            return Stream.empty();
+        }
         return role.getGrants().stream()
                 .filter(Objects::nonNull)
                 .map(Grant::getName)
