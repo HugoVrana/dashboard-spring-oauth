@@ -29,7 +29,9 @@ public final class UserInfoMapper implements IUserInfoMapper {
         UserInfo userInfo = new UserInfo();
         userInfo.setId(user.get_id());
         userInfo.setEmail(user.getEmail());
-        userInfo.setRole(user.getRoles());
+        List<Role> roles = user.getRoles() == null ? new ArrayList<>() :
+                user.getRoles().stream().filter(r -> r != null && r.getName() != null).toList();
+        userInfo.setRole(roles);
         if (user.getProfileImageId() != null) {
             userInfo.setProfileImageUrl(r2Properties.buildPublicUrl(user.get_id(), user.getProfileImageId()));
         }
@@ -46,8 +48,10 @@ public final class UserInfoMapper implements IUserInfoMapper {
         for (Role role : userInfo.getRole()) {
             RoleRead roleRead = roleMapper.toRead(role);
             List<GrantRead> grantReads = new ArrayList<>();
-            for (Grant grant : role.getGrants()) {
-                grantReads.add(grantMapper.toRead(grant));
+            if (role.getGrants() != null) {
+                for (Grant grant : role.getGrants()) {
+                    if (grant != null) grantReads.add(grantMapper.toRead(grant));
+                }
             }
             roleRead.setGrants(grantReads);
             roleReadList.add(roleRead);

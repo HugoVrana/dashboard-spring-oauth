@@ -31,9 +31,9 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @CrossOrigin
-@RestController("v2GrantController")
 @RequiredArgsConstructor
 @RequestMapping("api/v2/grant")
+@RestController("v2GrantController")
 @Tag(name = "Grants", description = "Grant (permission) management")
 @SecurityRequirement(name = "bearerAuth")
 public class GrantController {

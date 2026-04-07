@@ -11,6 +11,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.jspecify.annotations.NonNull;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -30,8 +31,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(
             HttpServletRequest request,
-            HttpServletResponse response,
-            FilterChain filterChain) throws ServletException, IOException {
+            @NonNull HttpServletResponse response,
+            @NonNull FilterChain filterChain) throws ServletException, IOException {
 
         String authHeader = request.getHeader("Authorization");
 
@@ -74,10 +75,11 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         List<String> grants = new ArrayList<>();
         if (user.getRoles() != null) {
             for (Role role : user.getRoles()) {
+                if (role == null || role.getName() == null) continue;
                 grants.add("ROLE_" + role.getName());
                 if (role.getGrants() != null) {
                     for (Grant grant : role.getGrants()) {
-                        grants.add(grant.getName());
+                        if (grant != null && grant.getName() != null) grants.add(grant.getName());
                     }
                 }
             }
