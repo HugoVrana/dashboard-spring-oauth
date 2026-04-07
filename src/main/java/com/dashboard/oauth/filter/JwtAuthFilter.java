@@ -11,14 +11,16 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.jspecify.annotations.NonNull;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Stream;
 
 @Component
 @RequiredArgsConstructor
@@ -30,8 +32,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(
             HttpServletRequest request,
-            HttpServletResponse response,
-            FilterChain filterChain) throws ServletException, IOException {
+            @NonNull HttpServletResponse response,
+            @NonNull FilterChain filterChain) throws ServletException, IOException {
 
         String authHeader = request.getHeader("Authorization");
 
@@ -71,17 +73,26 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     }
 
     private List<String> extractGrants(User user) {
-        List<String> grants = new ArrayList<>();
-        if (user.getRoles() != null) {
-            for (Role role : user.getRoles()) {
-                grants.add("ROLE_" + role.getName());
-                if (role.getGrants() != null) {
-                    for (Grant grant : role.getGrants()) {
-                        grants.add(grant.getName());
-                    }
-                }
-            }
+        if (user.getRoles() == null) {
+            return List.of();
         }
-        return grants;
+
+        return user.getRoles().stream()
+                .filter(role -> role != null && role.getName() != null)
+                .flatMap(role -> Stream.concat(
+                        Stream.of("ROLE_" + role.getName()),
+                        grantsFromRole(role)
+                ))
+                .toList();
+    }
+
+    private Stream<String> grantsFromRole(Role role) {
+        if (role.getGrants() == null) {
+            return Stream.empty();
+        }
+        return role.getGrants().stream()
+                .filter(Objects::nonNull)
+                .map(Grant::getName)
+                .filter(Objects::nonNull);
     }
 }

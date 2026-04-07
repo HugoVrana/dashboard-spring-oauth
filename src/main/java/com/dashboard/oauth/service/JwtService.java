@@ -41,7 +41,9 @@ public class JwtService implements IJwtService {
             claims.put("client_id", clientId);
         }
         claims.put("grants", userDetails.getRole().stream()
+                .filter(role -> role != null && role.getGrants() != null)
                 .flatMap(role -> role.getGrants().stream())
+                .filter(grant -> grant != null && grant.getName() != null)
                 .map(Grant::getName)
                 .filter(name -> allowedGrantNames == null || allowedGrantNames.contains(name))
                 .distinct()
