@@ -18,8 +18,9 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Stream;
 
 @Component
 @RequiredArgsConstructor
@@ -72,18 +73,22 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     }
 
     private List<String> extractGrants(User user) {
-        List<String> grants = new ArrayList<>();
-        if (user.getRoles() != null) {
-            for (Role role : user.getRoles()) {
-                if (role == null || role.getName() == null) continue;
-                grants.add("ROLE_" + role.getName());
-                if (role.getGrants() != null) {
-                    for (Grant grant : role.getGrants()) {
-                        if (grant != null && grant.getName() != null) grants.add(grant.getName());
-                    }
-                }
-            }
-        }
-        return grants;
+        if (user.getRoles() == null) return List.of();
+
+        return user.getRoles().stream()
+                .filter(role -> role != null && role.getName() != null)
+                .flatMap(role -> Stream.concat(
+                        Stream.of("ROLE_" + role.getName()),
+                        grantsFromRole(role)
+                ))
+                .toList();
+    }
+
+    private Stream<String> grantsFromRole(Role role) {
+        if (role.getGrants() == null) return Stream.empty();
+        return role.getGrants().stream()
+                .filter(Objects::nonNull)
+                .map(Grant::getName)
+                .filter(Objects::nonNull);
     }
 }
