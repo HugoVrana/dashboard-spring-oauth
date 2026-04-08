@@ -13,7 +13,6 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -47,16 +46,26 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/v1/auth/**").permitAll()
                         .requestMatchers("/api/v2/auth/**").permitAll()
-                        .requestMatchers("/v2/oauth2/token", "/v2/oauth2/introspect",
-                                "/v2/oauth2/authorize", "/v2/oauth2/authorize/mfa",
-                                "/v2/oauth2/revoke").permitAll()
+                        .requestMatchers("/v2/oauth2/token",
+                                "/v2/oauth2/introspect",
+                                "/v2/oauth2/authorize",
+                                "/v2/oauth2/authorize/mfa",
+                                "/v2/oauth2/revoke")
+                        .permitAll()
                         .requestMatchers("/v2/service/**").permitAll()
                         .requestMatchers("/api/v1/public/**").permitAll()
                         .requestMatchers("/api/v1/test/**").permitAll()
-                        .requestMatchers("/ws/**", "/ws-sockjs/**", "/api/v1/activity/test").permitAll()
+                        .requestMatchers("/ws/**",
+                                "/ws-sockjs/**",
+                                "/api/v1/activity/test")
+                        .permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/user/*/profilePicture").permitAll()
                         .requestMatchers("/.well-known/**").permitAll()
-                        .requestMatchers("/", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+                        .requestMatchers("/",
+                                "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html")
+                        .permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session
