@@ -222,12 +222,20 @@ jobs:
             -H "Content-Type: application/json" \
             -d '[
               {"key": "GRAFANA_API_KEY", "value": "'"${GRAFANA_API_KEY}"'"},
-              {"key": "JWT_SECRET", "value": "'"${JWT_SECRET}"'"},
               {"key": "JWT_EXPIRATION", "value": "'"${JWT_EXPIRATION}"'"},
               {"key": "JWT_REFRESH_EXPIRATION", "value": "'"${JWT_REFRESH_EXPIRATION}"'"},
+              {"key": "JWT_SECRET", "value": "'"${JWT_SECRET}"'"},
+              {"key": "OIDC_ISSUER", "value": "'"${OIDC_ISSUER}"'"},
               {"key": "R2_ACCESS_KEY_ID", "value": "'"${R2_ACCESS_KEY_ID}"'"},
-              {"key": "R2_SECRET_ACCESS_KEY", "value": "'"${R2_SECRET_ACCESS_KEY}"'"},
               {"key": "R2_ACCOUNT_ID", "value": "'"${R2_ACCOUNT_ID}"'"},
-              {"key": "R2_BUCKET_NAME", "value": "'"${R2_BUCKET_NAME}"'"}
+              {"key": "R2_BUCKET_NAME", "value": "'"${R2_BUCKET_NAME}"'"},
+              {"key": "R2_SECRET_ACCESS_KEY", "value": "'"${R2_SECRET_ACCESS_KEY}"'"},
+              {"key": "RESEND_APIKEY", "value":"'"${RESEND_APIKEY}"'"},
+              {"key": “SPRING_SECURITY_OAUTH2_SECRET", "value":"'"${SPRING_SECURITY_OAUTH2_SECRET}"'"},
+              {"key": “EMAIL_BASEURL", "value":"'"${EMAIL_BASEURL}"'"},
+              {"key": “EMAIL_FROMADDRESS", "value":"'"${EMAIL_FROMADDRESS}"'"},
+              {"key": “EMAIL_VERIFICATIONTOKENEXPIRATIONMS", "value":"'"${EMAIL_VERIFICATIONTOKENEXPIRATIONMS}"'"},
+              {"key": “GRAFANA_URL", "value":"'"${GRAFANA_URL}"'"},
+              {"key": “SPRING_DATA_MONGODB_URI", "value":"'"${SPRING_DATA_MONGODB_URI}"'"}
             ]'
           echo "Deploy triggered successfully."
