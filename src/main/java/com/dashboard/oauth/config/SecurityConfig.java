@@ -33,7 +33,16 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(AbstractHttpConfigurer::disable)
+                .csrf(csrf -> csrf
+                        .ignoringRequestMatchers(
+                                "/v2/oauth2/token",
+                                "/v2/oauth2/introspect",
+                                "/v2/oauth2/authorize",
+                                "/v2/oauth2/authorize/mfa",
+                                "/v2/oauth2/revoke",
+                                "/v2/service/**"
+                        )
+                )
                 .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/v1/auth/**").permitAll()
