@@ -6,9 +6,11 @@ Spring Boot OAuth2 authorization server with JWT authentication, MongoDB persist
 
 - **Authentication** - Register, login, logout with JWT access tokens and refresh tokens
 - **Authorization** - Role-based access control with Users → Roles → Grants model
+- **OAuth2 Authorization Code Flow** - PKCE-based authorization code flow with full token lifecycle
 - **Two-Factor Authentication** - TOTP support for Google Authenticator and similar apps
-- **Token Introspection** - External services can validate tokens via `/api/oauth2/introspect`
+- **Token Introspection** - External services can validate tokens via introspection endpoints
 - **Email Verification** - Scheduled email sending for account verification and password reset via Resend
+- **Profile Images** - User profile picture upload and storage via Cloudflare R2
 - **Soft Delete** - All entities support soft delete via `audit.deletedAt`
 
 ## Tech Stack
@@ -18,6 +20,7 @@ Spring Boot OAuth2 authorization server with JWT authentication, MongoDB persist
 - MongoDB
 - Resend (transactional emails)
 - TOTP (dev.samstevens.totp) for 2FA
+- Cloudflare R2 (S3-compatible profile image storage)
 - Lombok
 
 ## Getting Started
@@ -27,17 +30,29 @@ Spring Boot OAuth2 authorization server with JWT authentication, MongoDB persist
 - Java 21+
 - MongoDB instance
 - Resend API key
+- Cloudflare R2 bucket (for profile images)
+- Docker (for running integration tests)
 
 ### Configuration
 
-Set the following properties in `application.properties` or environment variables:
+Set the following properties in `application.properties` or as environment variables:
 
 ```properties
 spring.data.mongodb.uri=<mongodb-connection-string>
 JWT.SECRET=<base64-encoded-secret>
 JWT.EXPIRATION=86400000
+JWT.REFRESH_EXPIRATION=604800000
 spring.security.oauth2.secret=<service-secret>
 resend.api-key=<resend-api-key>
+email.baseUrl=http://localhost:3000
+email.fromAddress=Acme <onboarding@resend.dev>
+email.verificationTokenExpirationMs=86400000
+email.passwordResetTokenExpirationMs=3600000
+r2.accountId=<cloudflare-account-id>
+r2.bucketName=<r2-bucket-name>
+r2.accessKeyId=<r2-access-key>
+r2.secretAccessKey=<r2-secret-key>
+oidc.issuer=<issuer-url>
 ```
 
 ### Running Locally
@@ -46,45 +61,129 @@ resend.api-key=<resend-api-key>
 # Build
 ./mvnw clean package
 
+# Build (skip tests)
+./mvnw clean package -DskipTests
+
 # Run (port 8081)
 ./mvnw spring-boot:run
 
-# Run tests
+# Run all tests (requires Docker)
 ./mvnw test
+
+# Run unit tests only (no Docker required)
+./mvnw test -Dtest="!*IntegrationTest"
 ```
 
 ## API Endpoints
 
-### Authentication
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/auth/register` | Register new user |
-| POST | `/api/auth/login` | Login, returns JWT + refresh token |
-| POST | `/api/auth/refresh` | Refresh access token |
-| POST | `/api/auth/logout` | Invalidate refresh token |
-| GET | `/api/auth/me` | Get current user info |
-| POST | `/api/auth/verify-email?token=xxx` | Verify email address |
-| POST | `/api/auth/forgot-password` | Request password reset email |
-| POST | `/api/auth/reset-password` | Reset password with token |
+### v1 (Deprecated) — Auth (`/api/v1/auth`)
 
-### Roles & Grants
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST/GET/DELETE | `/api/auth/role` | Role CRUD |
-| POST/GET/DELETE | `/api/auth/grant` | Grant CRUD |
-| POST/DELETE | `/api/auth/role/grant` | Assign/remove grants from roles |
-| POST | `/api/auth/user/role` | Assign role to user |
+> **Deprecated:** The v1 API is deprecated. Use the v2 endpoints for new integrations.
 
-### Token Introspection
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/api/oauth2/introspect` | Validate token (requires X-Service-Secret header) |
+| POST | `/api/v1/auth/register` | Register new user |
+| POST | `/api/v1/auth/login` | Login, returns JWT + refresh token |
+| POST | `/api/v1/auth/refresh` | Refresh access token |
+| POST | `/api/v1/auth/logout` | Invalidate refresh token |
+| GET | `/api/v1/auth/me` | Get current user info |
+| POST | `/api/v1/auth/verify-email` | Verify email address |
+| POST | `/api/v1/auth/forgot-password` | Request password reset email |
+| POST | `/api/v1/auth/reset-password` | Reset password with token |
+| GET | `/api/v1/auth/validate-reset-token` | Validate password reset token |
+| POST | `/api/v1/auth/user/role` | Assign role to user |
 
-### Two-Factor Authentication
+### v1 (Depracated) — Roles & Grants
+
+> **Deprecated:** The v1 API is deprecated. Use the v2 endpoints for new integrations.
+
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/api/auth/2fa/setup` | Generate TOTP secret and QR code |
-| POST | `/api/auth/2fa/verify` | Verify TOTP code and enable 2FA |
+| GET/POST/DELETE | `/api/v1/role` | Role CRUD |
+| GET/POST/DELETE | `/api/v1/grant` | Grant CRUD |
+
+### v1 — Two-Factor Authentication (`/api/v1/auth/2fa`)
+
+> **Deprecated:** The v1 API is deprecated. Use the v2 endpoints for new integrations.
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/v1/auth/2fa/setup` | Generate TOTP secret and QR code |
+| POST | `/api/v1/auth/2fa/verify` | Verify TOTP code and enable 2FA |
+
+### v1 — User
+
+> **Deprecated:** The v1 API is deprecated. Use the v2 endpoints for new integrations.
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/v1/user/me` | Get current user profile |
+| PUT | `/api/v1/user/me` | Update current user profile |
+| GET | `/api/v1/user/{id}/profilePicture` | Get profile picture |
+| POST | `/api/v1/user/profilePicture` | Upload profile picture (multipart/form-data) |
+
+### v1 — Token Introspection
+
+> **Deprecated:** The v1 API is deprecated. Use the v2 endpoints for new integrations.
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/v1/oauth2/introspect` | Validate token (requires `X-Service-Secret` header) |
+
+### v2 — Auth
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/v2/auth/register` | Register user (requires `X-Client-Id` header) |
+
+### v2 — OAuth2 Authorization Server (`/v2/oauth2`)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/v2/oauth2/authorize` | Initiate authorization code flow (PKCE required) |
+| POST | `/v2/oauth2/authorize` | Submit credentials |
+| POST | `/v2/oauth2/authorize/mfa` | Complete MFA step |
+| POST | `/v2/oauth2/token` | Token endpoint (`authorization_code` or `refresh_token` grant) |
+| POST | `/v2/oauth2/revoke` | Revoke token (RFC 7009) |
+| POST | `/v2/oauth2/introspect` | Token introspection (RFC 7662, Basic auth) |
+
+### v2 — OAuth Clients (`/v2/oauthclients`)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/v2/oauthclients/{id}` | Get OAuth client |
+| POST | `/v2/oauthclients/` | Register new OAuth client |
+| DELETE | `/v2/oauthclients/{id}` | Delete OAuth client |
+| POST | `/v2/oauthclients/{id}/secret` | Rotate client secret |
+
+### v2 — User Admin (`/api/v2/user`)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/v2/user/` | List all users |
+| GET | `/api/v2/user/search?q=` | Search users by email |
+| GET | `/api/v2/user/{id}` | Get user by ID |
+| PUT | `/api/v2/user/{id}` | Update user |
+| DELETE | `/api/v2/user/{id}` | Delete user |
+| POST | `/api/v2/user/{id}/block` | Block user |
+| POST | `/api/v2/user/{id}/unblock` | Unblock user |
+| POST | `/api/v2/user/{id}/resend-verification` | Resend verification email |
+| POST | `/api/v2/user/{id}/reset-password` | Trigger password reset |
+
+### v2 — Roles & Grants
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/v2/role/` | List all roles |
+| GET/POST/DELETE | `/api/v2/role/{id}` | Get/create/delete role |
+| GET | `/api/v2/grant/` | List all grants |
+| GET/POST/DELETE | `/api/v2/grant/{id}` | Get/create/delete grant |
+
+### v2 — Service (machine-to-machine)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/v2/service/grants/ensure` | Idempotently ensure grants exist (Basic auth) |
 
 ## Two-Factor Authentication
 
@@ -96,7 +195,7 @@ TOTP-based 2FA compatible with Google Authenticator, Authy, and similar apps.
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ 1. SETUP                                                                     │
 ├─────────────────────────────────────────────────────────────────────────────┤
-│ POST /api/auth/2fa/setup (with Bearer token)                                 │
+│ POST /api/v1/auth/2fa/setup (with Bearer token)                              │
 │   → Generates TOTP secret                                                    │
 │   → Returns { qrCodeDataUri: "data:image/png;base64,...", secret: "..." }   │
 │   → Secret stored in user.twoFactorConfig (enabled = false)                  │
@@ -112,7 +211,7 @@ TOTP-based 2FA compatible with Google Authenticator, Authy, and similar apps.
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ 3. VERIFY                                                                    │
 ├─────────────────────────────────────────────────────────────────────────────┤
-│ POST /api/auth/2fa/verify { code: "123456" }                                 │
+│ POST /api/v1/auth/2fa/verify { code: "123456" }                              │
 │   → Validates code against stored secret                                     │
 │   → On success: sets enabled = true, returns 200 OK                          │
 │   → On failure: returns 400 Bad Request                                      │
@@ -148,7 +247,7 @@ Emails for verification and password reset are sent via a scheduled job using Re
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ 3. USER CLICKS EMAIL LINK                                                   │
 ├─────────────────────────────────────────────────────────────────────────────┤
-│ Frontend calls: POST /api/auth/verify-email?token=xxx                       │
+│ Frontend calls: POST /api/v1/auth/verify-email?token=xxx                    │
 │   → Token validated (exists, not expired, not used)                         │
 │   → User updated: emailVerified = true, emailVerificationToken = null       │
 └─────────────────────────────────────────────────────────────────────────────┘
@@ -160,7 +259,7 @@ Emails for verification and password reset are sent via a scheduled job using Re
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ 1. FORGOT PASSWORD REQUEST                                                  │
 ├─────────────────────────────────────────────────────────────────────────────┤
-│ POST /api/auth/forgot-password { email: "user@example.com" }                │
+│ POST /api/v1/auth/forgot-password { email: "user@example.com" }             │
 │   → Creates passwordResetToken with emailSentAt = null                      │
 │   → Returns 200 OK (always, to prevent email enumeration)                   │
 └─────────────────────────────────────────────────────────────────────────────┘
@@ -177,19 +276,10 @@ Emails for verification and password reset are sent via a scheduled job using Re
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ 3. USER CLICKS EMAIL LINK & SUBMITS NEW PASSWORD                            │
 ├─────────────────────────────────────────────────────────────────────────────┤
-│ POST /api/auth/reset-password { token: "xxx", newPassword: "newpass" }      │
+│ POST /api/v1/auth/reset-password { token: "xxx", newPassword: "newpass" }   │
 │   → Token validated (exists, not expired, not used)                         │
 │   → Password updated, passwordResetToken = null                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-```
-
-### Configuration
-
-```properties
-email.baseUrl=http://localhost:3000
-email.fromAddress=Acme <onboarding@resend.dev>
-email.verificationTokenExpirationMs=86400000  # 24 hours
-email.passwordResetTokenExpirationMs=3600000  # 1 hour
 ```
 
 ## Related Projects
