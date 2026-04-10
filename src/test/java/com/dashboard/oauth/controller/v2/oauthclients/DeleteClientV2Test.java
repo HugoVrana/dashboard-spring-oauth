@@ -10,7 +10,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@DisplayName("DELETE /v2/oauthclients/{id}")
+@DisplayName("DELETE /api/v2/oauthclients/{id}")
 class DeleteClientV2Test extends BaseV2OAuthClientControllerTest {
 
     @Test
@@ -18,7 +18,7 @@ class DeleteClientV2Test extends BaseV2OAuthClientControllerTest {
     void shouldReturn204_whenDeleted() throws Exception {
         doNothing().when(oAuthClientService).deleteClient(any());
 
-        mockMvc.perform(delete("/v2/oauthclients/{id}", testClientId))
+        mockMvc.perform(delete("/api/v2/oauthclients/{id}", testClientId))
                 .andExpect(status().isNoContent());
     }
 
@@ -28,7 +28,7 @@ class DeleteClientV2Test extends BaseV2OAuthClientControllerTest {
         doThrow(new ResourceNotFoundException("OAuth client not found"))
                 .when(oAuthClientService).deleteClient(any());
 
-        mockMvc.perform(delete("/v2/oauthclients/{id}", testClientId))
+        mockMvc.perform(delete("/api/v2/oauthclients/{id}", testClientId))
                 .andExpect(status().isNotFound());
     }
 

@@ -10,7 +10,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@DisplayName("POST /v2/oauthclients/{id}/secret")
+@DisplayName("POST /api/v2/oauthclients/{id}/secret")
 class RotateSecretV2Test extends BaseV2OAuthClientControllerTest {
 
     @Test
@@ -18,7 +18,7 @@ class RotateSecretV2Test extends BaseV2OAuthClientControllerTest {
     void shouldReturn200_withNewSecret() throws Exception {
         when(oAuthClientService.rotateSecret(any())).thenReturn(testClientCreated);
 
-        mockMvc.perform(post("/v2/oauthclients/{id}/secret", testClientId))
+        mockMvc.perform(post("/api/v2/oauthclients/{id}/secret", testClientId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(testClientId))
                 .andExpect(jsonPath("$.clientSecret").value(testClientSecret));
@@ -30,7 +30,7 @@ class RotateSecretV2Test extends BaseV2OAuthClientControllerTest {
         when(oAuthClientService.rotateSecret(any()))
                 .thenThrow(new ResourceNotFoundException("OAuth client not found"));
 
-        mockMvc.perform(post("/v2/oauthclients/{id}/secret", testClientId))
+        mockMvc.perform(post("/api/v2/oauthclients/{id}/secret", testClientId))
                 .andExpect(status().isNotFound());
     }
 

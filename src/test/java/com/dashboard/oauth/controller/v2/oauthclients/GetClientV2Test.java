@@ -10,7 +10,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@DisplayName("GET /v2/oauthclients/{id}")
+@DisplayName("GET /api/v2/oauthclients/{id}")
 class GetClientV2Test extends BaseV2OAuthClientControllerTest {
 
     @Test
@@ -18,7 +18,7 @@ class GetClientV2Test extends BaseV2OAuthClientControllerTest {
     void shouldReturn200_whenClientFound() throws Exception {
         when(oAuthClientService.getClient(any())).thenReturn(testClientRead);
 
-        mockMvc.perform(get("/v2/oauthclients/{id}", testClientId))
+        mockMvc.perform(get("/api/v2/oauthclients/{id}", testClientId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(testClientId))
                 .andExpect(jsonPath("$.clientSecret").doesNotExist());
@@ -30,7 +30,7 @@ class GetClientV2Test extends BaseV2OAuthClientControllerTest {
         when(oAuthClientService.getClient(any()))
                 .thenThrow(new ResourceNotFoundException("OAuth client not found"));
 
-        mockMvc.perform(get("/v2/oauthclients/{id}", testClientId))
+        mockMvc.perform(get("/api/v2/oauthclients/{id}", testClientId))
                 .andExpect(status().isNotFound());
     }
 }
