@@ -5,6 +5,7 @@ import com.dashboard.oauth.dataTransferObject.auth.ForgotPasswordRequest;
 import com.dashboard.oauth.dataTransferObject.auth.LoginRequest;
 import com.dashboard.oauth.dataTransferObject.auth.RefreshTokenRequest;
 import com.dashboard.oauth.dataTransferObject.auth.RegisterRequest;
+import com.dashboard.oauth.dataTransferObject.auth.RegisterResponse;
 import com.dashboard.oauth.dataTransferObject.auth.ResetPasswordRequest;
 import com.dashboard.oauth.dataTransferObject.auth.TokenValidationResponse;
 import com.dashboard.oauth.dataTransferObject.role.AddRoleRequest;
@@ -46,13 +47,13 @@ public class AuthenticationController {
     @Operation(summary = "Register a new user", description = "Creates a new user account with email, password, and role")
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "User registered successfully",
-                    content = @Content(schema = @Schema(implementation = UserInfoRead.class))),
+                    content = @Content(schema = @Schema(implementation = RegisterResponse.class))),
             @ApiResponse(responseCode = "400", description = "Invalid request data"),
             @ApiResponse(responseCode = "409", description = "User with this email already exists")
     })
     @PostMapping("/register")
-    public ResponseEntity<UserInfoRead> register(@Valid @RequestBody RegisterRequest request) {
-        UserInfoRead response = authService.register(request);
+    public ResponseEntity<RegisterResponse> register(@Valid @RequestBody RegisterRequest request) {
+        RegisterResponse response = authService.register(request);
         URI location = URI.create("/api/auth/register");
         return ResponseEntity.created(location).body(response);
     }

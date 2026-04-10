@@ -38,6 +38,22 @@ public class SecurityConfig {
                 // of disabling CSRF outright, as a defence-in-depth measure for any browser clients.
                 .csrf(csrf -> csrf
                         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                        .ignoringRequestMatchers(
+                                "/api/v1/auth/register",
+                                "/api/v1/auth/login",
+                                "/api/v1/auth/refresh",
+                                "/api/v1/auth/verify-email",
+                                "/api/v1/auth/forgot-password",
+                                "/api/v1/auth/reset-password",
+                                "/api/v2/auth/register",
+                                "/api/v2/auth/2fa/setup",
+                                "/api/v2/auth/2fa/verify",
+                                "/v2/oauth2/authorize",
+                                "/v2/oauth2/authorize/mfa",
+                                "/v2/oauth2/token",
+                                "/v2/oauth2/introspect",
+                                "/v2/oauth2/revoke"
+                        )
                 )
                 .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(auth -> auth

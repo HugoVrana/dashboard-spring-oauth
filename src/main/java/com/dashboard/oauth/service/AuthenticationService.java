@@ -13,6 +13,7 @@ import com.dashboard.oauth.context.DiffContext;
 import com.dashboard.oauth.dataTransferObject.auth.AuthResponse;
 import com.dashboard.oauth.dataTransferObject.auth.LoginRequest;
 import com.dashboard.oauth.dataTransferObject.auth.RegisterRequest;
+import com.dashboard.oauth.dataTransferObject.auth.RegisterResponse;
 import com.dashboard.oauth.dataTransferObject.role.AddRoleRequest;
 import com.dashboard.oauth.dataTransferObject.user.UserInfoRead;
 import com.dashboard.oauth.environment.EmailProperties;
@@ -71,7 +72,7 @@ public class AuthenticationService implements IAuthenticationService {
     private final IActivityFeedService activityFeedService;
 
     @Override
-    public UserInfoRead register(@NotNull RegisterRequest request) {
+    public RegisterResponse register(@NotNull RegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new ConflictException("User with this email already exists");
         }
@@ -116,7 +117,13 @@ public class AuthenticationService implements IAuthenticationService {
         publishActivityEvent(ActivityEventType.USER_REGISTERED, user);
 
         UserInfo userInfo = userInfoMapper.toUserInfo(user);
-        return userInfoMapper.toRead(userInfo);
+        String accessToken = jwtService.generateToken(userInfo, null, null);
+        return new RegisterResponse(
+                userInfoMapper.toRead(userInfo),
+                accessToken,
+                true,
+                "ENROLL_2FA"
+        );
     }
 
     @Override
