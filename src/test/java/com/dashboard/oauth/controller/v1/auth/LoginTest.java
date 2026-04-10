@@ -7,6 +7,7 @@ import io.qameta.allure.Story;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.DisabledException;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -42,5 +43,21 @@ class LoginTest extends BaseAuthControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.accessToken").value(testAccessToken))
                 .andExpect(jsonPath("$.refreshToken").value(testRefreshToken));
+    }
+
+    @Test
+    @DisplayName("Should return 403 when email is not verified")
+    void shouldReturn403WhenEmailNotVerified() throws Exception {
+        LoginRequest request = new LoginRequest();
+        request.setEmail(testEmail);
+        request.setPassword(testPassword);
+
+        when(authService.login(any(LoginRequest.class)))
+                .thenThrow(new DisabledException("Email address is not verified"));
+
+        mockMvc.perform(post("/api/v1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isForbidden());
     }
 }

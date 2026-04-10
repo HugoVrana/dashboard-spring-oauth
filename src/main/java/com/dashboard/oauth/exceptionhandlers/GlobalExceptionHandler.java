@@ -12,6 +12,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -83,6 +84,15 @@ public class GlobalExceptionHandler {
         annotateException(request, ex);
         var pd = ProblemDetail.forStatus(HttpStatus.NOT_FOUND);
         pd.setTitle("Not found");
+        pd.setDetail(ex.getMessage());
+        return pd;
+    }
+
+    @ExceptionHandler(DisabledException.class)
+    public ProblemDetail handleDisabled(DisabledException ex, HttpServletRequest request) {
+        annotateException(request, ex);
+        var pd = ProblemDetail.forStatus(HttpStatus.FORBIDDEN);
+        pd.setTitle("Account disabled");
         pd.setDetail(ex.getMessage());
         return pd;
     }
