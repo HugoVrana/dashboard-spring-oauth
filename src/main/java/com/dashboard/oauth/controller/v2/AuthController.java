@@ -1,7 +1,7 @@
 package com.dashboard.oauth.controller.v2;
 
 import com.dashboard.oauth.dataTransferObject.auth.RegisterRequest;
-import com.dashboard.oauth.dataTransferObject.user.UserInfoRead;
+import com.dashboard.oauth.dataTransferObject.auth.RegisterResponse;
 import com.dashboard.oauth.service.interfaces.IAuthenticationService;
 import com.dashboard.oauth.service.interfaces.IOAuthClientService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -37,16 +37,17 @@ public class AuthController {
     @Operation(summary = "Register a new user", description = "Creates a new user account with email, password, and role")
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "User registered successfully",
-                    content = @Content(schema = @Schema(implementation = UserInfoRead.class))),
+                    content = @Content(schema = @Schema(implementation = RegisterResponse.class))),
             @ApiResponse(responseCode = "400", description = "Invalid request data"),
             @ApiResponse(responseCode = "401", description = "Missing or invalid X-Client-Id header"),
             @ApiResponse(responseCode = "403", description = "Origin not allowed for this client"),
             @ApiResponse(responseCode = "409", description = "User with this email already exists")
     })
     @PostMapping("/register")
-    public ResponseEntity<UserInfoRead> register(@Valid @RequestBody RegisterRequest request, HttpServletRequest httpRequest) {
+    public ResponseEntity<RegisterResponse> register(@Valid @RequestBody RegisterRequest request, HttpServletRequest httpRequest) {
         validateClientAccess(httpRequest);
-        UserInfoRead response = authService.register(request);
+        RegisterResponse response = authService.register(request);
+        int i = 0;
         return ResponseEntity.created(URI.create("/api/v2/auth/register")).body(response);
     }
 

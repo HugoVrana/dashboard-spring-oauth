@@ -3,12 +3,13 @@ package com.dashboard.oauth.service.interfaces;
 import com.dashboard.oauth.dataTransferObject.auth.AuthResponse;
 import com.dashboard.oauth.dataTransferObject.auth.LoginRequest;
 import com.dashboard.oauth.dataTransferObject.auth.RegisterRequest;
+import com.dashboard.oauth.dataTransferObject.auth.RegisterResponse;
 import com.dashboard.oauth.dataTransferObject.role.AddRoleRequest;
 import com.dashboard.oauth.dataTransferObject.user.UserInfoRead;
 import org.springframework.security.core.Authentication;
 
 public interface IAuthenticationService {
-    UserInfoRead register(RegisterRequest registerRequest);
+    RegisterResponse register(RegisterRequest registerRequest);
 
     AuthResponse login(LoginRequest loginRequest);
 

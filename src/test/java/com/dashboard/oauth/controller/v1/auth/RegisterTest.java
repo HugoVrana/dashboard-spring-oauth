@@ -4,6 +4,7 @@ import com.dashboard.common.model.exception.ConflictException;
 import com.dashboard.common.model.exception.InvalidRequestException;
 import com.dashboard.common.model.exception.ResourceNotFoundException;
 import com.dashboard.oauth.dataTransferObject.auth.RegisterRequest;
+import com.dashboard.oauth.dataTransferObject.auth.RegisterResponse;
 import com.dashboard.oauth.dataTransferObject.user.UserInfoRead;
 import io.qameta.allure.Story;
 import org.junit.jupiter.api.DisplayName;
@@ -29,14 +30,17 @@ class RegisterTest extends BaseAuthControllerTest {
 
         UserInfoRead userInfoRead = new UserInfoRead();
         userInfoRead.setEmail(testEmail);
+        RegisterResponse registerResponse = new RegisterResponse(userInfoRead, testAccessToken, true, "ENROLL_2FA");
 
-        when(authService.register(any(RegisterRequest.class))).thenReturn(userInfoRead);
+        when(authService.register(any(RegisterRequest.class))).thenReturn(registerResponse);
 
         mockMvc.perform(post("/api/v1/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.email").value(testEmail));
+                .andExpect(jsonPath("$.user.email").value(testEmail))
+                .andExpect(jsonPath("$.requiresTwoFactorEnrollment").value(true))
+                .andExpect(jsonPath("$.nextStep").value("ENROLL_2FA"));
     }
 
     @Test

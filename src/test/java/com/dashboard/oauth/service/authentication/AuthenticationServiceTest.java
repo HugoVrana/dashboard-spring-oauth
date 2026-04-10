@@ -5,6 +5,7 @@ import com.dashboard.common.model.exception.ConflictException;
 import com.dashboard.oauth.dataTransferObject.auth.AuthResponse;
 import com.dashboard.oauth.dataTransferObject.auth.LoginRequest;
 import com.dashboard.oauth.dataTransferObject.auth.RegisterRequest;
+import com.dashboard.oauth.dataTransferObject.auth.RegisterResponse;
 import com.dashboard.oauth.dataTransferObject.user.UserInfoRead;
 import com.dashboard.oauth.model.UserInfo;
 import com.dashboard.oauth.model.entities.oauth.RefreshToken;
@@ -60,10 +61,13 @@ class AuthenticationServiceTest extends BaseAuthenticationServiceTest {
         when(userInfoMapper.toUserInfo(any(User.class))).thenReturn(new UserInfo());
         when(userInfoMapper.toRead(any(UserInfo.class))).thenReturn(userInfoRead);
 
-        UserInfoRead result = authenticationService.register(request);
+        RegisterResponse registerResponse = authenticationService.register(request);
 
-        assertNotNull(result);
-        assertEquals("newuser@example.com", result.getEmail());
+        assertNotNull(registerResponse);
+        assertNotNull(registerResponse.getUser());
+        assertEquals("newuser@example.com", registerResponse.getUser().getEmail());
+        assertTrue(registerResponse.isRequiresTwoFactorEnrollment());
+        assertEquals("ENROLL_2FA", registerResponse.getNextStep());
         verify(userRepository, times(2)).save(any(User.class));
     }
 
