@@ -32,7 +32,7 @@ class RegisterTest extends BaseAuthControllerTest {
         userInfoRead.setEmail(testEmail);
         RegisterResponse registerResponse = new RegisterResponse(userInfoRead, testAccessToken, true, "ENROLL_2FA");
 
-        when(authService.register(any(RegisterRequest.class))).thenReturn(registerResponse);
+        when(authService.register(any(RegisterRequest.class), any())).thenReturn(registerResponse);
 
         mockMvc.perform(post("/api/v1/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -51,7 +51,7 @@ class RegisterTest extends BaseAuthControllerTest {
         request.setPassword(testPassword);
         request.setRoleId(testRoleId.toHexString());
 
-        when(authService.register(any(RegisterRequest.class)))
+        when(authService.register(any(RegisterRequest.class), any()))
                 .thenThrow(new ConflictException("User with this email already exists"));
 
         mockMvc.perform(post("/api/v1/auth/register")
@@ -68,7 +68,7 @@ class RegisterTest extends BaseAuthControllerTest {
         request.setPassword(testPassword);
         request.setRoleId("invalid-role-id");
 
-        when(authService.register(any(RegisterRequest.class)))
+        when(authService.register(any(RegisterRequest.class), any()))
                 .thenThrow(new InvalidRequestException("Role id is invalid."));
 
         mockMvc.perform(post("/api/v1/auth/register")
@@ -85,7 +85,7 @@ class RegisterTest extends BaseAuthControllerTest {
         request.setPassword(testPassword);
         request.setRoleId(testRoleId.toHexString());
 
-        when(authService.register(any(RegisterRequest.class)))
+        when(authService.register(any(RegisterRequest.class), any()))
                 .thenThrow(new ResourceNotFoundException("Role not found"));
 
         mockMvc.perform(post("/api/v1/auth/register")
