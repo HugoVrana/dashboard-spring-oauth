@@ -9,7 +9,7 @@ import com.dashboard.oauth.dataTransferObject.user.UserInfoRead;
 import org.springframework.security.core.Authentication;
 
 public interface IAuthenticationService {
-    RegisterResponse register(RegisterRequest registerRequest);
+    RegisterResponse register(RegisterRequest registerRequest, String clientId);
 
     AuthResponse login(LoginRequest loginRequest);
 
@@ -27,7 +27,7 @@ public interface IAuthenticationService {
 
     void verifyEmail(String token);
 
-    void forgotPassword(String email);
+    void forgotPassword(String email, String clientId);
 
     void resetPassword(String token, String newPassword);
 

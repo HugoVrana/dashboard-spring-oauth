@@ -10,4 +10,6 @@ public class OAuthClientRead {
     private List<String> allowedHosts;
     private List<String> allowedScopes;
     private List<String> allowedGrants;
+    private String emailVerificationRedirectPath;
+    private String passwordResetRedirectPath;
 }

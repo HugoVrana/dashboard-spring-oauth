@@ -46,8 +46,8 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<RegisterResponse> register(@Valid @RequestBody RegisterRequest request, HttpServletRequest httpRequest) {
         validateClientAccess(httpRequest);
-        RegisterResponse response = authService.register(request);
-        int i = 0;
+        String clientId = httpRequest.getHeader("X-Client-Id");
+        RegisterResponse response = authService.register(request, clientId);
         return ResponseEntity.created(URI.create("/api/v2/auth/register")).body(response);
     }
 

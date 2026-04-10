@@ -53,7 +53,7 @@ public class AuthenticationController {
     })
     @PostMapping("/register")
     public ResponseEntity<RegisterResponse> register(@Valid @RequestBody RegisterRequest request) {
-        RegisterResponse response = authService.register(request);
+        RegisterResponse response = authService.register(request, null);
         URI location = URI.create("/api/auth/register");
         return ResponseEntity.created(location).body(response);
     }
@@ -120,7 +120,7 @@ public class AuthenticationController {
     })
     @PostMapping("/forgot-password")
     public ResponseEntity<Void> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
-        authService.forgotPassword(request.getEmail());
+        authService.forgotPassword(request.getEmail(), null);
         return ResponseEntity.ok().build();
     }
 

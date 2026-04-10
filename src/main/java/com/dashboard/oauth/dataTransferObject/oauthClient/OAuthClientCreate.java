@@ -15,4 +15,8 @@ public class OAuthClientCreate {
     private List<String> allowedHosts;
 
     private List<String> allowedGrants;
+
+    private String emailVerificationRedirectPath;
+
+    private String passwordResetRedirectPath;
 }

@@ -30,7 +30,7 @@ import java.util.Map;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class OAuthGrantSeeder implements ApplicationRunner {
+public class StartupDataSeeder implements ApplicationRunner {
 
     private static final String DEFAULT_SEED_PASSWORD = "Admin@seed1!";
 
@@ -176,6 +176,8 @@ public class OAuthGrantSeeder implements ApplicationRunner {
             dto.setRedirectUris(REQUIRED_OAUTH_CLIENT_URIS);
             dto.setAllowedScopes(List.of("openid", "profile", "email"));
             dto.setAllowedHosts(List.of("http://localhost:3000"));
+            dto.setEmailVerificationRedirectPath("auth/verify-email");
+            dto.setPasswordResetRedirectPath("auth/reset-password");
             OAuthClientCreated created = clientService.createClient(dto, "dev-secret");
             log.info("Seeded frontend OAuth client. ID: {}, Secret: {}", created.getId(), created.getClientSecret());
         } else {

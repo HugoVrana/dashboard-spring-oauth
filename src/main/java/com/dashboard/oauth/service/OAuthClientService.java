@@ -90,6 +90,8 @@ public class OAuthClientService implements IOAuthClientService {
                 .allowedHosts(allowedHosts)
                 .allowedScopes(request.getAllowedScopes())
                 .allowedGrants(allowedGrants)
+                .emailVerificationRedirectPath(request.getEmailVerificationRedirectPath())
+                .passwordResetRedirectPath(request.getPasswordResetRedirectPath())
                 .audit(audit)
                 .build();
 
@@ -105,6 +107,8 @@ public class OAuthClientService implements IOAuthClientService {
         created.setAllowedGrants(client.getAllowedGrants() != null
                 ? client.getAllowedGrants().stream().map(Grant::getName).toList()
                 : null);
+        created.setEmailVerificationRedirectPath(client.getEmailVerificationRedirectPath());
+        created.setPasswordResetRedirectPath(client.getPasswordResetRedirectPath());
         created.setClientSecret(rawSecret);
         return created;
     }
@@ -138,6 +142,8 @@ public class OAuthClientService implements IOAuthClientService {
         created.setAllowedGrants(client.getAllowedGrants() != null
                 ? client.getAllowedGrants().stream().map(Grant::getName).toList()
                 : null);
+        created.setEmailVerificationRedirectPath(client.getEmailVerificationRedirectPath());
+        created.setPasswordResetRedirectPath(client.getPasswordResetRedirectPath());
         created.setClientSecret(rawSecret);
         return created;
     }

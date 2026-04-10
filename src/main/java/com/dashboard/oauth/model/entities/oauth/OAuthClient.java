@@ -27,6 +27,10 @@ public class OAuthClient {
 
     private List<String> allowedScopes;
 
+    private String emailVerificationRedirectPath;
+
+    private String passwordResetRedirectPath;
+
     @DBRef
     private List<Grant> allowedGrants;
 

@@ -3,15 +3,18 @@ package com.dashboard.oauth.service;
 import com.dashboard.common.model.Audit;
 import com.dashboard.oauth.environment.EmailProperties;
 import com.dashboard.oauth.model.entities.email.EmailSendAttempt;
+import com.dashboard.oauth.model.entities.oauth.OAuthClient;
 import com.dashboard.oauth.model.entities.user.User;
 import com.dashboard.oauth.model.entities.user.VerificationToken;
 import com.dashboard.oauth.model.enums.EmailSendStatus;
 import com.dashboard.oauth.model.enums.EmailType;
 import com.dashboard.oauth.repository.IEmailSendAttemptRepository;
+import com.dashboard.oauth.repository.IOauthClientRepository;
 import com.dashboard.oauth.repository.IUserRepository;
 import com.dashboard.oauth.service.interfaces.IEmailSenderService;
 import com.dashboard.oauth.service.interfaces.IEmailService;
 import com.dashboard.oauth.service.interfaces.IEmailTemplateService;
+import org.bson.types.ObjectId;
 import com.resend.core.exception.ResendException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +24,8 @@ import org.springframework.stereotype.Service;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
+import java.util.function.Function;
 
 @Service
 @Scope("singleton")
@@ -32,6 +37,7 @@ public class EmailService implements IEmailService {
     private final IEmailSenderService emailSenderService;
     private final IEmailSendAttemptRepository emailSendAttemptRepository;
     private final IEmailTemplateService emailTemplateService;
+    private final IOauthClientRepository oauthClientRepository;
     private final EmailProperties emailProperties;
 
     @Override
@@ -44,7 +50,7 @@ public class EmailService implements IEmailService {
             }
 
             String subject = "Verify your email";
-            String verifyUrl = emailProperties.getBaseUrl() + "/verify-email?token=" + token.get_id().toHexString();
+            String verifyUrl = resolveEmailUrl(token, OAuthClient::getEmailVerificationRedirectPath, "verify-email");
             long expirationHours = emailProperties.getVerificationTokenExpirationMs() / (1000 * 60 * 60);
             String content = emailTemplateService.renderVerificationEmail(verifyUrl, expirationHours);
 
@@ -80,7 +86,7 @@ public class EmailService implements IEmailService {
             }
 
             String subject = "Reset your password";
-            String resetUrl = emailProperties.getBaseUrl() + "/reset-password?token=" + token.get_id().toHexString();
+            String resetUrl = resolveEmailUrl(token, OAuthClient::getPasswordResetRedirectPath, "reset-password");
             long expirationHours = emailProperties.getPasswordResetTokenExpirationMs() / (1000 * 60 * 60);
             String content = emailTemplateService.renderPasswordResetEmail(resetUrl, expirationHours);
 
@@ -104,6 +110,23 @@ public class EmailService implements IEmailService {
 
             emailSendAttemptRepository.save(attempt);
         }
+    }
+
+    private String resolveEmailUrl(VerificationToken token, Function<OAuthClient, String> pathExtractor, String fallbackPath) {
+        String tokenId = token.get_id().toHexString();
+        if (token.getClientId() != null && ObjectId.isValid(token.getClientId())) {
+            Optional<OAuthClient> clientOpt = oauthClientRepository
+                    .findBy_idAndAudit_DeletedAtIsNull(new ObjectId(token.getClientId()));
+            if (clientOpt.isPresent()) {
+                OAuthClient client = clientOpt.get();
+                List<String> hosts = client.getAllowedHosts();
+                String host = (hosts != null && !hosts.isEmpty()) ? hosts.getFirst() : emailProperties.getBaseUrl();
+                String path = pathExtractor.apply(client);
+                String resolvedPath = (path != null && !path.isBlank()) ? path : fallbackPath;
+                return host + "/" + resolvedPath + "/" + tokenId;
+            }
+        }
+        return emailProperties.getBaseUrl() + "/" + fallbackPath + "/" + tokenId;
     }
 
     private EmailSendAttempt createAttempt(@NotNull User user, EmailType emailType, String tokenId) {
