@@ -133,6 +133,10 @@ public class AuthenticationService implements IAuthenticationService {
 
         loginAttemptService.checkLocked(user);
 
+        if (!user.isEmailVerified()) {
+            throw new org.springframework.security.authentication.DisabledException("Email address is not verified");
+        }
+
         try {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())

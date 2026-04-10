@@ -19,6 +19,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import java.time.Instant;
@@ -135,6 +136,23 @@ class AuthenticationServiceTest extends BaseAuthenticationServiceTest {
         );
 
         assertEquals("Invalid email or password", exception.getMessage());
+    }
+
+    @Test
+    @DisplayName("Should throw DisabledException when email is not verified")
+    void login_shouldThrowDisabledExceptionWhenEmailNotVerified() {
+        LoginRequest request = new LoginRequest();
+        request.setEmail("unverified@example.com");
+        request.setPassword("password123");
+
+        User user = createTestUser();
+        user.setEmailVerified(false);
+
+        when(userRepository.findByEmailAndAudit_DeletedAtIsNull("unverified@example.com"))
+                .thenReturn(Optional.of(user));
+
+        assertThrows(DisabledException.class, () -> authenticationService.login(request));
+        verify(authenticationManager, never()).authenticate(any());
     }
 
     @Test
@@ -633,6 +651,7 @@ class AuthenticationServiceTest extends BaseAuthenticationServiceTest {
         user.setEmail("test@example.com");
         user.setPassword("encodedPassword");
         user.setRoles(new ArrayList<>());
+        user.setEmailVerified(true);
 
         Audit audit = new Audit();
         audit.setCreatedAt(Instant.now());
