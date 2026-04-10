@@ -88,9 +88,9 @@ class WellKnownControllerTest {
         mockMvc.perform(get("/.well-known/openid-configuration"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.issuer").value(ISSUER))
-                .andExpect(jsonPath("$.authorization_endpoint").value(ISSUER + "/v2/oauth2/authorize"))
-                .andExpect(jsonPath("$.token_endpoint").value(ISSUER + "/v2/oauth2/token"))
-                .andExpect(jsonPath("$.userinfo_endpoint").value(ISSUER + "/v2/oauth2/userinfo"))
+                .andExpect(jsonPath("$.authorization_endpoint").value(ISSUER + "/api/v2/oauth2/authorize"))
+                .andExpect(jsonPath("$.token_endpoint").value(ISSUER + "/api/v2/oauth2/token"))
+                .andExpect(jsonPath("$.userinfo_endpoint").value(ISSUER + "/api/v2/oauth2/userinfo"))
                 .andExpect(jsonPath("$.jwks_uri").value(ISSUER + "/.well-known/jwks.json"));
     }
 
