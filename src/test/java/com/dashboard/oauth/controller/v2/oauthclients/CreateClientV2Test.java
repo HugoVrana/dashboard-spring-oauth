@@ -13,7 +13,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@DisplayName("POST /v2/oauthclients/")
+@DisplayName("POST /api/v2/oauthclients/")
 class CreateClientV2Test extends BaseV2OAuthClientControllerTest {
 
     @Test
@@ -26,7 +26,7 @@ class CreateClientV2Test extends BaseV2OAuthClientControllerTest {
 
         when(oAuthClientService.createClient(any())).thenReturn(testClientCreated);
 
-        mockMvc.perform(post("/v2/oauthclients/")
+        mockMvc.perform(post("/api/v2/oauthclients/")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -42,7 +42,7 @@ class CreateClientV2Test extends BaseV2OAuthClientControllerTest {
         request.setAllowedHosts(List.of("https://app.example.com"));
         request.setAllowedScopes(List.of("openid"));
 
-        mockMvc.perform(post("/v2/oauthclients/")
+        mockMvc.perform(post("/api/v2/oauthclients/")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
@@ -56,7 +56,7 @@ class CreateClientV2Test extends BaseV2OAuthClientControllerTest {
         request.setAllowedHosts(List.of("https://app.example.com"));
         request.setAllowedScopes(List.of());
 
-        mockMvc.perform(post("/v2/oauthclients/")
+        mockMvc.perform(post("/api/v2/oauthclients/")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
@@ -70,7 +70,7 @@ class CreateClientV2Test extends BaseV2OAuthClientControllerTest {
         request.setAllowedHosts(List.of("https://app.example.com"));
         request.setAllowedScopes(List.of("openid"));
 
-        mockMvc.perform(post("/v2/oauthclients/")
+        mockMvc.perform(post("/api/v2/oauthclients/")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
@@ -84,7 +84,7 @@ class CreateClientV2Test extends BaseV2OAuthClientControllerTest {
         request.setAllowedHosts(List.of());
         request.setAllowedScopes(List.of("openid"));
 
-        mockMvc.perform(post("/v2/oauthclients/")
+        mockMvc.perform(post("/api/v2/oauthclients/")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());

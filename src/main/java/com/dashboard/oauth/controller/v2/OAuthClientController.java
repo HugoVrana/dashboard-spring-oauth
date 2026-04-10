@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @CrossOrigin
 @RequiredArgsConstructor
-@RequestMapping("v2/oauthclients")
+@RequestMapping("/api/v2/oauthclients")
 @SecurityRequirement(name = "bearerAuth")
 @RestController("v2OAuthClientController")
 @Tag(name = "OAuth Clients", description = "OAuth Client Management")

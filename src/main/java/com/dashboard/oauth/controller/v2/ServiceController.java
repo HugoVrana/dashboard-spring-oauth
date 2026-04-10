@@ -26,7 +26,7 @@ import java.util.List;
 @CrossOrigin
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/v2/service")
+@RequestMapping("/api/v2/service")
 @Tag(name = "Service", description = "Machine-to-machine endpoints for trusted services")
 public class ServiceController {
 

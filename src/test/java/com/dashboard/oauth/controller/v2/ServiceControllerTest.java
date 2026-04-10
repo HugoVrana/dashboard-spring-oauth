@@ -89,7 +89,7 @@ class ServiceControllerTest {
     }
 
     @Test
-    @DisplayName("POST /v2/service/grants/ensure → 200 with created and alreadyExisted lists")
+    @DisplayName("POST /api/v2/service/grants/ensure → 200 with created and alreadyExisted lists")
     void ensureGrants_shouldReturn200_whenAuthorized() throws Exception {
         EnsureGrantsResponse response = new EnsureGrantsResponse(
                 List.of("data-api-resource-read"),
@@ -99,7 +99,7 @@ class ServiceControllerTest {
         when(oAuthClientService.validateClientCredentials(validBasicAuth)).thenReturn(true);
         when(grantService.ensureGrants(any())).thenReturn(response);
 
-        mockMvc.perform(post("/v2/service/grants/ensure")
+        mockMvc.perform(post("/api/v2/service/grants/ensure")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("Authorization", validBasicAuth)
                         .content(objectMapper.writeValueAsString(grants)))
@@ -109,11 +109,11 @@ class ServiceControllerTest {
     }
 
     @Test
-    @DisplayName("POST /v2/service/grants/ensure → 401 when service secret is invalid")
+    @DisplayName("POST /api/v2/service/grants/ensure → 401 when service secret is invalid")
     void ensureGrants_shouldReturn401_whenSecretInvalid() throws Exception {
         when(oAuthClientService.validateClientCredentials(any())).thenReturn(false);
 
-        mockMvc.perform(post("/v2/service/grants/ensure")
+        mockMvc.perform(post("/api/v2/service/grants/ensure")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("Authorization", "Basic invalid")
                         .content(objectMapper.writeValueAsString(grants)))
@@ -121,25 +121,25 @@ class ServiceControllerTest {
     }
 
     @Test
-    @DisplayName("POST /v2/service/grants/ensure → 401 when Authorization header is missing")
+    @DisplayName("POST /api/v2/service/grants/ensure → 401 when Authorization header is missing")
     void ensureGrants_shouldReturn401_whenNoAuthHeader() throws Exception {
         when(oAuthClientService.validateClientCredentials(null)).thenReturn(false);
 
-        mockMvc.perform(post("/v2/service/grants/ensure")
+        mockMvc.perform(post("/api/v2/service/grants/ensure")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(grants)))
                 .andExpect(status().isUnauthorized());
     }
 
     @Test
-    @DisplayName("POST /v2/service/grants/ensure → 400 when grant name is blank")
+    @DisplayName("POST /api/v2/service/grants/ensure → 400 when grant name is blank")
     void ensureGrants_shouldReturn400_whenGrantNameBlank() throws Exception {
         when(oAuthClientService.validateClientCredentials(validBasicAuth)).thenReturn(true);
 
         GrantCreate invalid = new GrantCreate();
         invalid.setName("");
 
-        mockMvc.perform(post("/v2/service/grants/ensure")
+        mockMvc.perform(post("/api/v2/service/grants/ensure")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("Authorization", validBasicAuth)
                         .content(objectMapper.writeValueAsString(List.of(invalid))))

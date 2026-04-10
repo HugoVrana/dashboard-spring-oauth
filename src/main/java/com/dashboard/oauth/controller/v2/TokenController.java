@@ -43,7 +43,7 @@ import java.net.URI;
 @CrossOrigin
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/v2/oauth2")
+@RequestMapping("/api/v2/oauth2")
 @Tag(name = "OAuth2", description = "OAuth 2.0 authorization server endpoints (RFC 6749, RFC 7009, RFC 7662)")
 public class TokenController {
 
