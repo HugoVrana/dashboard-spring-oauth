@@ -26,7 +26,7 @@ import java.net.URI;
 
 @CrossOrigin
 @RequiredArgsConstructor
-@RequestMapping("api/v2/auth")
+@RequestMapping("/api/v2/auth")
 @RestController("AuthController")
 @Tag(name = "Authentication (v2)", description = "Authentication operations")
 public class AuthController {

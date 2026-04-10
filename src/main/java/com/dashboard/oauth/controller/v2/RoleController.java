@@ -32,7 +32,7 @@ import java.util.List;
 
 @CrossOrigin
 @RequiredArgsConstructor
-@RequestMapping("api/v2/role")
+@RequestMapping("/api/v2/role")
 @RestController("v2RoleController")
 @SecurityRequirement(name = "bearerAuth")
 @Tag(name = "Roles", description = "Role management")

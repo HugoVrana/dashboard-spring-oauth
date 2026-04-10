@@ -32,7 +32,7 @@ import java.util.List;
 
 @CrossOrigin
 @RequiredArgsConstructor
-@RequestMapping("api/v2/grant")
+@RequestMapping("/api/v2/grant")
 @RestController("v2GrantController")
 @Tag(name = "Grants", description = "Grant (permission) management")
 @SecurityRequirement(name = "bearerAuth")

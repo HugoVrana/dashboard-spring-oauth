@@ -32,7 +32,7 @@ import java.util.List;
 
 @CrossOrigin
 @RequiredArgsConstructor
-@RequestMapping("api/v2/user")
+@RequestMapping("/api/v2/user")
 @RestController("v2UserController")
 @SecurityRequirement(name = "bearerAuth")
 @Tag(name = "Users (Admin)", description = "Admin user management")

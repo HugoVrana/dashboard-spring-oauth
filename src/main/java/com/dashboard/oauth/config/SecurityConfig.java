@@ -39,35 +39,17 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf
                         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                         .ignoringRequestMatchers(
-                                "/api/v1/auth/register",
-                                "/api/v1/auth/login",
-                                "/api/v1/auth/refresh",
-                                "/api/v1/auth/verify-email",
-                                "/api/v1/auth/forgot-password",
-                                "/api/v1/auth/reset-password",
-                                "/api/v2/auth/register",
-                                "/api/v2/auth/2fa/setup",
-                                "/api/v2/auth/2fa/verify",
-                                "/v2/oauth2/authorize",
-                                "/v2/oauth2/authorize/mfa",
-                                "/v2/oauth2/token",
-                                "/v2/oauth2/introspect",
-                                "/v2/oauth2/revoke"
+                                "/api/v1/auth/**",
+                                "/api/v2/auth/**",
+                                "/api/v2/oauth2/**"
                         )
                 )
                 .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/auth/**").permitAll()
                         .requestMatchers("/api/v2/auth/**").permitAll()
-                        .requestMatchers("/v2/oauth2/token",
-                                "/v2/oauth2/introspect",
-                                "/v2/oauth2/authorize",
-                                "/v2/oauth2/authorize/mfa",
-                                "/v2/oauth2/revoke")
-                        .permitAll()
-                        .requestMatchers("/v2/service/**").permitAll()
+                        .requestMatchers("/api/v2/oauth2/**").permitAll()
+                        .requestMatchers("/api/v2/service/**").permitAll()
                         .requestMatchers("/api/v1/public/**").permitAll()
-                        .requestMatchers("/api/v1/test/**").permitAll()
                         .requestMatchers("/ws/**",
                                 "/ws-sockjs/**",
                                 "/api/v1/activity/test")

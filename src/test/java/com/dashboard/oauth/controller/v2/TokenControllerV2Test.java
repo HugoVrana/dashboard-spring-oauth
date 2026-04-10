@@ -127,14 +127,14 @@ class TokenControllerV2Test {
     // -------------------------------------------------------------------------
 
     @Test
-    @DisplayName("GET /v2/oauth2/authorize with valid params → 302 redirect to login page")
+    @DisplayName("GET /api/v2/oauth2/authorize with valid params → 302 redirect to login page")
     void authorize_get_success() throws Exception {
         AuthorizationRequest request = buildAuthorizationRequest(null);
         when(authorizationService.createAuthorizationRequest(
                 eq(CLIENT_ID), eq(REDIRECT_URI), eq(CODE_CHALLENGE), eq("S256"), any(), any(), any()))
                 .thenReturn(request);
 
-        mockMvc.perform(get("/v2/oauth2/authorize")
+        mockMvc.perform(get("/api/v2/oauth2/authorize")
                         .param("response_type", "code")
                         .param("client_id", CLIENT_ID)
                         .param("redirect_uri", REDIRECT_URI)
@@ -148,9 +148,9 @@ class TokenControllerV2Test {
     }
 
     @Test
-    @DisplayName("GET /v2/oauth2/authorize with unsupported response_type → 302 error redirect")
+    @DisplayName("GET /api/v2/oauth2/authorize with unsupported response_type → 302 error redirect")
     void authorize_get_unsupportedResponseType() throws Exception {
-        mockMvc.perform(get("/v2/oauth2/authorize")
+        mockMvc.perform(get("/api/v2/oauth2/authorize")
                         .param("response_type", "token")
                         .param("client_id", CLIENT_ID)
                         .param("redirect_uri", REDIRECT_URI)
@@ -162,12 +162,12 @@ class TokenControllerV2Test {
     }
 
     @Test
-    @DisplayName("GET /v2/oauth2/authorize with unknown client → 302 error redirect")
+    @DisplayName("GET /api/v2/oauth2/authorize with unknown client → 302 error redirect")
     void authorize_get_unknownClient() throws Exception {
         when(authorizationService.createAuthorizationRequest(any(), any(), any(), any(), any(), any(), any()))
                 .thenThrow(new InvalidRequestException("Unknown client_id"));
 
-        mockMvc.perform(get("/v2/oauth2/authorize")
+        mockMvc.perform(get("/api/v2/oauth2/authorize")
                         .param("response_type", "code")
                         .param("client_id", "unknown")
                         .param("redirect_uri", REDIRECT_URI)
@@ -179,11 +179,11 @@ class TokenControllerV2Test {
     }
 
     @Test
-    @DisplayName("GET /v2/oauth2/authorize with blocked host → 302 access_denied redirect")
+    @DisplayName("GET /api/v2/oauth2/authorize with blocked host → 302 access_denied redirect")
     void authorize_get_blockedHost() throws Exception {
         when(oAuthClientService.isAllowedHost(eq(CLIENT_ID), any())).thenReturn(false);
 
-        mockMvc.perform(get("/v2/oauth2/authorize")
+        mockMvc.perform(get("/api/v2/oauth2/authorize")
                         .param("response_type", "code")
                         .param("client_id", CLIENT_ID)
                         .param("redirect_uri", REDIRECT_URI)
@@ -199,7 +199,7 @@ class TokenControllerV2Test {
     // -------------------------------------------------------------------------
 
     @Test
-    @DisplayName("POST /v2/oauth2/authorize with valid credentials and no 2FA → 302 redirect with code")
+    @DisplayName("POST /api/v2/oauth2/authorize with valid credentials and no 2FA → 302 redirect with code")
     void authorize_post_success_no2fa() throws Exception {
         AuthorizationRequest authRequest = buildAuthorizationRequest(null);
         AuthorizationCode code = buildAuthorizationCode("abc123", null);
@@ -209,7 +209,7 @@ class TokenControllerV2Test {
         when(authorizationService.submitAuthorize(eq(authRequest), eq("user@example.com"), eq("Password1!")))
                 .thenReturn(new SubmitAuthorizeResult(false, null, code));
 
-        mockMvc.perform(post("/v2/oauth2/authorize")
+        mockMvc.perform(post("/api/v2/oauth2/authorize")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("request_id", authRequest.getId().toHexString())
                         .param("username", "user@example.com")
@@ -220,7 +220,7 @@ class TokenControllerV2Test {
     }
 
     @Test
-    @DisplayName("POST /v2/oauth2/authorize with 2FA enabled → 200 mfa_required")
+    @DisplayName("POST /api/v2/oauth2/authorize with 2FA enabled → 200 mfa_required")
     void authorize_post_mfaRequired() throws Exception {
         AuthorizationRequest authRequest = buildAuthorizationRequest(null);
 
@@ -229,7 +229,7 @@ class TokenControllerV2Test {
         when(authorizationService.submitAuthorize(eq(authRequest), eq("user@example.com"), eq("Password1!")))
                 .thenReturn(new SubmitAuthorizeResult(true, "mfa-token-xyz", null));
 
-        mockMvc.perform(post("/v2/oauth2/authorize")
+        mockMvc.perform(post("/api/v2/oauth2/authorize")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("request_id", authRequest.getId().toHexString())
                         .param("username", "user@example.com")
@@ -240,7 +240,7 @@ class TokenControllerV2Test {
     }
 
     @Test
-    @DisplayName("POST /v2/oauth2/authorize with bad credentials → 302 error redirect")
+    @DisplayName("POST /api/v2/oauth2/authorize with bad credentials → 302 error redirect")
     void authorize_post_badCredentials() throws Exception {
         AuthorizationRequest authRequest = buildAuthorizationRequest(null);
 
@@ -249,7 +249,7 @@ class TokenControllerV2Test {
         when(authorizationService.submitAuthorize(eq(authRequest), eq("user@example.com"), eq("wrong")))
                 .thenThrow(new BadCredentialsException("bad"));
 
-        mockMvc.perform(post("/v2/oauth2/authorize")
+        mockMvc.perform(post("/api/v2/oauth2/authorize")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("request_id", authRequest.getId().toHexString())
                         .param("username", "user@example.com")
@@ -260,12 +260,12 @@ class TokenControllerV2Test {
     }
 
     @Test
-    @DisplayName("POST /v2/oauth2/authorize with invalid request_id → 400 invalid_request")
+    @DisplayName("POST /api/v2/oauth2/authorize with invalid request_id → 400 invalid_request")
     void authorize_post_invalidRequestId() throws Exception {
         when(authorizationService.getAuthorizationRequest(any()))
                 .thenThrow(new InvalidRequestException("Authorization request not found or already used"));
 
-        mockMvc.perform(post("/v2/oauth2/authorize")
+        mockMvc.perform(post("/api/v2/oauth2/authorize")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("request_id", new ObjectId().toHexString())
                         .param("username", "user@example.com")
@@ -275,14 +275,14 @@ class TokenControllerV2Test {
     }
 
     @Test
-    @DisplayName("POST /v2/oauth2/authorize with blocked host → 302 access_denied redirect")
+    @DisplayName("POST /api/v2/oauth2/authorize with blocked host → 302 access_denied redirect")
     void authorize_post_blockedHost() throws Exception {
         AuthorizationRequest authRequest = buildAuthorizationRequest(null);
         when(authorizationService.getAuthorizationRequest(authRequest.getId().toHexString()))
                 .thenReturn(authRequest);
         when(oAuthClientService.isAllowedHost(eq(CLIENT_ID), any())).thenReturn(false);
 
-        mockMvc.perform(post("/v2/oauth2/authorize")
+        mockMvc.perform(post("/api/v2/oauth2/authorize")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("request_id", authRequest.getId().toHexString())
                         .param("username", "user@example.com")
@@ -297,14 +297,14 @@ class TokenControllerV2Test {
     // -------------------------------------------------------------------------
 
     @Test
-    @DisplayName("POST /v2/oauth2/authorize/mfa with valid TOTP → 302 redirect with code")
+    @DisplayName("POST /api/v2/oauth2/authorize/mfa with valid TOTP → 302 redirect with code")
     void authorizeMfa_success() throws Exception {
         AuthorizationCode code = buildAuthorizationCode("code-xyz", "my-state");
 
         when(authorizationService.exchangeMfaToken("valid-mfa-token", "123456"))
                 .thenReturn(code);
 
-        mockMvc.perform(post("/v2/oauth2/authorize/mfa")
+        mockMvc.perform(post("/api/v2/oauth2/authorize/mfa")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("mfa_token", "valid-mfa-token")
                         .param("totp_code", "123456"))
@@ -314,12 +314,12 @@ class TokenControllerV2Test {
     }
 
     @Test
-    @DisplayName("POST /v2/oauth2/authorize/mfa with wrong TOTP code → 401 invalid_grant")
+    @DisplayName("POST /api/v2/oauth2/authorize/mfa with wrong TOTP code → 401 invalid_grant")
     void authorizeMfa_wrongTotpCode() throws Exception {
         when(authorizationService.exchangeMfaToken("valid-mfa-token", "000000"))
                 .thenReturn(null);
 
-        mockMvc.perform(post("/v2/oauth2/authorize/mfa")
+        mockMvc.perform(post("/api/v2/oauth2/authorize/mfa")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("mfa_token", "valid-mfa-token")
                         .param("totp_code", "000000"))
@@ -328,12 +328,12 @@ class TokenControllerV2Test {
     }
 
     @Test
-    @DisplayName("POST /v2/oauth2/authorize/mfa with expired mfa_token → 400 invalid_request")
+    @DisplayName("POST /api/v2/oauth2/authorize/mfa with expired mfa_token → 400 invalid_request")
     void authorizeMfa_expiredToken() throws Exception {
         when(authorizationService.exchangeMfaToken("expired-token", "123456"))
                 .thenThrow(new InvalidRequestException("Invalid or expired MFA token"));
 
-        mockMvc.perform(post("/v2/oauth2/authorize/mfa")
+        mockMvc.perform(post("/api/v2/oauth2/authorize/mfa")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("mfa_token", "expired-token")
                         .param("totp_code", "123456"))
@@ -346,12 +346,12 @@ class TokenControllerV2Test {
     // -------------------------------------------------------------------------
 
     @Test
-    @DisplayName("POST /v2/oauth2/token with authorization_code grant → 200 with token fields")
+    @DisplayName("POST /api/v2/oauth2/token with authorization_code grant → 200 with token fields")
     void token_authorizationCodeGrant_success() throws Exception {
         when(authorizationService.exchangeCode("my-code", "my-verifier", CLIENT_ID, REDIRECT_URI, null))
                 .thenReturn(buildAuthResponse());
 
-        mockMvc.perform(post("/v2/oauth2/token")
+        mockMvc.perform(post("/api/v2/oauth2/token")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("grant_type", "authorization_code")
                         .param("code", "my-code")
@@ -366,9 +366,9 @@ class TokenControllerV2Test {
     }
 
     @Test
-    @DisplayName("POST /v2/oauth2/token with authorization_code missing params → 400 invalid_request")
+    @DisplayName("POST /api/v2/oauth2/token with authorization_code missing params → 400 invalid_request")
     void token_authorizationCodeGrant_missingParams() throws Exception {
-        mockMvc.perform(post("/v2/oauth2/token")
+        mockMvc.perform(post("/api/v2/oauth2/token")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("grant_type", "authorization_code")
                         .param("code", "my-code"))
@@ -377,12 +377,12 @@ class TokenControllerV2Test {
     }
 
     @Test
-    @DisplayName("POST /v2/oauth2/token with invalid code → 400 invalid_grant")
+    @DisplayName("POST /api/v2/oauth2/token with invalid code → 400 invalid_grant")
     void token_authorizationCodeGrant_invalidCode() throws Exception {
         when(authorizationService.exchangeCode(any(), any(), any(), any(), any()))
                 .thenThrow(new InvalidRequestException("Invalid or expired authorization code"));
 
-        mockMvc.perform(post("/v2/oauth2/token")
+        mockMvc.perform(post("/api/v2/oauth2/token")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("grant_type", "authorization_code")
                         .param("code", "bad-code")
@@ -394,11 +394,11 @@ class TokenControllerV2Test {
     }
 
     @Test
-    @DisplayName("POST /v2/oauth2/token with refresh_token grant → 200")
+    @DisplayName("POST /api/v2/oauth2/token with refresh_token grant → 200")
     void token_refreshTokenGrant_success() throws Exception {
         when(authenticationService.refreshToken("my-refresh-token")).thenReturn(buildAuthResponse());
 
-        mockMvc.perform(post("/v2/oauth2/token")
+        mockMvc.perform(post("/api/v2/oauth2/token")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("grant_type", "refresh_token")
                         .param("refresh_token", "my-refresh-token"))
@@ -408,9 +408,9 @@ class TokenControllerV2Test {
     }
 
     @Test
-    @DisplayName("POST /v2/oauth2/token with missing refresh_token → 400 invalid_request")
+    @DisplayName("POST /api/v2/oauth2/token with missing refresh_token → 400 invalid_request")
     void token_refreshTokenGrant_missingParam() throws Exception {
-        mockMvc.perform(post("/v2/oauth2/token")
+        mockMvc.perform(post("/api/v2/oauth2/token")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("grant_type", "refresh_token"))
                 .andExpect(status().isBadRequest())
@@ -419,11 +419,11 @@ class TokenControllerV2Test {
     }
 
     @Test
-    @DisplayName("POST /v2/oauth2/token with invalid refresh_token → 400 invalid_grant")
+    @DisplayName("POST /api/v2/oauth2/token with invalid refresh_token → 400 invalid_grant")
     void token_refreshTokenGrant_invalid() throws Exception {
         when(authenticationService.refreshToken("bad-token")).thenThrow(new RuntimeException("expired"));
 
-        mockMvc.perform(post("/v2/oauth2/token")
+        mockMvc.perform(post("/api/v2/oauth2/token")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("grant_type", "refresh_token")
                         .param("refresh_token", "bad-token"))
@@ -433,9 +433,9 @@ class TokenControllerV2Test {
     }
 
     @Test
-    @DisplayName("POST /v2/oauth2/token with unsupported grant type → 400 unsupported_grant_type")
+    @DisplayName("POST /api/v2/oauth2/token with unsupported grant type → 400 unsupported_grant_type")
     void token_unsupportedGrantType() throws Exception {
-        mockMvc.perform(post("/v2/oauth2/token")
+        mockMvc.perform(post("/api/v2/oauth2/token")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("grant_type", "client_credentials"))
                 .andExpect(status().isBadRequest())
@@ -447,11 +447,11 @@ class TokenControllerV2Test {
     // -------------------------------------------------------------------------
 
     @Test
-    @DisplayName("POST /v2/oauth2/revoke → 200 regardless of token validity")
+    @DisplayName("POST /api/v2/oauth2/revoke → 200 regardless of token validity")
     void revoke_alwaysReturns200() throws Exception {
         doNothing().when(authenticationService).revokeToken(any());
 
-        mockMvc.perform(post("/v2/oauth2/revoke")
+        mockMvc.perform(post("/api/v2/oauth2/revoke")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("token", "any-token"))
                 .andExpect(status().isOk());
@@ -462,7 +462,7 @@ class TokenControllerV2Test {
     // -------------------------------------------------------------------------
 
     @Test
-    @DisplayName("POST /v2/oauth2/introspect with valid token and correct Basic Auth → 200 active=true")
+    @DisplayName("POST /api/v2/oauth2/introspect with valid token and correct Basic Auth → 200 active=true")
     void introspect_validToken_active() throws Exception {
         IntrospectionResponse introspectionResponse = new IntrospectionResponse();
         introspectionResponse.setActive(true);
@@ -473,7 +473,7 @@ class TokenControllerV2Test {
         when(authorizationService.validateClientSecret(BASIC_AUTH)).thenReturn(true);
         when(authorizationService.introspect("valid-jwt")).thenReturn(introspectionResponse);
 
-        mockMvc.perform(post("/v2/oauth2/introspect")
+        mockMvc.perform(post("/api/v2/oauth2/introspect")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .header("Authorization", BASIC_AUTH)
                         .param("token", "valid-jwt"))
@@ -484,12 +484,12 @@ class TokenControllerV2Test {
     }
 
     @Test
-    @DisplayName("POST /v2/oauth2/introspect with wrong secret → 401")
+    @DisplayName("POST /api/v2/oauth2/introspect with wrong secret → 401")
     void introspect_wrongSecret() throws Exception {
         String wrongAuth = "Basic " + Base64.getEncoder()
                 .encodeToString("client:wrong-secret".getBytes(StandardCharsets.UTF_8));
 
-        mockMvc.perform(post("/v2/oauth2/introspect")
+        mockMvc.perform(post("/api/v2/oauth2/introspect")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .header("Authorization", wrongAuth)
                         .param("token", "any-token"))
@@ -497,16 +497,16 @@ class TokenControllerV2Test {
     }
 
     @Test
-    @DisplayName("POST /v2/oauth2/introspect with no Authorization header → 401")
+    @DisplayName("POST /api/v2/oauth2/introspect with no Authorization header → 401")
     void introspect_missingAuth() throws Exception {
-        mockMvc.perform(post("/v2/oauth2/introspect")
+        mockMvc.perform(post("/api/v2/oauth2/introspect")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("token", "any-token"))
                 .andExpect(status().isUnauthorized());
     }
 
     @Test
-    @DisplayName("POST /v2/oauth2/introspect with invalid JWT → 200 active=false")
+    @DisplayName("POST /api/v2/oauth2/introspect with invalid JWT → 200 active=false")
     void introspect_invalidJwt() throws Exception {
         IntrospectionResponse inactive = new IntrospectionResponse();
         inactive.setActive(false);
@@ -514,7 +514,7 @@ class TokenControllerV2Test {
         when(authorizationService.validateClientSecret(BASIC_AUTH)).thenReturn(true);
         when(authorizationService.introspect("bad-jwt")).thenReturn(inactive);
 
-        mockMvc.perform(post("/v2/oauth2/introspect")
+        mockMvc.perform(post("/api/v2/oauth2/introspect")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .header("Authorization", BASIC_AUTH)
                         .param("token", "bad-jwt"))
@@ -527,7 +527,7 @@ class TokenControllerV2Test {
     // -------------------------------------------------------------------------
 
     @Test
-    @DisplayName("GET /v2/oauth2/userinfo authenticated → 200 with user info")
+    @DisplayName("GET /api/v2/oauth2/userinfo authenticated → 200 with user info")
     void userinfo_authenticated() throws Exception {
         UserInfoRead userInfo = new UserInfoRead();
         userInfo.setId(testUserId.toHexString());
@@ -535,7 +535,7 @@ class TokenControllerV2Test {
 
         when(authenticationService.getCurrentUser(any())).thenReturn(userInfo);
 
-        mockMvc.perform(get("/v2/oauth2/userinfo")
+        mockMvc.perform(get("/api/v2/oauth2/userinfo")
                         .principal(new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
                                 "user@example.com", null, java.util.List.of())))
                 .andExpect(status().isOk())
@@ -544,9 +544,9 @@ class TokenControllerV2Test {
     }
 
     @Test
-    @DisplayName("GET /v2/oauth2/userinfo unauthenticated → 401")
+    @DisplayName("GET /api/v2/oauth2/userinfo unauthenticated → 401")
     void userinfo_unauthenticated() throws Exception {
-        mockMvc.perform(get("/v2/oauth2/userinfo"))
+        mockMvc.perform(get("/api/v2/oauth2/userinfo"))
                 .andExpect(status().isUnauthorized());
     }
 
