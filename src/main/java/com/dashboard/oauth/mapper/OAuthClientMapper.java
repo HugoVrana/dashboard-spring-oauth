@@ -20,6 +20,8 @@ public final class OAuthClientMapper implements IOAuthClientMapper {
                     .map(Grant::getName)
                     .toList());
         }
+        read.setEmailVerificationRedirectPath(oAuthClient.getEmailVerificationRedirectPath());
+        read.setPasswordResetRedirectPath(oAuthClient.getPasswordResetRedirectPath());
         return read;
     }
 }

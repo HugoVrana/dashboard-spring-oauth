@@ -62,7 +62,7 @@ class AuthenticationServiceTest extends BaseAuthenticationServiceTest {
         when(userInfoMapper.toUserInfo(any(User.class))).thenReturn(new UserInfo());
         when(userInfoMapper.toRead(any(UserInfo.class))).thenReturn(userInfoRead);
 
-        RegisterResponse registerResponse = authenticationService.register(request);
+        RegisterResponse registerResponse = authenticationService.register(request, null);
 
         assertNotNull(registerResponse);
         assertNotNull(registerResponse.getUser());
@@ -83,7 +83,7 @@ class AuthenticationServiceTest extends BaseAuthenticationServiceTest {
 
         ConflictException exception = assertThrows(
                 ConflictException.class,
-                () -> authenticationService.register(request)
+                () -> authenticationService.register(request, null)
         );
 
         assertTrue(exception.getMessage().contains("already exists"));
@@ -353,7 +353,7 @@ class AuthenticationServiceTest extends BaseAuthenticationServiceTest {
         when(userInfoMapper.toUserInfo(any(User.class))).thenReturn(new UserInfo());
         when(userInfoMapper.toRead(any(UserInfo.class))).thenReturn(new UserInfoRead());
 
-        authenticationService.register(request);
+        authenticationService.register(request, null);
 
         verify(passwordEncoder).encode("plainPassword");
 

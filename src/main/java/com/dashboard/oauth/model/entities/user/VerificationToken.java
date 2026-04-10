@@ -25,6 +25,8 @@ public final class VerificationToken {
 
     private Instant emailSentAt;
 
+    private String clientId;
+
     private Audit audit;
 
     public boolean isExpired() {

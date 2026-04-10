@@ -72,7 +72,7 @@ public class AuthenticationService implements IAuthenticationService {
     private final IActivityFeedService activityFeedService;
 
     @Override
-    public RegisterResponse register(@NotNull RegisterRequest request) {
+    public RegisterResponse register(@NotNull RegisterRequest request, String clientId) {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new ConflictException("User with this email already exists");
         }
@@ -98,6 +98,7 @@ public class AuthenticationService implements IAuthenticationService {
         verificationToken.setAudit(audit);
         verificationToken.setExpiryDate(Instant.now().plusMillis(emailProperties.getVerificationTokenExpirationMs()));
         verificationToken.setUsed(false);
+        verificationToken.setClientId(clientId);
         user.setEmailVerificationToken(verificationToken);
 
         user.setAudit(audit);
@@ -328,7 +329,7 @@ public class AuthenticationService implements IAuthenticationService {
     }
 
     @Override
-    public void forgotPassword(String email) {
+    public void forgotPassword(String email, String clientId) {
         Optional<User> optionalUser = userRepository.findByEmailAndAudit_DeletedAtIsNull(email);
         if (optionalUser.isEmpty()) {
             // Don't reveal if user exists or not for security
@@ -343,6 +344,7 @@ public class AuthenticationService implements IAuthenticationService {
         resetToken.getAudit().setCreatedAt(Instant.now());
         resetToken.setExpiryDate(Instant.now().plusMillis(emailProperties.getPasswordResetTokenExpirationMs()));
         resetToken.setUsed(false);
+        resetToken.setClientId(clientId);
 
         user.setPasswordResetToken(resetToken);
         userRepository.save(user);

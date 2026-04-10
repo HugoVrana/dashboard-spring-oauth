@@ -5,6 +5,7 @@ import com.dashboard.oauth.environment.EmailProperties;
 import com.dashboard.oauth.model.entities.user.User;
 import com.dashboard.oauth.model.entities.user.VerificationToken;
 import com.dashboard.oauth.repository.IEmailSendAttemptRepository;
+import com.dashboard.oauth.repository.IOauthClientRepository;
 import com.dashboard.oauth.repository.IUserRepository;
 import com.dashboard.oauth.service.EmailService;
 import com.dashboard.oauth.service.interfaces.IEmailSenderService;
@@ -41,6 +42,9 @@ public abstract class BaseEmailServiceTest {
     @Mock
     protected IEmailTemplateService emailTemplateService;
 
+    @Mock
+    protected IOauthClientRepository oauthClientRepository;
+
     protected EmailService emailService;
 
     protected final Faker faker = new Faker();
@@ -65,7 +69,7 @@ public abstract class BaseEmailServiceTest {
         User user = new User();
         user.set_id(testUserId);
         user.setEmail(testEmail);
-        user.setPassword(faker.internet().password());
+        user.setPassword(faker.bojackHorseman().tongueTwisters().replace(" ", ""));
         user.setRoles(new ArrayList<>());
 
         Audit audit = new Audit();
@@ -81,7 +85,7 @@ public abstract class BaseEmailServiceTest {
         emailProperties.setBaseUrl("http://localhost:3000");
         emailProperties.setVerificationTokenExpirationMs(86400000L); // 24 hours
         emailProperties.setPasswordResetTokenExpirationMs(3600000L); // 1 hour
-        emailService = new EmailService(userRepository, emailSenderService, emailSendAttemptRepository, emailTemplateService, emailProperties);
+        emailService = new EmailService(userRepository, emailSenderService, emailSendAttemptRepository, emailTemplateService, oauthClientRepository, emailProperties);
 
         testUserId = new ObjectId();
         testEmail = faker.internet().emailAddress();
