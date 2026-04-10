@@ -64,6 +64,7 @@ public class AuthenticationController {
             @ApiResponse(responseCode = "200", description = "Login successful",
                     content = @Content(schema = @Schema(implementation = AuthResponse.class))),
             @ApiResponse(responseCode = "401", description = "Invalid credentials"),
+            @ApiResponse(responseCode = "403", description = "Email address is not verified"),
             @ApiResponse(responseCode = "423", description = "Account is locked")
     })
     @PostMapping("/login")

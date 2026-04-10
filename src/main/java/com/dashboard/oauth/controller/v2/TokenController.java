@@ -117,8 +117,8 @@ public class TokenController {
                     "redirect or returns an `mfa_required` response if 2FA is enabled on the account."
     )
     @ApiResponses({
-            @ApiResponse(responseCode = "302", description = "Redirect to redirect_uri with authorization code",
-                    headers = @Header(name = "Location", description = "redirect_uri?code=...&state=...")),
+            @ApiResponse(responseCode = "302", description = "Redirect — either `?code=...` on success, or `?error=access_denied` on invalid credentials, locked account, unverified email, or blocked host",
+                    headers = @Header(name = "Location", description = "redirect_uri?code=...&state=... or redirect_uri?error=access_denied")),
             @ApiResponse(responseCode = "200", description = "MFA required — contains mfa_token for the next step",
                     content = @Content(schema = @Schema(implementation = MfaRequiredResponse.class))),
             @ApiResponse(responseCode = "400", description = "Invalid request_id",
@@ -147,6 +147,9 @@ public class TokenController {
         SubmitAuthorizeResult result;
         try {
             result = authorizationService.submitAuthorize(authRequest, username, password);
+        } catch (org.springframework.security.authentication.DisabledException e) {
+            return buildErrorRedirect(authRequest.getRedirectUri(), "access_denied",
+                    "Email address is not verified", authRequest.getState());
         } catch (BadCredentialsException | org.springframework.security.authentication.LockedException e) {
             return buildErrorRedirect(authRequest.getRedirectUri(), "access_denied",
                     "Invalid credentials", authRequest.getState());
