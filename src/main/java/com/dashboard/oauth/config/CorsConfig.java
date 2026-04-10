@@ -37,7 +37,7 @@ public class CorsConfig {
                 return buildConfiguration(List.of(origin), List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
             }
 
-            if (path.startsWith("/v2/oauth2/authorize")) {
+            if (path.startsWith("/api/v2/oauth2/authorize")) {
                 String clientId = request.getParameter("client_id");
                 if (!oAuthClientService.isAllowedHost(clientId, request)) {
                     return null;
