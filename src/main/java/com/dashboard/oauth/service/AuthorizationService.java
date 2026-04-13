@@ -168,7 +168,7 @@ public class AuthorizationService implements IAuthorizationService {
         MfaToken mfaToken = MfaToken.builder()
                 .token(UUID.randomUUID().toString())
                 .userId(userId)
-                .authorizationRequestId(request.getId())
+                .authorizationRequestId(request.get_id())
                 .used(false)
                 .expiryDate(Instant.now().plusSeconds(MFA_TOKEN_TTL_SECONDS))
                 .audit(audit)

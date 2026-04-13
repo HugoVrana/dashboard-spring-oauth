@@ -15,9 +15,8 @@ import java.time.Instant;
 @Builder
 @Document(collection = "authorization_codes")
 public class AuthorizationCode {
-
     @Id
-    private ObjectId id;
+    private ObjectId _id;
 
     @Indexed(unique = true)
     private String code;

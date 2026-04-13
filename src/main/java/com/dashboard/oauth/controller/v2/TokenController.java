@@ -97,7 +97,7 @@ public class TokenController {
                     clientId, redirectUri, codeChallenge, codeChallengeMethod, scope, state, nonce);
 
             URI loginUrl = UriComponentsBuilder.fromUriString(oauth2Properties.getLoginUrl())
-                    .queryParam("request_id", request.getId().toHexString())
+                    .queryParam("request_id", request.get_id().toHexString())
                     .queryParam("redirect_uri", request.getRedirectUri())
                     .queryParamIfPresent("state", java.util.Optional.ofNullable(state))
                     .build().toUri();

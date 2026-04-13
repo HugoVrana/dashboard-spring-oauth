@@ -15,7 +15,7 @@ import java.time.Instant;
 @Builder
 public class RefreshToken {
     @Id
-    private ObjectId id;
+    private ObjectId _id;
 
     @Indexed(unique = true)
     private ObjectId token;

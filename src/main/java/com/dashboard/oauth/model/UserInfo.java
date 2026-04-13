@@ -7,7 +7,7 @@ import java.util.List;
 
 @Data
 public class UserInfo {
-    private ObjectId id;
+    private ObjectId _id;
     private String email;
     private List<Role> role;
     private String profileImageUrl;

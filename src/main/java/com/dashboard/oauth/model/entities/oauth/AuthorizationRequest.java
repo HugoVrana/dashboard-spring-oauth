@@ -15,21 +15,27 @@ import java.time.Instant;
 @Builder
 @Document(collection = "authorization_requests")
 public class AuthorizationRequest {
-
     @Id
-    private ObjectId id;
+    private ObjectId _id;
 
     @NotBlank
     private String clientId;
+
     @NotBlank
     private String redirectUri;
+
     @NotBlank
     private String codeChallenge;
+
     @NotBlank
     private String codeChallengeMethod;
+
     private String scope;
+
     private String state;
+
     private String nonce;
+
     private boolean used;
 
     @Indexed(expireAfter = "0")
