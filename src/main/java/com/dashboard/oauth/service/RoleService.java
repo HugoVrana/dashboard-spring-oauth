@@ -132,6 +132,8 @@ public class RoleService implements IRoleService {
     public void deleteRole(ObjectId id) {
         Role role = roleRepository.findRoleBy_idAndAudit_DeletedAtIsNull(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Role not found"));
-        roleRepository.delete(role);
+        role.getAudit().setUpdatedAt(Instant.now());
+        role.getAudit().setDeletedAt(Instant.now());
+        role = roleRepository.save(role);
     }
 }
