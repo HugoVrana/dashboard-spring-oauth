@@ -58,6 +58,20 @@ public class OAuthClientController {
         return ResponseEntity.ok(oAuthClientService.createClient(request));
     }
 
+    @Operation(summary = "Rotate client secret",
+            description = "Generates a new client secret. The old secret is immediately invalidated. The new secret is shown only once.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "New secret issued",
+                    content = @Content(schema = @Schema(implementation = OAuthClientCreated.class))),
+            @ApiResponse(responseCode = "404", description = "Client not found", content = @Content),
+            @ApiResponse(responseCode = "403", description = "Insufficient permissions", content = @Content)
+    })
+    @PreAuthorize("hasAuthority('dashboard-oauth-client-rotate-secret')")
+    @PostMapping("/{id}/secret")
+    public ResponseEntity<OAuthClientCreated> rotateSecret(@PathVariable String id) {
+        return ResponseEntity.ok(oAuthClientService.rotateSecret(new ObjectId(id)));
+    }
+
     @Operation(summary = "Delete an OAuth client")
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "Client deleted"),
@@ -69,19 +83,5 @@ public class OAuthClientController {
     public ResponseEntity<Void> deleteClient(@PathVariable String id) {
         oAuthClientService.deleteClient(new ObjectId(id));
         return ResponseEntity.noContent().build();
-    }
-
-    @Operation(summary = "Rotate client secret",
-            description = "Generates a new client secret. The old secret is immediately invalidated. The new secret is shown only once.")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "New secret issued",
-                    content = @Content(schema = @Schema(implementation = OAuthClientCreated.class))),
-            @ApiResponse(responseCode = "404", description = "Client not found", content = @Content),
-            @ApiResponse(responseCode = "403", description = "Insufficient permissions", content = @Content)
-    })
-   // @PreAuthorize("hasAuthority('dashboard-oauth-client-rotate-secret')")
-    @PostMapping("/{id}/secret")
-    public ResponseEntity<OAuthClientCreated> rotateSecret(@PathVariable String id) {
-        return ResponseEntity.ok(oAuthClientService.rotateSecret(new ObjectId(id)));
     }
 }
