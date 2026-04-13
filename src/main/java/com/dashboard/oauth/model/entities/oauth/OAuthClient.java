@@ -15,7 +15,6 @@ import java.util.List;
 @Builder
 @Document(collection = "oauth_clients")
 public class OAuthClient {
-
     @Id
     private ObjectId _id;
 

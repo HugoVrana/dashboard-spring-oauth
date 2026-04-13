@@ -142,7 +142,7 @@ class TokenControllerV2Test {
                         .param("code_challenge_method", "S256"))
                 .andExpect(status().isFound())
                 .andExpect(header().string("Location",
-                        org.hamcrest.Matchers.containsString("request_id=" + request.getId().toHexString())))
+                        org.hamcrest.Matchers.containsString("request_id=" + request.get_id().toHexString())))
                 .andExpect(header().string("Location",
                         org.hamcrest.Matchers.containsString("redirect_uri=")));
     }
@@ -204,14 +204,14 @@ class TokenControllerV2Test {
         AuthorizationRequest authRequest = buildAuthorizationRequest(null);
         AuthorizationCode code = buildAuthorizationCode("abc123", null);
 
-        when(authorizationService.getAuthorizationRequest(authRequest.getId().toHexString()))
+        when(authorizationService.getAuthorizationRequest(authRequest.get_id().toHexString()))
                 .thenReturn(authRequest);
         when(authorizationService.submitAuthorize(eq(authRequest), eq("user@example.com"), eq("Password1!")))
                 .thenReturn(new SubmitAuthorizeResult(false, null, code));
 
         mockMvc.perform(post("/api/v2/oauth2/authorize")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("request_id", authRequest.getId().toHexString())
+                        .param("request_id", authRequest.get_id().toHexString())
                         .param("username", "user@example.com")
                         .param("password", "Password1!"))
                 .andExpect(status().isFound())
@@ -224,14 +224,14 @@ class TokenControllerV2Test {
     void authorize_post_mfaRequired() throws Exception {
         AuthorizationRequest authRequest = buildAuthorizationRequest(null);
 
-        when(authorizationService.getAuthorizationRequest(authRequest.getId().toHexString()))
+        when(authorizationService.getAuthorizationRequest(authRequest.get_id().toHexString()))
                 .thenReturn(authRequest);
         when(authorizationService.submitAuthorize(eq(authRequest), eq("user@example.com"), eq("Password1!")))
                 .thenReturn(new SubmitAuthorizeResult(true, "mfa-token-xyz", null));
 
         mockMvc.perform(post("/api/v2/oauth2/authorize")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("request_id", authRequest.getId().toHexString())
+                        .param("request_id", authRequest.get_id().toHexString())
                         .param("username", "user@example.com")
                         .param("password", "Password1!"))
                 .andExpect(status().isOk())
@@ -244,14 +244,14 @@ class TokenControllerV2Test {
     void authorize_post_badCredentials() throws Exception {
         AuthorizationRequest authRequest = buildAuthorizationRequest(null);
 
-        when(authorizationService.getAuthorizationRequest(authRequest.getId().toHexString()))
+        when(authorizationService.getAuthorizationRequest(authRequest.get_id().toHexString()))
                 .thenReturn(authRequest);
         when(authorizationService.submitAuthorize(eq(authRequest), eq("user@example.com"), eq("wrong")))
                 .thenThrow(new BadCredentialsException("bad"));
 
         mockMvc.perform(post("/api/v2/oauth2/authorize")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("request_id", authRequest.getId().toHexString())
+                        .param("request_id", authRequest.get_id().toHexString())
                         .param("username", "user@example.com")
                         .param("password", "wrong"))
                 .andExpect(status().isFound())
@@ -278,13 +278,13 @@ class TokenControllerV2Test {
     @DisplayName("POST /api/v2/oauth2/authorize with blocked host → 302 access_denied redirect")
     void authorize_post_blockedHost() throws Exception {
         AuthorizationRequest authRequest = buildAuthorizationRequest(null);
-        when(authorizationService.getAuthorizationRequest(authRequest.getId().toHexString()))
+        when(authorizationService.getAuthorizationRequest(authRequest.get_id().toHexString()))
                 .thenReturn(authRequest);
         when(oAuthClientService.isAllowedHost(eq(CLIENT_ID), any())).thenReturn(false);
 
         mockMvc.perform(post("/api/v2/oauth2/authorize")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("request_id", authRequest.getId().toHexString())
+                        .param("request_id", authRequest.get_id().toHexString())
                         .param("username", "user@example.com")
                         .param("password", "Password1!"))
                 .andExpect(status().isFound())
@@ -568,7 +568,7 @@ class TokenControllerV2Test {
         Audit audit = new Audit();
         audit.setCreatedAt(Instant.now());
         AuthorizationRequest request = AuthorizationRequest.builder()
-                .id(new ObjectId())
+                ._id(new ObjectId())
                 .clientId(CLIENT_ID)
                 .redirectUri(REDIRECT_URI)
                 .codeChallenge(CODE_CHALLENGE)
@@ -585,7 +585,7 @@ class TokenControllerV2Test {
         Audit audit = new Audit();
         audit.setCreatedAt(Instant.now());
         return AuthorizationCode.builder()
-                .id(new ObjectId())
+                ._id(new ObjectId())
                 .code(code)
                 .clientId(CLIENT_ID)
                 .userId(testUserId)

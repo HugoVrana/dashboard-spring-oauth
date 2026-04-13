@@ -27,7 +27,7 @@ public final class UserInfoMapper implements IUserInfoMapper {
     @Override
     public UserInfo toUserInfo(final User user) {
         UserInfo userInfo = new UserInfo();
-        userInfo.setId(user.get_id());
+        userInfo.set_id(user.get_id());
         userInfo.setEmail(user.getEmail());
         List<Role> roles = user.getRoles() == null ? new ArrayList<>() :
                 user.getRoles().stream().filter(r -> r != null && r.getName() != null).toList();
@@ -41,7 +41,7 @@ public final class UserInfoMapper implements IUserInfoMapper {
     @Override
     public UserInfoRead toRead(final UserInfo userInfo) {
         UserInfoRead userInfoRead = new UserInfoRead();
-        userInfoRead.setId(userInfo.getId().toHexString());
+        userInfoRead.setId(userInfo.get_id().toHexString());
         userInfoRead.setEmail(userInfo.getEmail());
 
         List<RoleRead> roleReadList = new ArrayList<>();

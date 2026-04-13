@@ -170,7 +170,7 @@ class JwtServiceTest {
     @DisplayName("Should handle empty grants")
     void generateToken_shouldHandleEmptyGrants() {
         UserInfo userInfo = new UserInfo();
-        userInfo.setId(new ObjectId());
+        userInfo.set_id(new ObjectId());
         userInfo.setEmail("test@example.com");
 
         Role role = new Role();
@@ -192,7 +192,7 @@ class JwtServiceTest {
     @DisplayName("Should deduplicate grants")
     void generateToken_shouldDeduplicateGrants() {
         UserInfo userInfo = new UserInfo();
-        userInfo.setId(new ObjectId());
+        userInfo.set_id(new ObjectId());
         userInfo.setEmail("test@example.com");
 
         Grant readGrant = new Grant();
@@ -222,7 +222,7 @@ class JwtServiceTest {
 
     private UserInfo createTestUserInfo() {
         UserInfo userInfo = new UserInfo();
-        userInfo.setId(new ObjectId());
+        userInfo.set_id(new ObjectId());
         userInfo.setEmail("test@example.com");
 
         Grant readGrant = new Grant();
