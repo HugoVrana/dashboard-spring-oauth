@@ -182,6 +182,7 @@ class GrantServiceTest {
     @DisplayName("Delete grant removes entity when it exists")
     void deleteGrant_shouldDeleteGrant_whenExists() {
         when(grantRepository.findById(testGrantId)).thenReturn(Optional.of(testGrant));
+        when(grantRepository.save(testGrant)).thenReturn(testGrant);
 
         grantService.deleteGrant(testGrantId);
 
