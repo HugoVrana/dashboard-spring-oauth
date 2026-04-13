@@ -130,7 +130,7 @@ public class AuthorizationService implements IAuthorizationService {
         if (!ObjectId.isValid(requestId)) {
             throw new InvalidRequestException("Invalid request_id");
         }
-        return authRequestRepository.findBy_IdAndUsedTrueAndAudit_DeletedAtIsNull(new ObjectId(requestId))
+        return authRequestRepository.findBy_idAndUsedFalseAndAudit_DeletedAtIsNull(new ObjectId(requestId))
                 .orElseThrow(() -> new InvalidRequestException("Authorization request not found or already used"));
     }
 
@@ -191,7 +191,7 @@ public class AuthorizationService implements IAuthorizationService {
         mfaTokenRepository.save(token);
 
         AuthorizationRequest request = authRequestRepository
-                .findBy_IdAndUsedTrueAndAudit_DeletedAtIsNull(token.getAuthorizationRequestId())
+                .findBy_idAndUsedFalseAndAudit_DeletedAtIsNull(token.getAuthorizationRequestId())
                 .orElseThrow(() -> new InvalidRequestException("Authorization request not found or already used"));
 
         return createAuthorizationCode(request, token.getUserId());
