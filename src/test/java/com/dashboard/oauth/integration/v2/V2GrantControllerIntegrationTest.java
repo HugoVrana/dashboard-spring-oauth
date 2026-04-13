@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -132,6 +133,7 @@ class V2GrantControllerIntegrationTest extends BaseIntegrationTest {
         request.setDescription("Integration test grant");
 
         MvcResult result = mockMvc.perform(post("/api/v2/grant/")
+                        .with(csrf())
                         .header("Authorization", "Bearer " + accessToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -155,6 +157,7 @@ class V2GrantControllerIntegrationTest extends BaseIntegrationTest {
         request.setDescription("Duplicate");
 
         mockMvc.perform(post("/api/v2/grant/")
+                        .with(csrf())
                         .header("Authorization", "Bearer " + accessToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -190,6 +193,7 @@ class V2GrantControllerIntegrationTest extends BaseIntegrationTest {
         update.setDescription("Updated description");
 
         mockMvc.perform(put("/api/v2/grant/" + testGrantId)
+                        .with(csrf())
                         .header("Authorization", "Bearer " + accessToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(update)))
@@ -204,6 +208,7 @@ class V2GrantControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("DELETE /api/v2/grant/{id} soft-deletes the grant")
     void deleteGrant_returns204_andGrantIsDeleted() throws Exception {
         mockMvc.perform(delete("/api/v2/grant/" + testGrantId)
+                        .with(csrf())
                         .header("Authorization", "Bearer " + accessToken))
                 .andExpect(status().isNoContent());
 
@@ -216,6 +221,7 @@ class V2GrantControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("DELETE /api/v2/grant/{id} returns 404 for unknown id")
     void deleteGrant_returns404_whenNotFound() throws Exception {
         mockMvc.perform(delete("/api/v2/grant/" + new ObjectId().toHexString())
+                        .with(csrf())
                         .header("Authorization", "Bearer " + accessToken))
                 .andExpect(status().isNotFound());
     }

@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -145,6 +146,7 @@ class V2RoleControllerIntegrationTest extends BaseIntegrationTest {
         request.setName(testRoleName);
 
         MvcResult result = mockMvc.perform(post("/api/v2/role/")
+                        .with(csrf())
                         .header("Authorization", "Bearer " + accessToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -167,6 +169,7 @@ class V2RoleControllerIntegrationTest extends BaseIntegrationTest {
         request.setName(testRoleName);
 
         mockMvc.perform(post("/api/v2/role/")
+                        .with(csrf())
                         .header("Authorization", "Bearer " + accessToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -201,6 +204,7 @@ class V2RoleControllerIntegrationTest extends BaseIntegrationTest {
         update.setName(testRoleNameUpdated);
 
         mockMvc.perform(put("/api/v2/role/" + testRoleId)
+                        .with(csrf())
                         .header("Authorization", "Bearer " + accessToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(update)))
@@ -215,6 +219,7 @@ class V2RoleControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("POST /api/v2/role/{id}/grants/{grantId} adds grant to role")
     void addGrantToRole_returnsUpdatedRole() throws Exception {
         mockMvc.perform(post("/api/v2/role/" + testRoleId + "/grants/" + memberGrantId)
+                        .with(csrf())
                         .header("Authorization", "Bearer " + accessToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.grants[0].id").value(memberGrantId));
@@ -228,6 +233,7 @@ class V2RoleControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("POST /api/v2/role/{id}/grants/{grantId} returns 409 if grant already assigned")
     void addGrantToRole_returnsConflict_whenAlreadyAssigned() throws Exception {
         mockMvc.perform(post("/api/v2/role/" + testRoleId + "/grants/" + memberGrantId)
+                        .with(csrf())
                         .header("Authorization", "Bearer " + accessToken))
                 .andExpect(status().isConflict());
     }
@@ -237,6 +243,7 @@ class V2RoleControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("DELETE /api/v2/role/{id}/grants/{grantId} removes grant from role")
     void removeGrantFromRole_returnsUpdatedRole() throws Exception {
         mockMvc.perform(delete("/api/v2/role/" + testRoleId + "/grants/" + memberGrantId)
+                        .with(csrf())
                         .header("Authorization", "Bearer " + accessToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.grants").isEmpty());
@@ -250,6 +257,7 @@ class V2RoleControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("DELETE /api/v2/role/{id}/grants/{grantId} returns 404 if grant not assigned")
     void removeGrantFromRole_returns404_whenNotAssigned() throws Exception {
         mockMvc.perform(delete("/api/v2/role/" + testRoleId + "/grants/" + memberGrantId)
+                        .with(csrf())
                         .header("Authorization", "Bearer " + accessToken))
                 .andExpect(status().isNotFound());
     }
@@ -259,6 +267,7 @@ class V2RoleControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("DELETE /api/v2/role/{id} soft-deletes the role")
     void deleteRole_returns204_andRoleIsDeleted() throws Exception {
         mockMvc.perform(delete("/api/v2/role/" + testRoleId)
+                        .with(csrf())
                         .header("Authorization", "Bearer " + accessToken))
                 .andExpect(status().isNoContent());
 

@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -178,6 +179,7 @@ class V2UserControllerIntegrationTest extends BaseIntegrationTest {
         update.setEmail(targetUserUpdatedEmail);
 
         mockMvc.perform(put("/api/v2/user/" + targetUserId)
+                        .with(csrf())
                         .header("Authorization", "Bearer " + accessToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(update)))
@@ -192,6 +194,7 @@ class V2UserControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("POST /api/v2/user/{id}/block blocks the user")
     void blockUser_returns204() throws Exception {
         mockMvc.perform(post("/api/v2/user/" + targetUserId + "/block")
+                        .with(csrf())
                         .header("Authorization", "Bearer " + accessToken))
                 .andExpect(status().isNoContent());
 
@@ -204,6 +207,7 @@ class V2UserControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("POST /api/v2/user/{id}/block returns 409 when already blocked")
     void blockUser_returnsConflict_whenAlreadyBlocked() throws Exception {
         mockMvc.perform(post("/api/v2/user/" + targetUserId + "/block")
+                        .with(csrf())
                         .header("Authorization", "Bearer " + accessToken))
                 .andExpect(status().isConflict());
     }
@@ -213,6 +217,7 @@ class V2UserControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("POST /api/v2/user/{id}/unblock unblocks the user")
     void unblockUser_returns204() throws Exception {
         mockMvc.perform(post("/api/v2/user/" + targetUserId + "/unblock")
+                        .with(csrf())
                         .header("Authorization", "Bearer " + accessToken))
                 .andExpect(status().isNoContent());
 
@@ -225,6 +230,7 @@ class V2UserControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("POST /api/v2/user/{id}/unblock returns 409 when not blocked")
     void unblockUser_returnsConflict_whenNotBlocked() throws Exception {
         mockMvc.perform(post("/api/v2/user/" + targetUserId + "/unblock")
+                        .with(csrf())
                         .header("Authorization", "Bearer " + accessToken))
                 .andExpect(status().isConflict());
     }
@@ -234,6 +240,7 @@ class V2UserControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("DELETE /api/v2/user/{id} soft-deletes the user")
     void deleteUser_returns204_andUserIsDeleted() throws Exception {
         mockMvc.perform(delete("/api/v2/user/" + targetUserId)
+                        .with(csrf())
                         .header("Authorization", "Bearer " + accessToken))
                 .andExpect(status().isNoContent());
 

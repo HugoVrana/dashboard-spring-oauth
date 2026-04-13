@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -121,6 +122,7 @@ class V2OAuthClientControllerIntegrationTest extends BaseIntegrationTest {
         request.setAllowedHosts(List.of("https://app.example.com"));
 
         MvcResult result = mockMvc.perform(post("/api/v2/oauthclients/")
+                        .with(csrf())
                         .header("Authorization", "Bearer " + accessToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -147,6 +149,7 @@ class V2OAuthClientControllerIntegrationTest extends BaseIntegrationTest {
         request.setAllowedHosts(List.of("https://app.example.com"));
 
         mockMvc.perform(post("/api/v2/oauthclients/")
+                        .with(csrf())
                         .header("Authorization", "Bearer " + accessToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -179,6 +182,7 @@ class V2OAuthClientControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("POST /api/v2/oauthclients/{id}/secret rotates the client secret")
     void rotateSecret_returnsNewSecret() throws Exception {
         MvcResult result = mockMvc.perform(post("/api/v2/oauthclients/" + testClientId + "/secret")
+                        .with(csrf())
                         .header("Authorization", "Bearer " + accessToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(testClientId))
@@ -195,6 +199,7 @@ class V2OAuthClientControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("DELETE /api/v2/oauthclients/{id} deletes the client")
     void deleteClient_returns204_andClientIsDeleted() throws Exception {
         mockMvc.perform(delete("/api/v2/oauthclients/" + testClientId)
+                        .with(csrf())
                         .header("Authorization", "Bearer " + accessToken))
                 .andExpect(status().isNoContent());
 
