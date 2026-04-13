@@ -185,7 +185,8 @@ class GrantServiceTest {
 
         grantService.deleteGrant(testGrantId);
 
-        verify(grantRepository).delete(testGrant);
+        verify(grantRepository).save(testGrant);
+        assertThat(testGrant.getAudit().getDeletedAt()).isNotNull();
     }
 
     @Test

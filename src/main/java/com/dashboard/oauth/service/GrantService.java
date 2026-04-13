@@ -130,7 +130,7 @@ public class GrantService implements IGrantService {
     public void deleteGrant(ObjectId id) {
         Grant grant = grantRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Grant not found"));
-        grant.getAudit().setDeletedAt(Instant.now());
+        grant.getAudit().setUpdatedAt(Instant.now());
         grant.getAudit().setDeletedAt(Instant.now());
         grant = grantRepository.save(grant);
         publishActivityEvent(ActivityEventType.GRANT_REMOVED, grant);

@@ -209,7 +209,8 @@ class RoleServiceTest {
 
         roleService.deleteRole(testRoleId);
 
-        verify(roleRepository).delete(testRole);
+        verify(roleRepository).save(testRole);
+        assertThat(testRole.getAudit().getDeletedAt()).isNotNull();
     }
 
     @Test
