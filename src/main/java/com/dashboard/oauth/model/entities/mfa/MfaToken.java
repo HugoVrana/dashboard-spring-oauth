@@ -16,7 +16,7 @@ import java.time.Instant;
 public class MfaToken {
 
     @Id
-    private ObjectId id;
+    private ObjectId _id;
 
     @Indexed(unique = true)
     private String token;

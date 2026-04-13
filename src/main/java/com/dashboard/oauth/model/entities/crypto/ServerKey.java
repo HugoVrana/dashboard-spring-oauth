@@ -13,7 +13,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public class ServerKey {
 
     @Id
-    private ObjectId id;
+    private ObjectId _id;
 
     private byte[] privateKeyDer;
     private byte[] publicKeyDer;
