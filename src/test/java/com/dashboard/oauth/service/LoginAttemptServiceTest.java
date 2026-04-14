@@ -15,6 +15,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.LockedException;
 import java.time.Instant;
+import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -77,6 +78,8 @@ class LoginAttemptServiceTest {
     void recordFailedAttempt_shouldIncrementFailedAttempts() {
         User user = createTestUser();
         user.setFailedLoginAttempts(0);
+        when(userRepository.getUserBy_idAndAudit_DeletedAtIsNull(user.get_id()))
+                .thenReturn(Optional.of(createUserWithAttempts(1)));
 
         loginAttemptService.recordFailedAttempt(user);
 
@@ -87,7 +90,9 @@ class LoginAttemptServiceTest {
     @DisplayName("Should lock user when max attempts reached")
     void recordFailedAttempt_shouldLockUserWhenMaxAttemptsReached() {
         User user = createTestUser();
-        user.setFailedLoginAttempts(4); // Next attempt will be 5th
+        user.setFailedLoginAttempts(4); // pre-increment; DB becomes 5 after increment
+        when(userRepository.getUserBy_idAndAudit_DeletedAtIsNull(user.get_id()))
+                .thenReturn(Optional.of(createUserWithAttempts(5)));
 
         loginAttemptService.recordFailedAttempt(user);
 
@@ -99,7 +104,9 @@ class LoginAttemptServiceTest {
     @DisplayName("Should not lock user when below max attempts")
     void recordFailedAttempt_shouldNotLockUserWhenBelowMaxAttempts() {
         User user = createTestUser();
-        user.setFailedLoginAttempts(2);
+        user.setFailedLoginAttempts(2); // pre-increment; DB becomes 3 after increment
+        when(userRepository.getUserBy_idAndAudit_DeletedAtIsNull(user.get_id()))
+                .thenReturn(Optional.of(createUserWithAttempts(3)));
 
         loginAttemptService.recordFailedAttempt(user);
 
@@ -111,7 +118,9 @@ class LoginAttemptServiceTest {
     @DisplayName("Should handle null failed attempts as zero")
     void recordFailedAttempt_shouldHandleNullFailedAttemptsAsZero() {
         User user = createTestUser();
-        user.setFailedLoginAttempts(null);
+        user.setFailedLoginAttempts(null); // pre-increment; DB becomes 1 after increment
+        when(userRepository.getUserBy_idAndAudit_DeletedAtIsNull(user.get_id()))
+                .thenReturn(Optional.of(createUserWithAttempts(1)));
 
         loginAttemptService.recordFailedAttempt(user);
 
@@ -157,7 +166,9 @@ class LoginAttemptServiceTest {
     void recordFailedAttempt_shouldLockOnExactlyMaxAttempts() {
         loginProperties.setMaxFailedAttempts(3);
         User user = createTestUser();
-        user.setFailedLoginAttempts(2); // Next will be 3rd (max)
+        user.setFailedLoginAttempts(2); // pre-increment; DB becomes 3 (exactly max)
+        when(userRepository.getUserBy_idAndAudit_DeletedAtIsNull(user.get_id()))
+                .thenReturn(Optional.of(createUserWithAttempts(3)));
 
         loginAttemptService.recordFailedAttempt(user);
 
@@ -169,7 +180,9 @@ class LoginAttemptServiceTest {
     void recordFailedAttempt_shouldLockWhenOverMaxAttempts() {
         loginProperties.setMaxFailedAttempts(3);
         User user = createTestUser();
-        user.setFailedLoginAttempts(5); // Already over max
+        user.setFailedLoginAttempts(5); // pre-increment; DB becomes 6
+        when(userRepository.getUserBy_idAndAudit_DeletedAtIsNull(user.get_id()))
+                .thenReturn(Optional.of(createUserWithAttempts(6)));
 
         loginAttemptService.recordFailedAttempt(user);
 
@@ -182,6 +195,13 @@ class LoginAttemptServiceTest {
         user.setEmail("test@example.com");
         user.setLocked(false);
         user.setFailedLoginAttempts(0);
+        return user;
+    }
+
+    private User createUserWithAttempts(int attempts) {
+        User user = new User();
+        user.set_id(new ObjectId());
+        user.setFailedLoginAttempts(attempts);
         return user;
     }
 }
