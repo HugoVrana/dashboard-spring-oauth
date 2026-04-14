@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.junit.jupiter.api.parallel.ResourceLock;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -43,7 +44,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ResourceLock("spring-context")
 class WellKnownControllerTest {
 
-    private static final String ISSUER = "http://localhost:8081";
+    private static final String ISSUER = "http://localhost";
 
     @Autowired
     private MockMvc mockMvc;

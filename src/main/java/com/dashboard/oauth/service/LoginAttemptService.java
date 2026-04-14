@@ -30,10 +30,12 @@ public class LoginAttemptService implements ILoginAttemptService {
         Instant now = Instant.now();
         userRepository.incrementFailedLoginAttempts(user.get_id(), now);
 
-        int currentAttempts = user.getFailedLoginAttempts() != null ? user.getFailedLoginAttempts() : 0;
-        if (currentAttempts + 1 >= loginProperties.getMaxFailedAttempts()) {
-            userRepository.lockUser(user.get_id(), now);
-        }
+        userRepository.getUserBy_idAndAudit_DeletedAtIsNull(user.get_id()).ifPresent(updated -> {
+            int attempts = updated.getFailedLoginAttempts() != null ? updated.getFailedLoginAttempts() : 0;
+            if (attempts >= loginProperties.getMaxFailedAttempts()) {
+                userRepository.lockUser(user.get_id(), now);
+            }
+        });
     }
 
     @Override
