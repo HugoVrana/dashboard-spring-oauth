@@ -87,6 +87,7 @@ class V2UserControllerIntegrationTest extends BaseIntegrationTest {
         adminUser.setEmail(adminEmail);
         adminUser.setPassword(passwordEncoder.encode(adminPassword));
         adminUser.setRoles(List.of(adminRole));
+        adminUser.setEmailVerified(true);
         Audit adminAudit = new Audit();
         adminAudit.setCreatedAt(Instant.now());
         adminUser.setAudit(adminAudit);

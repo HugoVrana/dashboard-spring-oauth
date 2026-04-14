@@ -83,6 +83,7 @@ class V2OAuthClientControllerIntegrationTest extends BaseIntegrationTest {
         user.setEmail(email);
         user.setPassword(passwordEncoder.encode(password));
         user.setRoles(List.of(role));
+        user.setEmailVerified(true);
         Audit userAudit = new Audit();
         userAudit.setCreatedAt(Instant.now());
         user.setAudit(userAudit);
