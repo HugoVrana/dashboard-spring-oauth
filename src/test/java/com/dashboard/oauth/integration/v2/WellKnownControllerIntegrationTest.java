@@ -3,13 +3,11 @@ package com.dashboard.oauth.integration.v2;
 import com.dashboard.oauth.integration.BaseIntegrationTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.test.context.TestPropertySource;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @DisplayName("Well-Known / OIDC Discovery Endpoints")
-@TestPropertySource(properties = "oidc.issuer=http://localhost")
 class WellKnownControllerIntegrationTest extends BaseIntegrationTest {
 
     @Test
