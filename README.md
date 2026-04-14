@@ -33,45 +33,64 @@ Spring Boot OAuth2 authorization server with JWT authentication, MongoDB persist
 - Cloudflare R2 bucket (for profile images)
 - Docker (for running integration tests)
 
-### Configuration
+### Secrets Management
 
-Set the following properties in `application.properties` or as environment variables:
+Secrets are managed via [Doppler](https://doppler.com). `application.properties` contains no secrets — all sensitive values are injected as environment variables at runtime.
 
-```properties
-spring.data.mongodb.uri=<mongodb-connection-string>
-JWT.SECRET=<base64-encoded-secret>
-JWT.EXPIRATION=86400000
-JWT.REFRESH_EXPIRATION=604800000
-spring.security.oauth2.secret=<service-secret>
-resend.api-key=<resend-api-key>
-email.baseUrl=http://localhost:3000
-email.fromAddress=Acme <onboarding@resend.dev>
-email.verificationTokenExpirationMs=86400000
-email.passwordResetTokenExpirationMs=3600000
-r2.accountId=<cloudflare-account-id>
-r2.bucketName=<r2-bucket-name>
-r2.accessKeyId=<r2-access-key>
-r2.secretAccessKey=<r2-secret-key>
-oidc.issuer=<issuer-url>
-```
+**Required secrets:**
+
+| Variable | Description |
+|----------|-------------|
+| `MONGO_USER` | MongoDB username |
+| `MONGO_PASSWORD` | MongoDB password |
+| `MONGO_HOST` | MongoDB host (e.g. `cluster.mongodb.net`) |
+| `MONGO_DB` | MongoDB database name |
+| `JWT_SECRET` | Base64-encoded HMAC secret for JWT signing |
+| `SPRING_SECURITY_OAUTH2_SECRET` | Service secret for token introspection |
+| `RESEND_APIKEY` | Resend API key for transactional emails |
+| `GRAFANA_API_KEY` | Grafana Loki API key |
+| `GRAFANA_URL` | Grafana Loki push URL |
+| `R2_ACCESS_KEY_ID` | Cloudflare R2 access key |
+| `R2_SECRET_ACCESS_KEY` | Cloudflare R2 secret key |
+| `R2_ACCOUNT_ID` | Cloudflare account ID |
+| `R2_BUCKET_NAME` | R2 bucket name |
+| `R2_PUBLIC_URL` | R2 public CDN URL |
+| `OIDC_ISSUER` | OIDC issuer URL (e.g. `https://auth.example.com`) |
 
 ### Running Locally
 
+**Prerequisites:** [Doppler CLI](https://docs.doppler.com/docs/install-cli) installed and authenticated.
+
 ```bash
-# Build
-./mvnw clean package
+# First-time setup — select the dashboard-auth-api project and dev_personal config
+doppler setup
+doppler configure set config dev_personal
 
-# Build (skip tests)
-./mvnw clean package -DskipTests
+# Generate .env.local from Doppler (re-run whenever secrets change)
+doppler secrets download --no-file --format env > .env.local
+```
 
-# Run (port 8081)
-./mvnw spring-boot:run
+**Option A — Terminal:**
+```bash
+doppler run -- ./mvnw spring-boot:run
+```
 
-# Run all tests (requires Docker)
+**Option B — IntelliJ:**
+
+The `.run/DashboardOauthApplication.run.xml` config is already set up to load `.env.local` via the [EnvFile plugin](https://plugins.jetbrains.com/plugin/7861-envfile). Install the plugin, generate `.env.local` as above, then use the normal Run button.
+
+**Without Doppler** (fallback): copy `src/main/resources/application-local.properties`, fill in values manually, and run:
+```bash
+./mvnw spring-boot:run -Dspring-boot.run.profiles=local
+```
+
+**Tests:**
+```bash
+# Unit tests (no Docker required)
+./mvnw test -Dtest="!**.integration.**"
+
+# All tests including integration (requires Docker)
 ./mvnw test
-
-# Run unit tests only (no Docker required)
-./mvnw test -Dtest="!*IntegrationTest"
 ```
 
 ## API Endpoints
