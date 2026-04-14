@@ -21,7 +21,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Disabled("v1 API is deprecated")
-@DisplayName("Auth flow")
+@DisplayName("v1 Auth flow")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class AuthFlowIntegrationTest extends BaseIntegrationTest {
