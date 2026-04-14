@@ -254,6 +254,7 @@ class V2UserControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("DELETE /api/v2/user/{id} returns 404 for unknown id")
     void deleteUser_returns404_whenNotFound() throws Exception {
         mockMvc.perform(delete("/api/v2/user/" + new ObjectId().toHexString())
+                        .with(csrf())
                         .header("Authorization", "Bearer " + accessToken))
                 .andExpect(status().isNotFound());
     }
