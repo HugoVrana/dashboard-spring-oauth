@@ -228,7 +228,7 @@ public class AuthorizationService implements IAuthorizationService {
         authCode.setUsed(true);
         authCodeRepository.save(authCode);
 
-        User user = userRepository.findById(authCode.getUserId())
+        User user = userRepository.getUserBy_idAndAudit_DeletedAtIsNull(authCode.getUserId())
                 .orElseThrow(() -> new InvalidRequestException("User not found"));
 
         UserInfo userInfo = userInfoMapper.toUserInfo(user);

@@ -220,7 +220,7 @@ class AuthenticationServiceTest extends BaseAuthenticationServiceTest {
         userInfoRead.setEmail("test@example.com");
 
         when(refreshTokenRepository.findByToken(refreshTokenId)).thenReturn(Optional.of(refreshToken));
-        when(userRepository.findById(user.get_id())).thenReturn(Optional.of(user));
+        when(userRepository.getUserBy_idAndAudit_DeletedAtIsNull(user.get_id())).thenReturn(Optional.of(user));
         when(userInfoMapper.toUserInfo(any(User.class))).thenReturn(new UserInfo());
         when(jwtService.generateToken(any(UserInfo.class), any(), any())).thenReturn("new-access-token");
         when(userInfoMapper.toRead(any(UserInfo.class))).thenReturn(userInfoRead);
@@ -298,7 +298,7 @@ class AuthenticationServiceTest extends BaseAuthenticationServiceTest {
                 .build();
 
         when(refreshTokenRepository.findByToken(refreshTokenId)).thenReturn(Optional.of(refreshToken));
-        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+        when(userRepository.getUserBy_idAndAudit_DeletedAtIsNull(userId)).thenReturn(Optional.empty());
 
         RuntimeException exception = assertThrows(
                 RuntimeException.class,

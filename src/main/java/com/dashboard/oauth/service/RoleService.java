@@ -46,7 +46,7 @@ public class RoleService implements IRoleService {
 
     @Override
     public RoleRead getRoleReadById(ObjectId id) {
-        Role role = roleRepository.findById(id)
+        Role role = roleRepository.findRoleBy_idAndAudit_DeletedAtIsNull(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Role not found"));
         return roleMapper.toRead(role);
     }
@@ -80,7 +80,7 @@ public class RoleService implements IRoleService {
 
     @Override
     public RoleRead updateRole(ObjectId id, RoleUpdate update) {
-        Role role = roleRepository.findById(id)
+        Role role = roleRepository.findRoleBy_idAndAudit_DeletedAtIsNull(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Role not found"));
 
         if (!role.getName().equals(update.getName()) && getRoleByName(update.getName()).isPresent()) {

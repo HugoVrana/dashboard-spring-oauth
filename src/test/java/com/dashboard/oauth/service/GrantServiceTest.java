@@ -95,7 +95,7 @@ class GrantServiceTest {
     @Test
     @DisplayName("Get existing Grant by Id")
     void getGrantById_shouldReturnGrant_whenGrantExists() {
-        when(grantRepository.findById(testGrantId)).thenReturn(Optional.of(testGrant));
+        when(grantRepository.findGrantBy_idAndAudit_DeletedAtIsNull(testGrantId)).thenReturn(Optional.of(testGrant));
 
         Optional<Grant> result = grantService.getGrantById(testGrantId);
 
@@ -107,7 +107,7 @@ class GrantServiceTest {
     @Test
     @DisplayName("Get nonexistent Grant by Id")
     void getGrantById_shouldReturnEmpty_whenGrantNotFound() {
-        when(grantRepository.findById(testGrantId)).thenReturn(Optional.empty());
+        when(grantRepository.findGrantBy_idAndAudit_DeletedAtIsNull(testGrantId)).thenReturn(Optional.empty());
 
         Optional<Grant> result = grantService.getGrantById(testGrantId);
 
@@ -145,7 +145,7 @@ class GrantServiceTest {
         expectedRead.setName(testGrantName);
         expectedRead.setDescription(testGrant.getDescription());
 
-        when(grantRepository.findAll()).thenReturn(List.of(testGrant));
+        when(grantRepository.findByAudit_DeletedAtIsNull()).thenReturn(List.of(testGrant));
         when(grantMapper.toRead(testGrant)).thenReturn(expectedRead);
 
         List<GrantRead> result = grantService.getGrants();
@@ -160,7 +160,7 @@ class GrantServiceTest {
         GrantRead expectedRead = new GrantRead();
         expectedRead.setName(testGrantName);
 
-        when(grantRepository.findById(testGrantId)).thenReturn(Optional.of(testGrant));
+        when(grantRepository.findGrantBy_idAndAudit_DeletedAtIsNull(testGrantId)).thenReturn(Optional.of(testGrant));
         when(grantMapper.toRead(testGrant)).thenReturn(expectedRead);
 
         GrantRead result = grantService.getGrantReadById(testGrantId);
@@ -172,7 +172,7 @@ class GrantServiceTest {
     @Test
     @DisplayName("Get grant read by id throws ResourceNotFoundException when not found")
     void getGrantReadById_shouldThrowResourceNotFoundException_whenNotFound() {
-        when(grantRepository.findById(testGrantId)).thenReturn(Optional.empty());
+        when(grantRepository.findGrantBy_idAndAudit_DeletedAtIsNull(testGrantId)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> grantService.getGrantReadById(testGrantId))
                 .isInstanceOf(ResourceNotFoundException.class);
@@ -181,7 +181,7 @@ class GrantServiceTest {
     @Test
     @DisplayName("Delete grant removes entity when it exists")
     void deleteGrant_shouldDeleteGrant_whenExists() {
-        when(grantRepository.findById(testGrantId)).thenReturn(Optional.of(testGrant));
+        when(grantRepository.findGrantBy_idAndAudit_DeletedAtIsNull(testGrantId)).thenReturn(Optional.of(testGrant));
         when(grantRepository.save(testGrant)).thenReturn(testGrant);
 
         grantService.deleteGrant(testGrantId);
@@ -193,7 +193,7 @@ class GrantServiceTest {
     @Test
     @DisplayName("Delete grant throws ResourceNotFoundException when not found")
     void deleteGrant_shouldThrowResourceNotFoundException_whenNotFound() {
-        when(grantRepository.findById(testGrantId)).thenReturn(Optional.empty());
+        when(grantRepository.findGrantBy_idAndAudit_DeletedAtIsNull(testGrantId)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> grantService.deleteGrant(testGrantId))
                 .isInstanceOf(ResourceNotFoundException.class);
