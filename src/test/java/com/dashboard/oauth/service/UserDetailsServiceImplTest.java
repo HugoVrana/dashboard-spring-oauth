@@ -1,7 +1,10 @@
 package com.dashboard.oauth.service;
 
 import com.dashboard.common.model.Audit;
+import com.dashboard.oauth.model.entities.auth.Grant;
+import com.dashboard.oauth.model.entities.auth.Role;
 import com.dashboard.oauth.model.entities.user.User;
+import com.dashboard.oauth.repository.IGrantRepository;
 import com.dashboard.oauth.repository.IUserRepository;
 import net.datafaker.Faker;
 import org.bson.types.ObjectId;
@@ -15,7 +18,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import java.time.Instant;
-import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -29,6 +32,9 @@ class UserDetailsServiceImplTest {
     @Mock
     private IUserRepository userRepository;
 
+    @Mock
+    private IGrantRepository grantRepository;
+
     @InjectMocks
     private UserDetailsServiceImpl userDetailsService;
 
@@ -36,10 +42,28 @@ class UserDetailsServiceImplTest {
 
     private String testEmail;
     private User testUser;
+    private Grant testGrant;
+    private Role testRole;
 
     @BeforeEach
     void setUp() {
         testEmail = faker.internet().emailAddress();
+
+        testGrant = new Grant();
+        testGrant.set_id(new ObjectId());
+        testGrant.setName("test-grant");
+        Audit grantAudit = new Audit();
+        grantAudit.setCreatedAt(Instant.now());
+        testGrant.setAudit(grantAudit);
+
+        testRole = new Role();
+        testRole.set_id(new ObjectId());
+        testRole.setName("ROLE_TEST");
+        testRole.setGrants(List.of(testGrant));
+        Audit roleAudit = new Audit();
+        roleAudit.setCreatedAt(Instant.now());
+        testRole.setAudit(roleAudit);
+
         testUser = createTestUser();
     }
 
@@ -48,7 +72,7 @@ class UserDetailsServiceImplTest {
         user.set_id(new ObjectId());
         user.setEmail(testEmail);
         user.setPassword(faker.internet().password());
-        user.setRoles(new ArrayList<>());
+        user.setRoles(List.of(testRole));
 
         Audit audit = new Audit();
         audit.setCreatedAt(Instant.now());
@@ -58,10 +82,12 @@ class UserDetailsServiceImplTest {
     }
 
     @Test
-    @DisplayName("Get user by email")
+    @DisplayName("Get user by email returns UserDetails with grants loaded")
     void loadUserByUsername_shouldReturnUserDetails_whenUserExists() {
         when(userRepository.findByEmailAndAudit_DeletedAtIsNull(testEmail))
                 .thenReturn(Optional.of(testUser));
+        when(grantRepository.findAllById(List.of(testGrant.get_id())))
+                .thenReturn(List.of(testGrant));
 
         UserDetails result = userDetailsService.loadUserByUsername(testEmail);
 
@@ -69,6 +95,25 @@ class UserDetailsServiceImplTest {
         assertThat(result.getUsername()).isEqualTo(testEmail);
         assertThat(result).isInstanceOf(UserDetailsImpl.class);
         verify(userRepository).findByEmailAndAudit_DeletedAtIsNull(testEmail);
+        verify(grantRepository).findAllById(List.of(testGrant.get_id()));
+    }
+
+    @Test
+    @DisplayName("Grants are batch-loaded and set on roles")
+    void loadUserByUsername_shouldEagerLoadGrants() {
+        when(userRepository.findByEmailAndAudit_DeletedAtIsNull(testEmail))
+                .thenReturn(Optional.of(testUser));
+        when(grantRepository.findAllById(List.of(testGrant.get_id())))
+                .thenReturn(List.of(testGrant));
+
+        UserDetails result = userDetailsService.loadUserByUsername(testEmail);
+
+        User user = ((UserDetailsImpl) result).getUser();
+        assertThat(user.getRoles()).hasSize(1);
+        assertThat(user.getRoles().getFirst().getGrants())
+                .hasSize(1)
+                .extracting(Grant::getName)
+                .containsExactly("test-grant");
     }
 
     @Test
