@@ -1,0 +1,7 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Run &amp; Debug" type="CompoundRunConfigurationType">
+    <toRun name="Attach Debugger (5005)" type="Remote" />
+    <toRun name="doppler run (debug)" type="ShConfigurationType" />
+    <method v="2" />
+  </configuration>
+</component>

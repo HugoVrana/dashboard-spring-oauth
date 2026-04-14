@@ -234,26 +234,11 @@ jobs:
     steps:
       - name: Trigger Render Deploy
         run: |
-          echo "Triggering deployment..."
-          curl -X PUT "https://api.render.com/v1/services/${RENDER_SERVICE_ID}/env-vars" \
-            -H "Authorization: Bearer ${RENDER_API_KEY}" \
-            -H "Content-Type: application/json" \
-            -d '[
-              {"key": "GRAFANA_API_KEY", "value": "'"${GRAFANA_API_KEY}"'"},
-              {"key": "JWT_EXPIRATION", "value": "'"${JWT_EXPIRATION}"'"},
-              {"key": "JWT_REFRESH_EXPIRATION", "value": "'"${JWT_REFRESH_EXPIRATION}"'"},
-              {"key": "JWT_SECRET", "value": "'"${JWT_SECRET}"'"},
-              {"key": "OIDC_ISSUER", "value": "'"${OIDC_ISSUER}"'"},
-              {"key": "R2_ACCESS_KEY_ID", "value": "'"${R2_ACCESS_KEY_ID}"'"},
-              {"key": "R2_ACCOUNT_ID", "value": "'"${R2_ACCOUNT_ID}"'"},
-              {"key": "R2_BUCKET_NAME", "value": "'"${R2_BUCKET_NAME}"'"},
-              {"key": "R2_SECRET_ACCESS_KEY", "value": "'"${R2_SECRET_ACCESS_KEY}"'"},
-              {"key": "RESEND_APIKEY", "value":"'"${RESEND_APIKEY}"'"},
-              {"key": “SPRING_SECURITY_OAUTH2_SECRET", "value":"'"${SPRING_SECURITY_OAUTH2_SECRET}"'"},
-              {"key": “EMAIL_BASEURL", "value":"'"${EMAIL_BASEURL}"'"},
-              {"key": “EMAIL_FROMADDRESS", "value":"'"${EMAIL_FROMADDRESS}"'"},
-              {"key": “EMAIL_VERIFICATIONTOKENEXPIRATIONMS", "value":"'"${EMAIL_VERIFICATIONTOKENEXPIRATIONMS}"'"},
-              {"key": “GRAFANA_URL", "value":"'"${GRAFANA_URL}"'"},
-              {"key": “SPRING_DATA_MONGODB_URI", "value":"'"${SPRING_DATA_MONGODB_URI}"'"}
-            ]'
-          echo "Deploy triggered successfully."
+          echo “Triggering deployment...”
+          curl -X POST “https://api.render.com/v1/services/${RENDER_SERVICE_ID}/deploys” \
+            -H “Authorization: Bearer ${RENDER_API_KEY}” \
+            -H “Content-Type: application/json”
+          echo “Deploy triggered successfully.”
+        env:
+          RENDER_SERVICE_ID: ${{ secrets.RENDER_SERVICE_ID }}
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
