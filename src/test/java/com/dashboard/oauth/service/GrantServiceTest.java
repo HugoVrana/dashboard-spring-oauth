@@ -101,7 +101,7 @@ class GrantServiceTest {
 
         assertThat(result).isPresent();
         assertThat(result.get().get_id()).isEqualTo(testGrantId);
-        verify(grantRepository).findById(testGrantId);
+        verify(grantRepository).findGrantBy_idAndAudit_DeletedAtIsNull(testGrantId);
     }
 
     @Test
@@ -112,7 +112,7 @@ class GrantServiceTest {
         Optional<Grant> result = grantService.getGrantById(testGrantId);
 
         assertThat(result).isEmpty();
-        verify(grantRepository).findById(testGrantId);
+        verify(grantRepository).findGrantBy_idAndAudit_DeletedAtIsNull(testGrantId);
     }
 
     @Test
