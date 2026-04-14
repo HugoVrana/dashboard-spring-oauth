@@ -41,7 +41,8 @@ public class GrantService implements IGrantService {
 
     @Override
     public List<GrantRead> getGrants() {
-        return grantRepository.findAll().stream()
+        return grantRepository.findByAudit_DeletedAtIsNull()
+                .stream()
                 .map(grantMapper::toRead)
                 .toList();
     }
@@ -53,12 +54,12 @@ public class GrantService implements IGrantService {
 
     @Override
     public Optional<Grant> getGrantById(ObjectId id) {
-        return grantRepository.findById(id);
+        return grantRepository.findGrantBy_idAndAudit_DeletedAtIsNull(id);
     }
 
     @Override
     public GrantRead getGrantReadById(ObjectId id) {
-        Grant grant = grantRepository.findById(id)
+        Grant grant = grantRepository.findGrantBy_idAndAudit_DeletedAtIsNull(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Grant not found"));
         return grantMapper.toRead(grant);
     }
@@ -111,7 +112,7 @@ public class GrantService implements IGrantService {
 
     @Override
     public GrantRead updateGrant(ObjectId id, GrantUpdate update) {
-        Grant grant = grantRepository.findById(id)
+        Grant grant = grantRepository.findGrantBy_idAndAudit_DeletedAtIsNull(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Grant not found"));
 
         if (!grant.getName().equals(update.getName()) && getGrantByName(update.getName()).isPresent()) {
@@ -128,7 +129,7 @@ public class GrantService implements IGrantService {
 
     @Override
     public void deleteGrant(ObjectId id) {
-        Grant grant = grantRepository.findById(id)
+        Grant grant = grantRepository.findGrantBy_idAndAudit_DeletedAtIsNull(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Grant not found"));
         grant.getAudit().setUpdatedAt(Instant.now());
         grant.getAudit().setDeletedAt(Instant.now());

@@ -151,7 +151,7 @@ class RoleServiceTest {
         RoleRead expectedRead = new RoleRead();
         expectedRead.setName(testRoleName);
 
-        when(roleRepository.findById(testRoleId)).thenReturn(Optional.of(testRole));
+        when(roleRepository.findRoleBy_idAndAudit_DeletedAtIsNull(testRoleId)).thenReturn(Optional.of(testRole));
         when(roleMapper.toRead(testRole)).thenReturn(expectedRead);
 
         RoleRead result = roleService.getRoleReadById(testRoleId);
@@ -163,7 +163,7 @@ class RoleServiceTest {
     @Test
     @DisplayName("Get role read by id throws ResourceNotFoundException when not found")
     void getRoleReadById_shouldThrowResourceNotFoundException_whenNotFound() {
-        when(roleRepository.findById(testRoleId)).thenReturn(Optional.empty());
+        when(roleRepository.findRoleBy_idAndAudit_DeletedAtIsNull(testRoleId)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> roleService.getRoleReadById(testRoleId))
                 .isInstanceOf(ResourceNotFoundException.class);

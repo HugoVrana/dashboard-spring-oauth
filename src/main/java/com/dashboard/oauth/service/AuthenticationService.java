@@ -187,7 +187,7 @@ public class AuthenticationService implements IAuthenticationService {
             throw new RuntimeException("Refresh token expired");
         }
 
-        User user = userRepository.findById(refreshToken.getUserId())
+        User user = userRepository.getUserBy_idAndAudit_DeletedAtIsNull(refreshToken.getUserId())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         List<Grant> allowedGrants = null;
@@ -254,7 +254,7 @@ public class AuthenticationService implements IAuthenticationService {
         }
         ObjectId userId = new ObjectId(request.getUserId());
 
-        User user = userRepository.findById(userId)
+        User user = userRepository.getUserBy_idAndAudit_DeletedAtIsNull(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         User oldState = copyUserState(user);
@@ -423,7 +423,7 @@ public class AuthenticationService implements IAuthenticationService {
     public UserInfoRead getCurrentUser(Authentication authentication) {
         User user;
         if (authentication instanceof GrantsAuthentication grantsAuth) {
-            user = userRepository.findById(new ObjectId(grantsAuth.getUserId()))
+            user = userRepository.getUserBy_idAndAudit_DeletedAtIsNull(new ObjectId(grantsAuth.getUserId()))
                     .orElseThrow(() -> new ResourceNotFoundException("User not found"));
         } else {
             if (!(authentication.getPrincipal() instanceof UserDetailsImpl userDetails)) {
