@@ -12,4 +12,4 @@ fi
 cd "$PROJECT_DIR"
 
 exec doppler run --project dashboard-spring-oauth --config dev_personal -- "$PROJECT_DIR/mvnw" spring-boot:run \
-  -Dspring-boot.run.jvmArguments="-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=*:5005"
+  -Dspring-boot.run.jvmArguments="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"
