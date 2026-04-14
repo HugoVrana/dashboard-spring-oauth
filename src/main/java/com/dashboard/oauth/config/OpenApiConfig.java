@@ -2,6 +2,7 @@ package com.dashboard.oauth.config;
 
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import org.springdoc.core.models.GroupedOpenApi;
@@ -14,6 +15,10 @@ public class OpenApiConfig {
     @Bean
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
+                .info(new Info()
+                        .title("OAuth 2.0")
+                        .version("2.0")
+                        .description("Dashboard OAuth 2.0 API for managing users, access to OAuth 2.0 resources, via roles, grants and clients"))
                 .addSecurityItem(new SecurityRequirement().addList("Bearer Authentication"))
                 .components(new Components()
                         .addSecuritySchemes("Bearer Authentication",
