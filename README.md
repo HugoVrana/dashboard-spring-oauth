@@ -305,3 +305,5 @@ Emails for verification and password reset are sent via a scheduled job using Re
 
 - **Frontend**: [nextjs-dashboard](https://github.com/HugoVrana/dashboard-frontend) - Next.js + Tailwind app
 - **Main API**: [spring-dashboard](https://github.com/HugoVrana/dashboard-spring-data) - Spring API for invoice tracking
+
+pipeline trigger
