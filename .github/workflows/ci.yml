@@ -234,11 +234,11 @@ jobs:
     steps:
       - name: Trigger Render Deploy
         run: |
-          echo “Triggering deployment...”
-          curl -X POST “https://api.render.com/v1/services/${RENDER_SERVICE_ID}/deploys” \
-            -H “Authorization: Bearer ${RENDER_API_KEY}” \
-            -H “Content-Type: application/json”
-          echo “Deploy triggered successfully.”
+          echo "Triggering deployment..."
+          curl --fail-with-body -X POST "https://api.render.com/v1/services/${RENDER_SERVICE_ID}/deploys" \
+            -H "Authorization: Bearer ${RENDER_API_KEY}" \
+            -H "Content-Type: application/json"
+          echo "Deploy triggered successfully."
         env:
           RENDER_SERVICE_ID: ${{ secrets.RENDER_SERVICE_ID }}
           RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
