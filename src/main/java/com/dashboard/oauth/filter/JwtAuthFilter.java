@@ -11,6 +11,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -22,6 +23,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class JwtAuthFilter extends OncePerRequestFilter {
@@ -65,8 +67,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 }
             }
         } catch (Exception e) {
-            // Log the error but don't block the filter chain
-            logger.error("Cannot set user authentication: { " + e.getMessage() + "}");
+            log.warn("JWT validation failed [{}] path={}", e.getClass().getSimpleName(), request.getRequestURI());
         }
 
         filterChain.doFilter(request, response);
