@@ -1,6 +1,9 @@
 package com.dashboard.oauth.startup;
 
+import com.dashboard.common.environment.GrafanaProperties;
+import com.dashboard.common.logging.GrafanaHttpClient;
 import com.dashboard.common.model.Audit;
+import com.dashboard.common.model.log.ApiCallLog;
 import com.dashboard.oauth.dataTransferObject.grant.GrantCreate;
 import com.dashboard.oauth.dataTransferObject.oauthClient.OAuthClientCreate;
 import com.dashboard.oauth.dataTransferObject.oauthClient.OAuthClientCreated;
@@ -21,6 +24,7 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
+import java.io.Console;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
