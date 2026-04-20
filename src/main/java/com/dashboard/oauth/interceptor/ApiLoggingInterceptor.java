@@ -39,32 +39,34 @@ public class ApiLoggingInterceptor implements HandlerInterceptor {
     public void afterCompletion(@NotNull HttpServletRequest request, @NotNull HttpServletResponse response,
                                 @NotNull Object handler, Exception ex) {
         try {
-            if (ex == null) {
-                Instant startTime = (Instant) request.getAttribute(REQUEST_START_TIME);
-                Instant endTime = Instant.now();
-                Long durationMs = startTime != null ?
-                        java.time.Duration.between(startTime, endTime).toMillis() : null;
-
-                Instant timestamp = startTime != null ? startTime : Instant.now();
-                LogBuilderHelper logBuilderHelper = new LogBuilderHelper(objectMapper);
-                ApiCallLog.ApiCallLogBuilder builder = logBuilderHelper.buildBaseLog(
-                        "spring-dashboard",
-                        request,
-                        response,
-                        timestamp,
-                        durationMs
-                );
-
-                String diff = DiffContext.getDiff();
-                if (diff != null) {
-                    Map<String, String> customFields = new HashMap<>();
-                    customFields.put("diff", diff);
-                    builder.customFields(customFields);
-                }
-
-                ApiCallLog apiLog = builder.build();
-                grafanaHttpClient.send(apiLog);
+            if (ex != null) {
+                request.setAttribute("exception", ex);
             }
+
+            Instant startTime = (Instant) request.getAttribute(REQUEST_START_TIME);
+            Instant endTime = Instant.now();
+            Long durationMs = startTime != null ?
+                    java.time.Duration.between(startTime, endTime).toMillis() : null;
+
+            Instant timestamp = startTime != null ? startTime : Instant.now();
+            LogBuilderHelper logBuilderHelper = new LogBuilderHelper(objectMapper);
+            ApiCallLog.ApiCallLogBuilder builder = logBuilderHelper.buildBaseLog(
+                    "spring-dashboard",
+                    request,
+                    response,
+                    timestamp,
+                    durationMs
+            );
+
+            String diff = DiffContext.getDiff();
+            if (diff != null) {
+                Map<String, String> customFields = new HashMap<>();
+                customFields.put("diff", diff);
+                builder.customFields(customFields);
+            }
+
+            ApiCallLog apiLog = builder.build();
+            grafanaHttpClient.send(apiLog);
         } catch (Exception e) {
             log.error("Failed to log API call", e);
         } finally {
