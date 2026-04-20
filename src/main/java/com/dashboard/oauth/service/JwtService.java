@@ -102,9 +102,12 @@ public class JwtService implements IJwtService {
 
     @Override
     public Boolean validateToken(String token, UserDetails userDetails) {
-        final String username = extractUsername(token);
-        boolean usernameMatch = username.equals(userDetails.getUsername());
-        boolean isTokenExpired = extractClaim(token, Claims::getExpiration).before(new Date());
-        return (usernameMatch && !isTokenExpired);
+        final Claims claims = extractClaim(token, c -> c);
+        boolean usernameMatch = userDetails.getUsername().equals(claims.get("email", String.class));
+        boolean notExpired = !claims.getExpiration().before(new Date());
+        boolean issuerMatch = oidcProperties.getIssuer().equals(claims.getIssuer());
+        boolean audienceMatch = claims.getAudience() != null
+                && claims.getAudience().contains(oidcProperties.getIssuer());
+        return usernameMatch && notExpired && issuerMatch && audienceMatch;
     }
 }
