@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
 import org.springframework.http.ResponseEntity;
@@ -70,6 +71,17 @@ public class OAuthClientController {
     @PostMapping("/{id}/secret")
     public ResponseEntity<OAuthClientCreated> rotateSecret(@PathVariable String id) {
         return ResponseEntity.ok(oAuthClientService.rotateSecret(new ObjectId(id)));
+    }
+
+    @Operation(summary = "Get allowed hosts for an OAuth client",
+            description = "Returns the list of allowed CORS origins for the client. Public endpoint.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Allowed hosts returned"),
+            @ApiResponse(responseCode = "404", description = "Client not found", content = @Content)
+    })
+    @GetMapping("/{id}/allowed-hosts")
+    public ResponseEntity<List<String>> getAllowedHosts(@PathVariable String id) {
+        return ResponseEntity.ok(oAuthClientService.getClient(new ObjectId(id)).getAllowedHosts());
     }
 
     @Operation(summary = "Delete an OAuth client")

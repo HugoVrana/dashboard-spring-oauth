@@ -180,6 +180,23 @@ class V2OAuthClientControllerIntegrationTest extends BaseIntegrationTest {
 
     @Test
     @Order(5)
+    @DisplayName("GET /api/v2/oauthclients/{id}/allowed-hosts returns allowed hosts without auth")
+    void getAllowedHosts_returnsAllowedHosts_withoutAuthentication() throws Exception {
+        mockMvc.perform(get("/api/v2/oauthclients/" + testClientId + "/allowed-hosts"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0]").value("https://app.example.com"));
+    }
+
+    @Test
+    @Order(6)
+    @DisplayName("GET /api/v2/oauthclients/{id}/allowed-hosts returns 404 for unknown id")
+    void getAllowedHosts_returns404_whenNotFound() throws Exception {
+        mockMvc.perform(get("/api/v2/oauthclients/" + new ObjectId().toHexString() + "/allowed-hosts"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @Order(7)
     @DisplayName("POST /api/v2/oauthclients/{id}/secret rotates the client secret")
     void rotateSecret_returnsNewSecret() throws Exception {
         MvcResult result = mockMvc.perform(post("/api/v2/oauthclients/" + testClientId + "/secret")
@@ -196,7 +213,7 @@ class V2OAuthClientControllerIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
-    @Order(6)
+    @Order(8)
     @DisplayName("DELETE /api/v2/oauthclients/{id} deletes the client")
     void deleteClient_returns204_andClientIsDeleted() throws Exception {
         mockMvc.perform(delete("/api/v2/oauthclients/" + testClientId)
@@ -209,7 +226,7 @@ class V2OAuthClientControllerIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
-    @Order(7)
+    @Order(9)
     @DisplayName("DELETE /api/v2/oauthclients/{id} returns 404 for unknown id")
     void deleteClient_returns404_whenNotFound() throws Exception {
         mockMvc.perform(delete("/api/v2/oauthclients/" + new ObjectId().toHexString())

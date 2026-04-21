@@ -57,6 +57,7 @@ public class SecurityConfig {
                                 "/ws-sockjs/**",
                                 "/api/v1/activity/test")
                         .permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v2/oauthclients/*/allowed-hosts").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/user/*/profilePicture").permitAll()
                         .requestMatchers("/.well-known/**").permitAll()
                         .requestMatchers("/",
