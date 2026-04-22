@@ -137,7 +137,7 @@ public class GlobalExceptionHandler {
         errorResponse.put("timestamp", Instant.now().toString());
         errorResponse.put("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
         errorResponse.put("error", "Internal Server Error");
-        errorResponse.put("message", ex.getMessage());
+        errorResponse.put("message", "An unexpected error occurred");
         errorResponse.put("path", request.getRequestURI());
 
         return ResponseEntity
